@@ -24,6 +24,15 @@ func (r Record) HasEnded() bool {
 	return !r.End.IsZero()
 }
 
+// Duration reports the duration of a record
+func (r Record) Duration() time.Duration {
+	t := r.End
+	if t.IsZero() {
+		t = time.Now()
+	}
+	return t.Sub(r.Start)
+}
+
 // RecordPath returns the full path for a record
 func (t *Track) RecordPath(record Record) string {
 	return filepath.Join(
@@ -81,6 +90,44 @@ func (t *Track) LoadRecord(path string) (Record, error) {
 	}
 
 	return record, nil
+}
+
+// LoadAllRecords loads all records
+func (t *Track) LoadAllRecords() ([]Record, error) {
+	path := fs.RecordsDir()
+
+	dirs, err := ioutil.ReadDir(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var records []Record
+
+	for _, dir := range dirs {
+		if !dir.IsDir() {
+			continue
+		}
+		subPath := filepath.Join(path, dir.Name())
+
+		files, err := ioutil.ReadDir(subPath)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, file := range files {
+			if file.IsDir() {
+				continue
+			}
+
+			record, err := t.LoadRecord(filepath.Join(subPath, file.Name()))
+			if err != nil {
+				return nil, err
+			}
+			records = append(records, record)
+		}
+	}
+
+	return records, nil
 }
 
 // LatestRecord loads the latest record

@@ -3,6 +3,7 @@ package core
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -46,4 +47,44 @@ func (t *Track) SaveProject(project Project) error {
 	_, err = file.Write(bytes)
 
 	return err
+}
+
+// LoadProject loads a project
+func (t *Track) LoadProject(path string) (Project, error) {
+	file, err := ioutil.ReadFile(path)
+	if err != nil {
+		return Project{}, err
+	}
+
+	var project Project
+
+	if err := json.Unmarshal(file, &project); err != nil {
+		return Project{}, err
+	}
+
+	return project, nil
+}
+
+// LoadAllProjects loads all projects
+func (t *Track) LoadAllProjects() ([]Project, error) {
+	path := fs.ProjectsDir()
+
+	files, err := ioutil.ReadDir(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var projects []Project
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+		project, err := t.LoadProject(filepath.Join(path, file.Name()))
+		if err != nil {
+			return nil, err
+		}
+		projects = append(projects, project)
+	}
+
+	return projects, nil
 }
