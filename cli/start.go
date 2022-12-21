@@ -29,19 +29,13 @@ func startCommand(t *core.Track) *cobra.Command {
 
 			note := strings.Join(args[1:], " ")
 
-			record := core.Record{
-				Project: project,
-				Note:    note,
-				Start:   time.Now(),
-				End:     time.Time{},
-			}
-
-			if err := t.SaveRecord(record, false); err != nil {
+			record, err := t.StartRecord(project, note, time.Now())
+			if err != nil {
 				out.Err("failed to create record: %s", err.Error())
 				return
 			}
 
-			out.Success("Started record at %02d:%02d", record.Start.Hour(), record.Start.Minute())
+			out.Success("Started record in '%s' at %02d:%02d", project, record.Start.Hour(), record.Start.Minute())
 		},
 	}
 

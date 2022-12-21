@@ -35,7 +35,7 @@ func listProjectsCommand(t *core.Track) *cobra.Command {
 			}
 
 			for _, project := range projects {
-				out.Success("%s", project.Name)
+				out.Success("%s\n", project.Name)
 			}
 		},
 	}
@@ -65,19 +65,20 @@ func listRecordsCommand(t *core.Track) *cobra.Command {
 }
 
 func printRecord(r core.Record) {
-	start := r.Start.Format(util.DateTimeFormat)
+	date := r.Start.Format(util.DateFormat)
+	start := r.Start.Format(util.TimeFormat)
 
 	var end string
 	if r.HasEnded() {
-		end = r.End.Format(util.DateTimeFormat)
+		end = r.End.Format(util.TimeFormat)
 	} else {
-		end = util.NoDateTime
+		end = util.NoTime
 	}
 	dur := r.Duration()
 
 	out.Success(
-		"%-15s %s - %s (%.1fhr)  %s\n", r.Project,
-		start, end, dur.Hours(),
+		"%-15s %s %s - %s (%.1fhr)  %s\n", r.Project,
+		date, start, end, dur.Hours(),
 		r.Note,
 	)
 }

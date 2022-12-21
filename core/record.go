@@ -164,3 +164,31 @@ func (t *Track) OpenRecord() (rec Record, ok bool) {
 	}
 	return latest, true
 }
+
+// StartRecord starts and saves a record
+func (t *Track) StartRecord(project, note string, start time.Time) (Record, error) {
+	record := Record{
+		Project: project,
+		Note:    note,
+		Start:   start,
+		End:     time.Time{},
+	}
+
+	return record, t.SaveRecord(record, false)
+}
+
+// StopRecord stops and saves the current record
+func (t *Track) StopRecord(end time.Time) (Record, error) {
+	record, ok := t.OpenRecord()
+	if !ok {
+		return record, fmt.Errorf("no running record")
+	}
+
+	record.End = end
+
+	err := t.SaveRecord(record, true)
+	if err != nil {
+		return record, err
+	}
+	return record, nil
+}
