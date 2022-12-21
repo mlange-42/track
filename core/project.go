@@ -15,19 +15,19 @@ type Project struct {
 	Parent string
 }
 
-// ProjectFile returns file name for a project
-func (t *Track) ProjectFile(name string) string {
+// ProjectPath returns the full path for a project
+func (t *Track) ProjectPath(name string) string {
 	return filepath.Join(fs.ProjectsDir(), fs.Sanitize(name)+".json")
 }
 
 // ProjectExists checks if a project exists
 func (t *Track) ProjectExists(name string) bool {
-	return fs.FileExists(t.ProjectFile(name))
+	return fs.FileExists(t.ProjectPath(name))
 }
 
 // SaveProject saves a project to disk
 func (t *Track) SaveProject(project Project) error {
-	path := t.ProjectFile(project.Name)
+	path := t.ProjectPath(project.Name)
 
 	if fs.FileExists(path) {
 		return fmt.Errorf("Project '%s' already exists", project.Name)

@@ -1,6 +1,9 @@
 package fs
 
 import (
+	"errors"
+	gofs "io/fs"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -10,6 +13,11 @@ const (
 	rootDirName     = ".track"
 	projectsDirName = "projects"
 	recordsDirName  = "records"
+)
+
+var (
+	// ErrNoFiles is an error for files found at all
+	ErrNoFiles = errors.New("no files")
 )
 
 var pathSanitizer = strings.NewReplacer("/", "-", "\\", "-")
@@ -68,4 +76,26 @@ func CreateDir(path string) error {
 		return nil
 	}
 	return err
+}
+
+// FindLatests finds the "latest" file or directory in a file, by name
+func FindLatests(path string, isDir bool) (string, error) {
+	files, err := ioutil.ReadDir(path)
+	if err != nil {
+		return "", err
+	}
+
+	var dir gofs.FileInfo = nil
+	for i := len(files) - 1; i >= 0; i-- {
+		dir = files[i]
+		if dir.IsDir() == isDir {
+			break
+		}
+	}
+
+	if dir == nil {
+		return "", ErrNoFiles
+	}
+
+	return filepath.Join(path, dir.Name()), nil
 }

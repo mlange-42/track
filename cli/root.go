@@ -22,6 +22,8 @@ func RootCommand(t *core.Track, version string) *cobra.Command {
 	}
 
 	root.AddCommand(createCommand(t))
+	root.AddCommand(startCommand(t))
+	root.AddCommand(stopCommand(t))
 
 	return root
 }
