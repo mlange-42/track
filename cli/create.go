@@ -21,6 +21,8 @@ func createCommand(t *core.Track) *cobra.Command {
 }
 
 func createProjectCommand(t *core.Track) *cobra.Command {
+	var parent string
+
 	createProject := &cobra.Command{
 		Use:   "project <NAME>",
 		Short: "Create a new project",
@@ -28,8 +30,14 @@ func createProjectCommand(t *core.Track) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			name := args[0]
 
+			if parent != "" && !t.ProjectExists(parent) {
+				out.Err("failed to create project: parent project '%s' does not exist", parent)
+				return
+			}
+
 			project := core.Project{
-				Name: name,
+				Name:   name,
+				Parent: parent,
 			}
 
 			if err := t.SaveProject(project); err != nil {
@@ -40,6 +48,8 @@ func createProjectCommand(t *core.Track) *cobra.Command {
 			out.Success("Created project %s", name)
 		},
 	}
+
+	createProject.Flags().StringVarP(&parent, "parent", "p", "", "Parent project of this project")
 
 	return createProject
 }
