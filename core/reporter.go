@@ -4,12 +4,24 @@ import (
 	"time"
 )
 
+// TimeRange represents a time range
+type TimeRange struct {
+	Start time.Time
+	End   time.Time
+}
+
+// Duration calculates the duration of a time range
+func (r TimeRange) Duration() time.Duration {
+	return r.End.Sub(r.Start)
+}
+
 // Reporter for generating reports
 type Reporter struct {
 	Track       *Track
 	Records     []Record
 	Projects    []Project
 	ProjectTime map[string]time.Duration
+	TimeRange   TimeRange
 }
 
 // NewReporter creates a new Reporter from filters
@@ -41,8 +53,21 @@ func NewReporter(t *Track, proj []string, filters FilterFunctions) (*Reporter, e
 		totals[p.Name] = time.Second * 0.0
 	}
 
+	tRange := TimeRange{}
 	for _, rec := range records {
 		totals[rec.Project] = totals[rec.Project] + rec.Duration()
+		if tRange.Start.IsZero() || rec.Start.Before(tRange.Start) {
+			tRange.Start = rec.Start
+		}
+		if rec.End.IsZero() {
+			if tRange.End.IsZero() || rec.Start.After(tRange.End) {
+				tRange.End = rec.Start
+			}
+		} else {
+			if tRange.End.IsZero() || rec.End.After(tRange.End) {
+				tRange.End = rec.End
+			}
+		}
 	}
 
 	report := Reporter{
@@ -50,6 +75,7 @@ func NewReporter(t *Track, proj []string, filters FilterFunctions) (*Reporter, e
 		Records:     records,
 		Projects:    projects,
 		ProjectTime: totals,
+		TimeRange:   tRange,
 	}
 	return &report, nil
 }
