@@ -16,7 +16,7 @@ const (
 )
 
 var (
-	// ErrNoFiles is an error for files found at all
+	// ErrNoFiles is an error for no files found at all
 	ErrNoFiles = errors.New("no files")
 )
 

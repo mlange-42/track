@@ -14,21 +14,14 @@ func stopCommand(t *core.Track) *cobra.Command {
 		Short: "Stop the current record",
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			record, ok := t.OpenRecord()
-			if !ok {
-				out.Err("failed to stop record: no running record")
-				return
-			}
+			record, err := t.StopRecord(time.Now())
 
-			record.End = time.Now()
-
-			err := t.SaveRecord(record, true)
 			if err != nil {
 				out.Err("failed to stop record: %s", err)
 				return
 			}
 
-			out.Success("Stopped record at %02d:%02d", record.End.Hour(), record.End.Minute())
+			out.Success("Stopped record in '%s' at %02d:%02d", record.Project, record.End.Hour(), record.End.Minute())
 		},
 	}
 
