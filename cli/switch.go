@@ -13,9 +13,10 @@ func switchCommand(t *core.Track) *cobra.Command {
 	var force bool
 
 	switchCom := &cobra.Command{
-		Use:   "switch <project> [message]",
-		Short: "Start a record and stop any running record",
-		Args:  cobra.MinimumNArgs(1),
+		Use:     "switch <project> [message]",
+		Short:   "Start a record and stop any running record",
+		Aliases: []string{"sw"},
+		Args:    cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			project := args[0]
 

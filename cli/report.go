@@ -21,78 +21,124 @@ var timelineModes = map[string]func(*core.Reporter) string{
 	"m":      timelineMonths,
 }
 
+type reportOptions struct {
+	projects []string
+	tags     []string
+	start    string
+	end      string
+}
+
 func reportCommand(t *core.Track) *cobra.Command {
-	var projects []string
-	var tags []string
-	var start string
-	var end string
-	var timeline string
+	options := reportOptions{}
 
 	report := &cobra.Command{
-		Use:   "report",
-		Short: "Generate reports of time tracking",
+		Use:     "report",
+		Short:   "Generate reports of time tracking",
+		Aliases: []string{"r"},
 		Run: func(cmd *cobra.Command, args []string) {
-			var filters core.FilterFunctions
+			_ = cmd.Help()
+		},
+	}
 
-			if len(projects) > 0 {
-				filters = append(filters, core.FilterByProjects(projects))
-			}
-			if len(tags) > 0 {
-				filters = append(filters, core.FilterByTagsAny(tags))
-			}
-			var err error
-			var startTime time.Time
-			var endTime time.Time
-			if len(start) > 0 {
-				startTime, err = util.ParseDate(start)
-				if err != nil {
-					out.Err("failed to generate report: %s", err)
-					return
-				}
-			}
-			if len(end) > 0 {
-				endTime, err = util.ParseDate(end)
-				if err != nil {
-					out.Err("failed to generate report: %s", err)
-					return
-				}
-			}
-			if !(startTime.IsZero() && endTime.IsZero()) {
-				filters = append(filters, core.FilterByTime(startTime, endTime))
-			}
+	report.PersistentFlags().StringSliceVarP(&options.projects, "projects", "p", []string{}, "Projects to include. Includes all projects if not specified")
+	report.PersistentFlags().StringSliceVarP(&options.tags, "tags", "t", []string{}, "Tags to include. Includes records with any of the given tags")
+	report.PersistentFlags().StringVarP(&options.start, "start", "s", "", "Start date")
+	report.PersistentFlags().StringVarP(&options.end, "end", "e", "", "End date")
 
-			var timelineFunc func(*core.Reporter) string
-			if timeline != "" {
-				var ok bool
-				if timelineFunc, ok = timelineModes[timeline]; !ok {
-					out.Err("failed to generate report: invalid timeline argument '%s'", timeline)
-					return
-				}
-			}
+	report.AddCommand(timelineReportCommand(t, &options))
+	report.AddCommand(projectsReportCommand(t, &options))
 
-			reporter, err := core.NewReporter(t, projects, filters)
+	return report
+}
+
+func timelineReportCommand(t *core.Track, options *reportOptions) *cobra.Command {
+	timeline := &cobra.Command{
+		Use:     "timeline <days/weeks/months>",
+		Short:   "Timeline reports of time tracking",
+		Aliases: []string{"t"},
+		Args:    cobra.ExactArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+			mode := args[0]
+
+			filters, err := createFilters(options)
 			if err != nil {
 				out.Err("failed to generate report: %s", err)
 				return
 			}
 
-			if timeline == "" {
-				for name, dur := range reporter.ProjectTime {
-					out.Success("%-15s %s\n", name, util.FormatDuration(dur))
-				}
+			timelineFunc, ok := timelineModes[mode]
+			if !ok {
+				out.Err("failed to generate report: invalid timeline argument '%s'", timeline)
 				return
 			}
+
+			reporter, err := core.NewReporter(t, options.projects, filters)
+			if err != nil {
+				out.Err("failed to generate report: %s", err)
+				return
+			}
+
 			out.Success(timelineFunc(reporter))
 		},
 	}
+	return timeline
+}
 
-	report.Flags().StringSliceVarP(&projects, "projects", "p", []string{}, "Projects to include. Includes all projects if not specified")
-	report.Flags().StringSliceVarP(&tags, "tags", "t", []string{}, "Tags to include. Includes records with any of the given tags")
-	report.Flags().StringVarP(&start, "start", "s", "", "Start date")
-	report.Flags().StringVarP(&end, "end", "e", "", "End date")
-	report.Flags().StringVarP(&timeline, "timeline", "l", "", "Timeline mode. One of [days weeks months] (first letter is sufficient).")
+func projectsReportCommand(t *core.Track, options *reportOptions) *cobra.Command {
+	projects := &cobra.Command{
+		Use:     "projects",
+		Short:   "Timeline reports of time tracking",
+		Aliases: []string{"p"},
+		Args:    cobra.NoArgs,
+		Run: func(cmd *cobra.Command, args []string) {
+			filters, err := createFilters(options)
+			if err != nil {
+				out.Err("failed to generate report: %s", err)
+				return
+			}
+			reporter, err := core.NewReporter(t, options.projects, filters)
+			if err != nil {
+				out.Err("failed to generate report: %s", err)
+				return
+			}
 
-	return report
+			for name, dur := range reporter.ProjectTime {
+				out.Success("%-15s %s\n", name, util.FormatDuration(dur))
+			}
+		},
+	}
+	return projects
+}
+
+func createFilters(options *reportOptions) (core.FilterFunctions, error) {
+	var filters core.FilterFunctions
+
+	if len(options.projects) > 0 {
+		filters = append(filters, core.FilterByProjects(options.projects))
+	}
+	if len(options.tags) > 0 {
+		filters = append(filters, core.FilterByTagsAny(options.tags))
+	}
+	var err error
+	var startTime time.Time
+	var endTime time.Time
+	if len(options.start) > 0 {
+		startTime, err = util.ParseDate(options.start)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if len(options.end) > 0 {
+		endTime, err = util.ParseDate(options.end)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if !(startTime.IsZero() && endTime.IsZero()) {
+		filters = append(filters, core.FilterByTime(startTime, endTime))
+	}
+
+	return filters, nil
 }
 
 func timelineDays(r *core.Reporter) string {

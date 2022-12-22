@@ -9,8 +9,9 @@ import (
 
 func statusCommand(t *core.Track) *cobra.Command {
 	status := &cobra.Command{
-		Use:   "status",
-		Short: "Reports current status",
+		Use:     "status",
+		Short:   "Reports current status",
+		Aliases: []string{"s"},
 		Run: func(cmd *cobra.Command, args []string) {
 			if rec, ok := t.OpenRecord(); ok {
 				out.Success(

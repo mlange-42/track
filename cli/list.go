@@ -9,8 +9,9 @@ import (
 
 func listCommand(t *core.Track) *cobra.Command {
 	create := &cobra.Command{
-		Use:   "list",
-		Short: "List resources",
+		Use:     "list",
+		Short:   "List resources",
+		Aliases: []string{"l"},
 		Run: func(cmd *cobra.Command, args []string) {
 			_ = cmd.Help()
 		},
@@ -24,9 +25,10 @@ func listCommand(t *core.Track) *cobra.Command {
 
 func listProjectsCommand(t *core.Track) *cobra.Command {
 	listProjects := &cobra.Command{
-		Use:   "projects",
-		Short: "List all projects",
-		Args:  cobra.NoArgs,
+		Use:     "projects",
+		Short:   "List all projects",
+		Aliases: []string{"p"},
+		Args:    cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			projects, err := t.LoadAllProjects()
 			if err != nil {
@@ -54,9 +56,10 @@ func listProjectsCommand(t *core.Track) *cobra.Command {
 
 func listRecordsCommand(t *core.Track) *cobra.Command {
 	listProjects := &cobra.Command{
-		Use:   "records <date>",
-		Short: "List all records",
-		Args:  cobra.ExactArgs(1),
+		Use:     "records <date>",
+		Short:   "List all records",
+		Aliases: []string{"r"},
+		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			date, err := util.ParseDate(args[0])
 			if err != nil {
