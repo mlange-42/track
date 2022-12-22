@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/mlange-42/track/fs"
+	"github.com/mlange-42/track/util"
 )
 
 // Record holds and manipulates data for a record
@@ -37,7 +38,7 @@ func (r Record) Duration() time.Duration {
 func (t *Track) RecordPath(record Record) string {
 	return filepath.Join(
 		t.RecordDir(record),
-		fmt.Sprintf("%02d-%02d-%02d.json", record.Start.Hour(), record.Start.Minute(), record.Start.Second()),
+		fmt.Sprintf("%s.json", record.Start.Format(util.FileTimeFormat)),
 	)
 }
 
@@ -45,7 +46,7 @@ func (t *Track) RecordPath(record Record) string {
 func (t *Track) RecordDir(record Record) string {
 	return filepath.Join(
 		fs.RecordsDir(),
-		fmt.Sprintf("%04d-%02d-%02d", record.Start.Year(), record.Start.Month(), record.Start.Day()),
+		record.Start.Format(util.FileDateFormat),
 	)
 }
 
@@ -107,24 +108,46 @@ func (t *Track) LoadAllRecords() ([]Record, error) {
 		if !dir.IsDir() {
 			continue
 		}
-		subPath := filepath.Join(path, dir.Name())
-
-		files, err := ioutil.ReadDir(subPath)
+		recs, err := t.LoadDateRecords(dir.Name())
 		if err != nil {
 			return nil, err
 		}
+		records = append(records, recs...)
+	}
 
-		for _, file := range files {
-			if file.IsDir() {
-				continue
-			}
+	return records, nil
+}
 
-			record, err := t.LoadRecord(filepath.Join(subPath, file.Name()))
-			if err != nil {
-				return nil, err
-			}
-			records = append(records, record)
+// LoadDateRecords loads all records for the given date string/directory
+func (t *Track) LoadDateRecords(dir string) ([]Record, error) {
+	path := fs.RecordsDir()
+	subPath := filepath.Join(path, dir)
+
+	info, err := os.Stat(subPath)
+	if err != nil {
+		return nil, fmt.Errorf("can't open location %s", dir)
+	}
+	if !info.IsDir() {
+		return nil, fmt.Errorf("'%s' is not a directory", dir)
+	}
+
+	var records []Record
+
+	files, err := ioutil.ReadDir(subPath)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, file := range files {
+		if file.IsDir() {
+			continue
 		}
+
+		record, err := t.LoadRecord(filepath.Join(subPath, file.Name()))
+		if err != nil {
+			return nil, err
+		}
+		records = append(records, record)
 	}
 
 	return records, nil

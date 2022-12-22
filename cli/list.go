@@ -34,8 +34,17 @@ func listProjectsCommand(t *core.Track) *cobra.Command {
 				return
 			}
 
+			var active string
+			if rec, ok := t.OpenRecord(); ok {
+				active = rec.Project
+			}
+
 			for _, project := range projects {
-				out.Success("%s\n", project.Name)
+				if project.Name == active {
+					out.Success("*%s\n", project.Name)
+				} else {
+					out.Success(" %s\n", project.Name)
+				}
 			}
 		},
 	}
@@ -45,11 +54,17 @@ func listProjectsCommand(t *core.Track) *cobra.Command {
 
 func listRecordsCommand(t *core.Track) *cobra.Command {
 	listProjects := &cobra.Command{
-		Use:   "records",
+		Use:   "records <date>",
 		Short: "List all records",
-		Args:  cobra.NoArgs,
+		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			records, err := t.LoadAllRecords()
+			date, err := util.ParseDate(args[0])
+			if err != nil {
+				out.Err("failed to load records: %s", err)
+				return
+			}
+			dir := date.Format(util.FileDateFormat)
+			records, err := t.LoadDateRecords(dir)
 			if err != nil {
 				out.Err("failed to load records: %s", err)
 				return
