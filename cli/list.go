@@ -96,8 +96,8 @@ func printRecord(r core.Record) {
 	dur := r.Duration()
 
 	out.Success(
-		"%-15s %s %s - %s (%.1fhr)  %s\n", r.Project,
-		date, start, end, dur.Hours(),
+		"%-15s %s %s - %s (%s)  %s\n", r.Project,
+		date, start, end, util.FormatDuration(dur),
 		r.Note,
 	)
 }

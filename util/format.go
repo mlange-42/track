@@ -1,5 +1,10 @@
 package util
 
+import (
+	"fmt"
+	"time"
+)
+
 const (
 	// DateFormat for date formatting
 	DateFormat = "2006-01-02"
@@ -16,3 +21,8 @@ const (
 	// NoDateTime string representation for zero time
 	NoDateTime = "      ---       "
 )
+
+// FormatDuration formats a duration
+func FormatDuration(d time.Duration) string {
+	return fmt.Sprintf("%.1fhr", d.Hours())
+}
