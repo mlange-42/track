@@ -105,6 +105,11 @@ func (t *Track) LoadRecord(path string) (Record, error) {
 
 // LoadAllRecords loads all records
 func (t *Track) LoadAllRecords() ([]Record, error) {
+	return t.LoadAllRecordsFiltered([]func(*Record) bool{})
+}
+
+// LoadAllRecordsFiltered loads all records
+func (t *Track) LoadAllRecordsFiltered(filters []func(*Record) bool) ([]Record, error) {
 	path := fs.RecordsDir()
 
 	dirs, err := ioutil.ReadDir(path)
@@ -118,7 +123,7 @@ func (t *Track) LoadAllRecords() ([]Record, error) {
 		if !dir.IsDir() {
 			continue
 		}
-		recs, err := t.LoadDateRecords(dir.Name())
+		recs, err := t.LoadDateRecordsFiltered(dir.Name(), filters)
 		if err != nil {
 			return nil, err
 		}
@@ -130,6 +135,11 @@ func (t *Track) LoadAllRecords() ([]Record, error) {
 
 // LoadDateRecords loads all records for the given date string/directory
 func (t *Track) LoadDateRecords(dir string) ([]Record, error) {
+	return t.LoadDateRecordsFiltered(dir, []func(*Record) bool{})
+}
+
+// LoadDateRecordsFiltered loads all records for the given date string/directory
+func (t *Track) LoadDateRecordsFiltered(dir string, filters []func(*Record) bool) ([]Record, error) {
 	path := fs.RecordsDir()
 	subPath := filepath.Join(path, dir)
 
@@ -157,7 +167,9 @@ func (t *Track) LoadDateRecords(dir string) ([]Record, error) {
 		if err != nil {
 			return nil, err
 		}
-		records = append(records, record)
+		if Filter(&record, filters) {
+			records = append(records, record)
+		}
 	}
 
 	return records, nil
