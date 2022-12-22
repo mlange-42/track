@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"math"
 	"strings"
 	"time"
 
@@ -95,42 +96,74 @@ func reportCommand(t *core.Track) *cobra.Command {
 }
 
 func timelineDays(r *core.Reporter) string {
-	minDate := util.Date(r.TimeRange.Start.Date())
-	maxDate := util.Date(r.TimeRange.End.Add(time.Hour * 24).Date())
-	numDays := int(maxDate.Sub(minDate).Hours() / 24)
-
-	dates := make([]time.Time, numDays, numDays)
-	currDate := minDate
-	for i := range dates {
-		dates[i] = currDate
-		currDate = currDate.Add(time.Hour * 24)
-	}
-
-	values := make([]float64, numDays, numDays)
-	for _, rec := range r.Records {
-		d := int(rec.Start.Sub(minDate).Hours() / 24)
-		values[d] = values[d] + rec.Duration().Hours()
-	}
-
-	return renderTimeline(dates, values)
+	startDate := util.Date(r.TimeRange.Start.Date())
+	return timeline(r, startDate, time.Hour*24, time.Minute*30)
 }
 
 func timelineWeeks(r *core.Reporter) string {
-	return ""
+	startDate := util.Date(r.TimeRange.Start.Date())
+	weekDay := (int(startDate.Weekday()) + 6) % 7
+	startDate = startDate.Add(time.Duration(-weekDay * 24 * int(time.Hour)))
+	return timeline(r, startDate, time.Hour*24*7, time.Hour)
 }
 
 func timelineMonths(r *core.Reporter) string {
-	return ""
+	y1, m1, _ := r.TimeRange.Start.Date()
+	y2, m2, _ := r.TimeRange.End.Date()
+	numBins := (y2-y1)*12 + int(m2) - int(m1) + 1
+
+	dates := make([]time.Time, numBins, numBins)
+	year, month := y1, m1
+	for i := range dates {
+		dates[i] = util.Date(year, time.Month(month), 1)
+		month++
+		if month > 12 {
+			year++
+			month = 1
+		}
+	}
+
+	values := make([]float64, numBins, numBins)
+	for _, rec := range r.Records {
+		y2, m2, _ := rec.Start.Date()
+		d := (y2-y1)*12 + int(m2) - int(m1)
+		values[d] = values[d] + rec.Duration().Hours()
+	}
+
+	return renderTimeline(dates, values, 8)
+}
+func timeline(r *core.Reporter, startDate time.Time, delta time.Duration, unit time.Duration) string {
+	minDate := startDate
+	maxDate := util.Date(r.TimeRange.End.Add(delta).Date())
+	numBins := int(maxDate.Sub(minDate).Hours() / delta.Hours())
+
+	dates := make([]time.Time, numBins, numBins)
+	currDate := minDate
+	for i := range dates {
+		dates[i] = currDate
+		currDate = currDate.Add(delta)
+	}
+
+	values := make([]float64, numBins, numBins)
+	for _, rec := range r.Records {
+		d := int(rec.Start.Sub(minDate).Hours() / delta.Hours())
+		values[d] = values[d] + rec.Duration().Hours()
+	}
+
+	return renderTimeline(dates, values, unit.Hours())
 }
 
-func renderTimeline(dates []time.Time, values []float64) string {
+func renderTimeline(dates []time.Time, values []float64, unit float64) string {
 	sb := strings.Builder{}
 	for i := range dates {
 		d := dates[i]
-		v := values[i]
+		v := values[i] / unit
 		fmt.Fprintf(&sb, "%s %s ", d.Weekday().String()[:2], d.Format(util.DateFormat))
 		for i := 0; i < int(v); i++ {
 			fmt.Fprint(&sb, "#")
+		}
+		if v > math.Floor(v)+0.1 {
+			fmt.Fprint(&sb, ".")
 		}
 		fmt.Fprintf(&sb, "\n")
 	}
