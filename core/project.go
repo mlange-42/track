@@ -27,10 +27,10 @@ func (t *Track) ProjectExists(name string) bool {
 }
 
 // SaveProject saves a project to disk
-func (t *Track) SaveProject(project Project) error {
+func (t *Track) SaveProject(project Project, force bool) error {
 	path := t.ProjectPath(project.Name)
 
-	if fs.FileExists(path) {
+	if !force && fs.FileExists(path) {
 		return fmt.Errorf("Project '%s' already exists", project.Name)
 	}
 

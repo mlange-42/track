@@ -42,12 +42,12 @@ func createProjectCommand(t *core.Track) *cobra.Command {
 				Parent: parent,
 			}
 
-			if err := t.SaveProject(project); err != nil {
+			if err := t.SaveProject(project, false); err != nil {
 				out.Err("failed to create project: %s", err.Error())
 				return
 			}
 
-			out.Success("Created project %s", name)
+			out.Success("Created project '%s'", name)
 		},
 	}
 
