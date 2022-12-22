@@ -28,8 +28,9 @@ func startCommand(t *core.Track) *cobra.Command {
 			}
 
 			note := strings.Join(args[1:], " ")
+			tags := t.ExtractTags(args[1:])
 
-			record, err := t.StartRecord(project, note, time.Now())
+			record, err := t.StartRecord(project, note, tags, time.Now())
 			if err != nil {
 				out.Err("failed to create record: %s", err.Error())
 				return

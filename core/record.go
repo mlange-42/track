@@ -2,20 +2,30 @@ package core
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/mlange-42/track/fs"
 	"github.com/mlange-42/track/util"
 )
 
+const tagPrefix = "#"
+
+var (
+	// ErrNoRecords is an error for no records found for a date
+	ErrNoRecords = errors.New("no records for date")
+)
+
 // Record holds and manipulates data for a record
 type Record struct {
 	Project string
 	Note    string
+	Tags    []string
 	Start   time.Time
 	End     time.Time
 }
@@ -125,7 +135,7 @@ func (t *Track) LoadDateRecords(dir string) ([]Record, error) {
 
 	info, err := os.Stat(subPath)
 	if err != nil {
-		return nil, fmt.Errorf("can't open location %s", dir)
+		return nil, ErrNoRecords
 	}
 	if !info.IsDir() {
 		return nil, fmt.Errorf("'%s' is not a directory", dir)
@@ -189,10 +199,11 @@ func (t *Track) OpenRecord() (rec Record, ok bool) {
 }
 
 // StartRecord starts and saves a record
-func (t *Track) StartRecord(project, note string, start time.Time) (Record, error) {
+func (t *Track) StartRecord(project, note string, tags []string, start time.Time) (Record, error) {
 	record := Record{
 		Project: project,
 		Note:    note,
+		Tags:    tags,
 		Start:   start,
 		End:     time.Time{},
 	}
@@ -214,4 +225,22 @@ func (t *Track) StopRecord(end time.Time) (Record, error) {
 		return record, err
 	}
 	return record, nil
+}
+
+// ExtractTags extracts elements with the tag prefix
+func (t *Track) ExtractTags(tokens []string) []string {
+	var result []string
+	mapped := make(map[string]bool)
+	for _, token := range tokens {
+		subTokens := strings.Split(token, " ")
+		for _, subToken := range subTokens {
+			if strings.HasPrefix(subToken, tagPrefix) {
+				if _, ok := mapped[subToken]; !ok {
+					mapped[subToken] = true
+					result = append(result, subToken)
+				}
+			}
+		}
+	}
+	return result
 }

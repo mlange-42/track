@@ -66,6 +66,10 @@ func listRecordsCommand(t *core.Track) *cobra.Command {
 			dir := date.Format(util.FileDateFormat)
 			records, err := t.LoadDateRecords(dir)
 			if err != nil {
+				if err == core.ErrNoRecords {
+					out.Err("no records for date %s", dir)
+					return
+				}
 				out.Err("failed to load records: %s", err)
 				return
 			}
