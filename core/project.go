@@ -49,6 +49,12 @@ func (t *Track) SaveProject(project Project) error {
 	return err
 }
 
+// LoadProjectByName loads a project by name
+func (t *Track) LoadProjectByName(name string) (Project, error) {
+	path := t.ProjectPath(name)
+	return t.LoadProject(path)
+}
+
 // LoadProject loads a project
 func (t *Track) LoadProject(path string) (Project, error) {
 	file, err := ioutil.ReadFile(path)

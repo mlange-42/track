@@ -2,8 +2,14 @@ package core
 
 import "time"
 
+// FilterFunction is an alias for func(r *Record) bool
+type FilterFunction = func(r *Record) bool
+
+// FilterFunctions is an alias for []func(r *Record) bool
+type FilterFunctions = []FilterFunction
+
 // Filter checks a record using multiple filters
-func Filter(record *Record, filters []func(r *Record) bool) bool {
+func Filter(record *Record, filters FilterFunctions) bool {
 	for _, f := range filters {
 		if !f(record) {
 			return false
@@ -13,7 +19,7 @@ func Filter(record *Record, filters []func(r *Record) bool) bool {
 }
 
 // FilterByProjects returns a function for filtering by project names
-func FilterByProjects(projects []string) func(r *Record) bool {
+func FilterByProjects(projects []string) FilterFunction {
 	prj := make(map[string]bool)
 	for _, p := range projects {
 		prj[p] = true
@@ -25,14 +31,14 @@ func FilterByProjects(projects []string) func(r *Record) bool {
 }
 
 // FilterByTime returns a function for filtering by time
-func FilterByTime(start, end time.Time) func(r *Record) bool {
+func FilterByTime(start, end time.Time) FilterFunction {
 	return func(r *Record) bool {
 		return (start.IsZero() || r.End.After(start)) && (end.IsZero() || r.Start.Before(end))
 	}
 }
 
 // FilterByTagsAny returns a function for filtering by tags
-func FilterByTagsAny(tags []string) func(r *Record) bool {
+func FilterByTagsAny(tags []string) FilterFunction {
 	tg := make(map[string]bool)
 	for _, t := range tags {
 		tg[t] = true
@@ -48,7 +54,7 @@ func FilterByTagsAny(tags []string) func(r *Record) bool {
 }
 
 // FilterByTagsAll returns a function for filtering by tags
-func FilterByTagsAll(tags []string) func(r *Record) bool {
+func FilterByTagsAll(tags []string) FilterFunction {
 	return func(r *Record) bool {
 		for _, t := range tags {
 			found := false

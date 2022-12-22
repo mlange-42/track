@@ -27,6 +27,7 @@ func RootCommand(t *core.Track, version string) *cobra.Command {
 	root.AddCommand(startCommand(t))
 	root.AddCommand(stopCommand(t))
 	root.AddCommand(switchCommand(t))
+	root.AddCommand(reportCommand(t))
 
 	// TODO: cancel
 	// TODO: reports
