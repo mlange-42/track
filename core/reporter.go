@@ -19,7 +19,7 @@ func (r TimeRange) Duration() time.Duration {
 type Reporter struct {
 	Track       *Track
 	Records     []Record
-	Projects    []Project
+	Projects    map[string]Project
 	ProjectTime map[string]time.Duration
 	TimeRange   TimeRange
 }
@@ -27,7 +27,7 @@ type Reporter struct {
 // NewReporter creates a new Reporter from filters
 func NewReporter(t *Track, proj []string, filters FilterFunctions) (*Reporter, error) {
 	var err error
-	var projects []Project
+	var projects map[string]Project
 	if len(proj) == 0 {
 		projects, err = t.LoadAllProjects()
 		if err != nil {
@@ -39,7 +39,7 @@ func NewReporter(t *Track, proj []string, filters FilterFunctions) (*Reporter, e
 			if err != nil {
 				return nil, err
 			}
-			projects = append(projects, project)
+			projects[project.Name] = project
 		}
 	}
 

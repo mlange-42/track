@@ -72,7 +72,7 @@ func (t *Track) LoadProject(path string) (Project, error) {
 }
 
 // LoadAllProjects loads all projects
-func (t *Track) LoadAllProjects() ([]Project, error) {
+func (t *Track) LoadAllProjects() (map[string]Project, error) {
 	path := fs.ProjectsDir()
 
 	files, err := ioutil.ReadDir(path)
@@ -80,7 +80,7 @@ func (t *Track) LoadAllProjects() ([]Project, error) {
 		return nil, err
 	}
 
-	var projects []Project
+	projects := make(map[string]Project)
 	for _, file := range files {
 		if file.IsDir() {
 			continue
@@ -89,7 +89,7 @@ func (t *Track) LoadAllProjects() ([]Project, error) {
 		if err != nil {
 			return nil, err
 		}
-		projects = append(projects, project)
+		projects[project.Name] = project
 	}
 
 	return projects, nil

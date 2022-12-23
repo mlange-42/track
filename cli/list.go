@@ -1,10 +1,13 @@
 package cli
 
 import (
+	"sort"
+
 	"github.com/mlange-42/track/core"
 	"github.com/mlange-42/track/out"
 	"github.com/mlange-42/track/util"
 	"github.com/spf13/cobra"
+	"golang.org/x/exp/maps"
 )
 
 func listCommand(t *core.Track) *cobra.Command {
@@ -41,11 +44,13 @@ func listProjectsCommand(t *core.Track) *cobra.Command {
 				active = rec.Project
 			}
 
-			for _, project := range projects {
-				if project.Name == active {
-					out.Print("*%s\n", project.Name)
+			keys := maps.Keys(projects)
+			sort.Strings(keys)
+			for _, name := range keys {
+				if name == active {
+					out.Print("*%s\n", name)
 				} else {
-					out.Print(" %s\n", project.Name)
+					out.Print(" %s\n", name)
 				}
 			}
 		},
