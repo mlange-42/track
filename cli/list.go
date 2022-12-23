@@ -1,13 +1,13 @@
 package cli
 
 import (
-	"sort"
+	"fmt"
 
+	"github.com/gookit/color"
 	"github.com/mlange-42/track/core"
 	"github.com/mlange-42/track/out"
 	"github.com/mlange-42/track/util"
 	"github.com/spf13/cobra"
-	"golang.org/x/exp/maps"
 )
 
 func listCommand(t *core.Track) *cobra.Command {
@@ -44,15 +44,17 @@ func listProjectsCommand(t *core.Track) *cobra.Command {
 				active = rec.Project
 			}
 
-			keys := maps.Keys(projects)
-			sort.Strings(keys)
-			for _, name := range keys {
-				if name == active {
-					out.Print("*%s\n", name)
-				} else {
-					out.Print(" %s\n", name)
-				}
-			}
+			tree := core.ToProjectTree(projects)
+			formatter := util.NewTreeFormatter(
+				func(t *core.ProjectTree, indent int) string {
+					if t.Value.Name == active {
+						return color.BgBlue.Sprintf("%s", t.Value.Name)
+					}
+					return fmt.Sprintf("%s", t.Value.Name)
+				},
+				2,
+			)
+			fmt.Print(formatter.FormatTree(tree))
 		},
 	}
 
