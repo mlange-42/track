@@ -27,7 +27,7 @@ type Reporter struct {
 // NewReporter creates a new Reporter from filters
 func NewReporter(t *Track, proj []string, filters FilterFunctions) (*Reporter, error) {
 	var err error
-	var projects map[string]Project
+	projects := make(map[string]Project)
 	if len(proj) == 0 {
 		projects, err = t.LoadAllProjects()
 		if err != nil {
