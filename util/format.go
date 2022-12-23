@@ -13,9 +13,11 @@ const (
 	// TimeFormat for time formatting
 	TimeFormat = "15:04"
 	// FileTimeFormat for file name time formatting
-	FileTimeFormat = "15-04-05"
+	FileTimeFormat = "15-04"
 	// DateTimeFormat for date and time formatting
 	DateTimeFormat = "2006-01-02 15:04"
+	// JSONTimeFormat for JSON date and time formatting
+	JSONTimeFormat = "2006-01-02 15:04:05"
 	// NoTime string representation for zero time
 	NoTime = " --- "
 	// NoDateTime string representation for zero time

@@ -45,28 +45,28 @@ func (r Record) Duration() time.Duration {
 }
 
 // RecordPath returns the full path for a record
-func (t *Track) RecordPath(record Record) string {
+func (t *Track) RecordPath(tm time.Time) string {
 	return filepath.Join(
-		t.RecordDir(record),
-		fmt.Sprintf("%s.json", record.Start.Format(util.FileTimeFormat)),
+		t.RecordDir(tm),
+		fmt.Sprintf("%s.json", tm.Format(util.FileTimeFormat)),
 	)
 }
 
 // RecordDir returns the directory path for a record
-func (t *Track) RecordDir(record Record) string {
+func (t *Track) RecordDir(tm time.Time) string {
 	return filepath.Join(
 		fs.RecordsDir(),
-		record.Start.Format(util.FileDateFormat),
+		tm.Format(util.FileDateFormat),
 	)
 }
 
 // SaveRecord saves a record to disk
 func (t *Track) SaveRecord(record Record, force bool) error {
-	path := t.RecordPath(record)
+	path := t.RecordPath(record.Start)
 	if !force && fs.FileExists(path) {
 		return fmt.Errorf("Record already exists")
 	}
-	dir := t.RecordDir(record)
+	dir := t.RecordDir(record.Start)
 	err := fs.CreateDir(dir)
 	if err != nil {
 		return err
@@ -87,6 +87,12 @@ func (t *Track) SaveRecord(record Record, force bool) error {
 	return err
 }
 
+// LoadRecordByTime loads a record
+func (t *Track) LoadRecordByTime(tm time.Time) (Record, error) {
+	path := t.RecordPath(tm)
+	return t.LoadRecord(path)
+}
+
 // LoadRecord loads a record
 func (t *Track) LoadRecord(path string) (Record, error) {
 	file, err := ioutil.ReadFile(path)
@@ -105,6 +111,11 @@ func (t *Track) LoadRecord(path string) (Record, error) {
 
 // LoadAllRecords loads all records
 func (t *Track) LoadAllRecords() ([]Record, error) {
+	return t.LoadAllRecordsFiltered([]func(*Record) bool{})
+}
+
+// LoadAllRecordsFiltered loads all records
+func (t *Track) LoadAllRecordsFiltered(filters FilterFunctions) ([]Record, error) {
 	path := fs.RecordsDir()
 
 	dirs, err := ioutil.ReadDir(path)
@@ -118,7 +129,7 @@ func (t *Track) LoadAllRecords() ([]Record, error) {
 		if !dir.IsDir() {
 			continue
 		}
-		recs, err := t.LoadDateRecords(dir.Name())
+		recs, err := t.LoadDateRecordsFiltered(dir.Name(), filters)
 		if err != nil {
 			return nil, err
 		}
@@ -130,6 +141,11 @@ func (t *Track) LoadAllRecords() ([]Record, error) {
 
 // LoadDateRecords loads all records for the given date string/directory
 func (t *Track) LoadDateRecords(dir string) ([]Record, error) {
+	return t.LoadDateRecordsFiltered(dir, []func(*Record) bool{})
+}
+
+// LoadDateRecordsFiltered loads all records for the given date string/directory
+func (t *Track) LoadDateRecordsFiltered(dir string, filters FilterFunctions) ([]Record, error) {
 	path := fs.RecordsDir()
 	subPath := filepath.Join(path, dir)
 
@@ -157,7 +173,9 @@ func (t *Track) LoadDateRecords(dir string) ([]Record, error) {
 		if err != nil {
 			return nil, err
 		}
-		records = append(records, record)
+		if Filter(&record, filters) {
+			records = append(records, record)
+		}
 	}
 
 	return records, nil

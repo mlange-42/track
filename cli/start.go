@@ -11,9 +11,10 @@ import (
 
 func startCommand(t *core.Track) *cobra.Command {
 	start := &cobra.Command{
-		Use:   "start <project> [message]",
-		Short: "Start a record",
-		Args:  cobra.MinimumNArgs(1),
+		Use:     "start <project> [message]",
+		Short:   "Start a record",
+		Aliases: []string{"+"},
+		Args:    cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			project := args[0]
 
