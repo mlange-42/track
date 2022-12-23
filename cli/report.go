@@ -78,7 +78,7 @@ func timelineReportCommand(t *core.Track, options *reportOptions) *cobra.Command
 				return
 			}
 
-			out.Success(timelineFunc(reporter))
+			out.Print(timelineFunc(reporter))
 		},
 	}
 	return timeline
@@ -103,7 +103,7 @@ func projectsReportCommand(t *core.Track, options *reportOptions) *cobra.Command
 			}
 
 			for name, dur := range reporter.ProjectTime {
-				out.Success("%-15s %s\n", name, util.FormatDuration(dur))
+				out.Print("%-15s %s\n", name, util.FormatDuration(dur))
 			}
 		},
 	}

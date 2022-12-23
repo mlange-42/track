@@ -15,7 +15,7 @@ func main() {
 	track.CreateDirs()
 
 	if err := cli.RootCommand(&track, version).Execute(); err != nil {
-		out.Err("%s\n", err.Error())
+		out.Err("%s", err.Error())
 		os.Exit(1)
 	}
 }

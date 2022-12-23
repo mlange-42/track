@@ -14,7 +14,7 @@ func statusCommand(t *core.Track) *cobra.Command {
 		Aliases: []string{"s"},
 		Run: func(cmd *cobra.Command, args []string) {
 			if rec, ok := t.OpenRecord(); ok {
-				out.Success(
+				out.Print(
 					"Tracking project '%s' since %s (%s)",
 					rec.Project,
 					rec.Start.Format(util.TimeFormat),
@@ -22,7 +22,7 @@ func statusCommand(t *core.Track) *cobra.Command {
 				)
 				return
 			}
-			out.Success("No running record")
+			out.Print("No running record")
 		},
 	}
 

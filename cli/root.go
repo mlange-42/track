@@ -56,10 +56,10 @@ $ track report timeline days
 	// TODO: cancel
 	// TODO: reports
 	// TODO: undo
+	// TODO: config
 	// TODO: rename "project" to "activity" or "topic"?
 	// TODO: project categories?
 	// TODO: use project hierarchy
-	// TODO: create GH repo for issues/TODOs
 	// TODO: allow multiple running projects? -> should be covered by hierarchy
 	// TODO: simplified JSON time format for reports
 
