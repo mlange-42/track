@@ -6,10 +6,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
+	"time"
 
 	"github.com/mlange-42/track/core"
 	"github.com/mlange-42/track/fs"
 	"github.com/mlange-42/track/out"
+	"github.com/mlange-42/track/util"
 	"github.com/spf13/cobra"
 )
 
@@ -29,8 +32,34 @@ func editCommand(t *core.Track) *cobra.Command {
 	}
 
 	create.AddCommand(editProjectCommand(t))
+	create.AddCommand(editRecordCommand(t))
 
 	return create
+}
+
+func editRecordCommand(t *core.Track) *cobra.Command {
+	editProject := &cobra.Command{
+		Use:     "record <TIME>",
+		Short:   "Edit a record",
+		Aliases: []string{"r"},
+		Args:    cobra.ExactArgs(2),
+		Run: func(cmd *cobra.Command, args []string) {
+			timeString := strings.Join(args, " ")
+			tm, err := util.ParseDateTime(timeString)
+			if err != nil {
+				out.Err("failed to edit project: %s", err)
+				return
+			}
+			err = editRecord(t, tm)
+			if err != nil {
+				out.Err("failed to edit project: %s", err)
+				return
+			}
+			out.Success("Saved record '%s'", tm.Format(util.DateTimeFormat))
+		},
+	}
+
+	return editProject
 }
 
 func editProjectCommand(t *core.Track) *cobra.Command {
@@ -51,6 +80,33 @@ func editProjectCommand(t *core.Track) *cobra.Command {
 	}
 
 	return editProject
+}
+
+func editRecord(t *core.Track, tm time.Time) error {
+	record, err := t.LoadRecordByTime(tm)
+	if err != nil {
+		return err
+	}
+
+	return edit(t, &record, func(b []byte) error {
+		var newRecord core.Record
+		if err := json.Unmarshal(b, &newRecord); err != nil {
+			return err
+		}
+
+		if newRecord.Start != record.Start {
+			return fmt.Errorf("can't change start time")
+		}
+
+		if newRecord.End.Before(newRecord.Start) {
+			return fmt.Errorf("end time is before start time")
+		}
+
+		if err = t.SaveRecord(newRecord, true); err != nil {
+			return err
+		}
+		return nil
+	})
 }
 
 func editProject(t *core.Track, name string) error {

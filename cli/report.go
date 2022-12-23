@@ -192,6 +192,7 @@ func timeline(r *core.Reporter, startDate time.Time, delta time.Duration, unit t
 
 	values := make([]float64, numBins, numBins)
 	for _, rec := range r.Records {
+		// TODO: split if over increment
 		d := int(rec.Start.Sub(minDate).Hours() / delta.Hours())
 		values[d] = values[d] + rec.Duration().Hours()
 	}
