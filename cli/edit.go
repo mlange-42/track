@@ -94,11 +94,12 @@ func editRecord(t *core.Track, tm time.Time) error {
 			return err
 		}
 
+		// TODO could change, but requires deleting original file
 		if newRecord.Start != record.Start {
 			return fmt.Errorf("can't change start time")
 		}
 
-		if newRecord.End.Before(newRecord.Start) {
+		if !newRecord.End.IsZero() && newRecord.End.Before(newRecord.Start) {
 			return fmt.Errorf("end time is before start time")
 		}
 
