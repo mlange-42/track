@@ -11,11 +11,13 @@ import (
 	"github.com/mlange-42/track/fs"
 )
 
-type config struct {
+// Config for track
+type Config struct {
 	TextEditor string
 }
 
-func loadConfig() (config, error) {
+// LoadConfig loads the track config, or creates and saves default settings
+func LoadConfig() (Config, error) {
 	conf, err := tryLoadConfig()
 	if err == nil {
 		return conf, nil
@@ -28,34 +30,35 @@ func loadConfig() (config, error) {
 		editor = "nano"
 	}
 
-	conf = config{
+	conf = Config{
 		TextEditor: editor,
 	}
 
-	err = saveConfig(conf)
+	err = SaveConfig(conf)
 	if err != nil {
-		return config{}, fmt.Errorf("could not save config file: %s", err)
+		return Config{}, fmt.Errorf("could not save config file: %s", err)
 	}
 
 	return conf, nil
 }
 
-func tryLoadConfig() (config, error) {
+func tryLoadConfig() (Config, error) {
 	file, err := ioutil.ReadFile(fs.ConfigPath())
 	if err != nil {
-		return config{}, err
+		return Config{}, err
 	}
 
-	var conf config
+	var conf Config
 
 	if err := json.Unmarshal(file, &conf); err != nil {
-		return config{}, err
+		return Config{}, err
 	}
 
 	return conf, nil
 }
 
-func saveConfig(conf config) error {
+// SaveConfig saves the given config to it's default location
+func SaveConfig(conf Config) error {
 	path := fs.ConfigPath()
 
 	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)

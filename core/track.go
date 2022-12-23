@@ -6,12 +6,12 @@ import (
 
 // Track is a top-level track instalce
 type Track struct {
-	Config config
+	Config Config
 }
 
 // NewTrack creates a new Track object
 func NewTrack() (Track, error) {
-	conf, err := loadConfig()
+	conf, err := LoadConfig()
 	if err != nil {
 		return Track{}, err
 	}
