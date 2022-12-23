@@ -2,23 +2,47 @@ package out
 
 import (
 	"fmt"
+	"os"
+
+	"github.com/gookit/color"
 )
+
+var (
+	successColor = color.BgGreen
+	warningColor = color.BgYellow
+	errorColor   = color.BgRed
+)
+
+// Print prints a neutral message
+func Print(format string, a ...interface{}) {
+	printOut(format, a...)
+}
 
 // Err prints an error
 func Err(format string, a ...interface{}) {
-	print(format, a...)
+	errorColor.Print(" ERROR ")
+	fmt.Print(" ")
+	printErr(format, a...)
 }
 
 // Warn prints a warning message
 func Warn(format string, a ...interface{}) {
-	print(format, a...)
+	warningColor.Print(" WARNING ")
+	fmt.Print(" ")
+	printErr(format, a...)
 }
 
 // Success prints a success message
 func Success(format string, a ...interface{}) {
-	print(format, a...)
+	successColor.Print(" SUCCESS ")
+	fmt.Print(" ")
+	printErr(format, a...)
 }
 
-func print(format string, a ...interface{}) {
+func printOut(format string, a ...interface{}) {
 	fmt.Printf(format, a...)
+}
+
+func printErr(format string, a ...interface{}) {
+	fmt.Fprintf(os.Stderr, format, a...)
 }

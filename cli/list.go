@@ -43,9 +43,9 @@ func listProjectsCommand(t *core.Track) *cobra.Command {
 
 			for _, project := range projects {
 				if project.Name == active {
-					out.Success("*%s\n", project.Name)
+					out.Print("*%s\n", project.Name)
 				} else {
-					out.Success(" %s\n", project.Name)
+					out.Print(" %s\n", project.Name)
 				}
 			}
 		},
@@ -98,7 +98,7 @@ func printRecord(r core.Record) {
 	}
 	dur := r.Duration()
 
-	out.Success(
+	out.Print(
 		"%-15s %s %s - %s (%s)  %s\n", r.Project,
 		date, start, end, util.FormatDuration(dur),
 		r.Note,

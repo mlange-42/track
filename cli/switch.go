@@ -33,7 +33,7 @@ func switchCommand(t *core.Track) *cobra.Command {
 				}
 
 				if !force && record.Project == project {
-					out.Warn("Already working on project '%s'. Use --force to start a new record anyway\n", project)
+					out.Warn("Already working on project '%s'. Use --force to start a new record anyway", project)
 					return
 				}
 
@@ -49,7 +49,7 @@ func switchCommand(t *core.Track) *cobra.Command {
 				return
 			}
 
-			out.Success("Started record in '%s' at %02d:%02d\n", project, record.Start.Hour(), record.Start.Minute())
+			out.Success("Started record in '%s' at %02d:%02d", project, record.Start.Hour(), record.Start.Minute())
 		},
 	}
 
