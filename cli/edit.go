@@ -33,6 +33,7 @@ func editCommand(t *core.Track) *cobra.Command {
 
 	create.AddCommand(editProjectCommand(t))
 	create.AddCommand(editRecordCommand(t))
+	create.AddCommand(editConfigCommand(t))
 
 	return create
 }
@@ -76,6 +77,25 @@ func editProjectCommand(t *core.Track) *cobra.Command {
 				return
 			}
 			out.Success("Saved project '%s'", name)
+		},
+	}
+
+	return editProject
+}
+
+func editConfigCommand(t *core.Track) *cobra.Command {
+	editProject := &cobra.Command{
+		Use:     "config",
+		Short:   "Edit track's config",
+		Aliases: []string{"c"},
+		Args:    cobra.NoArgs,
+		Run: func(cmd *cobra.Command, args []string) {
+			err := editConfig(t)
+			if err != nil {
+				out.Err("failed to edit config: %s", err)
+				return
+			}
+			out.Success("Saved config to %s", fs.ConfigPath())
 		},
 	}
 
@@ -132,6 +152,25 @@ func editProject(t *core.Track, name string) error {
 	})
 }
 
+func editConfig(t *core.Track) error {
+	conf, err := core.LoadConfig()
+	if err != nil {
+		return err
+	}
+
+	return edit(t, &conf, func(b []byte) error {
+		var newConfig core.Config
+		if err := json.Unmarshal(b, &newConfig); err != nil {
+			return err
+		}
+
+		if err = core.SaveConfig(newConfig); err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
 func edit(t *core.Track, obj any, fn func(b []byte) error) error {
 	file, err := os.CreateTemp("", "track-*.json")
 	if err != nil {
@@ -150,7 +189,7 @@ func edit(t *core.Track, obj any, fn func(b []byte) error) error {
 	}
 	file.Close()
 
-	err = fs.EditFile(file.Name())
+	err = fs.EditFile(file.Name(), t.Config.TextEditor)
 	if err != nil {
 		return err
 	}

@@ -12,11 +12,14 @@ import (
 const version = "v0.1.0"
 
 func main() {
-	track := core.Track{}
-	track.CreateDirs()
-
 	if !color.SupportColor() || !isTerminal() {
 		color.Disable()
+	}
+
+	track, err := core.NewTrack()
+	if err != nil {
+		out.Err("%s", err.Error())
+		os.Exit(1)
 	}
 
 	if err := cli.RootCommand(&track, version).Execute(); err != nil {

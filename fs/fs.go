@@ -13,6 +13,7 @@ const (
 	rootDirName     = ".track"
 	projectsDirName = "projects"
 	recordsDirName  = "records"
+	configFile      = "config.json"
 )
 
 var (
@@ -39,6 +40,11 @@ func ProjectsDir() string {
 // RecordsDir returns the records storage directory
 func RecordsDir() string {
 	return filepath.Join(RootDir(), recordsDirName)
+}
+
+// ConfigPath returns the default config path
+func ConfigPath() string {
+	return filepath.Join(RootDir(), configFile)
 }
 
 // Sanitize makes stings filename compatible
