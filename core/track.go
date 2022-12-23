@@ -11,15 +11,20 @@ type Track struct {
 
 // NewTrack creates a new Track object
 func NewTrack() (Track, error) {
+	track := Track{}
+	track.createDirs()
+
 	conf, err := LoadConfig()
 	if err != nil {
-		return Track{}, err
+		return track, err
 	}
-	return Track{Config: conf}, nil
+
+	track.Config = conf
+	return track, nil
 }
 
-// CreateDirs creates the storage directories
-func (t *Track) CreateDirs() {
+// createDirs creates the storage directories
+func (t *Track) createDirs() {
 	err := fs.CreateDir(fs.ProjectsDir())
 	if err != nil {
 		panic(err)

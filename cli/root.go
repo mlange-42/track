@@ -52,16 +52,8 @@ $ track report timeline days
 	root.AddCommand(reportCommand(t))
 	root.AddCommand(editCommand(t))
 
-	// TODO: colors
-	// TODO: cancel
-	// TODO: reports
-	// TODO: undo
-	// TODO: config
 	// TODO: rename "project" to "activity" or "topic"?
-	// TODO: project categories?
 	// TODO: use project hierarchy
-	// TODO: allow multiple running projects? -> should be covered by hierarchy
-	// TODO: simplified JSON time format for reports
 
 	return root
 }
