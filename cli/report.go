@@ -68,7 +68,7 @@ func timelineReportCommand(t *core.Track, options *reportOptions) *cobra.Command
 
 			timelineFunc, ok := timelineModes[mode]
 			if !ok {
-				out.Err("failed to generate report: invalid timeline argument '%s'", timeline)
+				out.Err("failed to generate report: invalid timeline argument '%s'", mode)
 				return
 			}
 
