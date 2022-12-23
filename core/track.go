@@ -6,6 +6,16 @@ import (
 
 // Track is a top-level track instalce
 type Track struct {
+	Config config
+}
+
+// NewTrack creates a new Track object
+func NewTrack() (Track, error) {
+	conf, err := loadConfig()
+	if err != nil {
+		return Track{}, err
+	}
+	return Track{Config: conf}, nil
 }
 
 // CreateDirs creates the storage directories

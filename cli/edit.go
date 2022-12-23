@@ -150,7 +150,7 @@ func edit(t *core.Track, obj any, fn func(b []byte) error) error {
 	}
 	file.Close()
 
-	err = fs.EditFile(file.Name())
+	err = fs.EditFile(file.Name(), t.Config.TextEditor)
 	if err != nil {
 		return err
 	}
