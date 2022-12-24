@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -14,6 +13,7 @@ import (
 	"github.com/mlange-42/track/out"
 	"github.com/mlange-42/track/util"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 var (
@@ -110,7 +110,7 @@ func editRecord(t *core.Track, tm time.Time) error {
 
 	return edit(t, &record, func(b []byte) error {
 		var newRecord core.Record
-		if err := json.Unmarshal(b, &newRecord); err != nil {
+		if err := yaml.Unmarshal(b, &newRecord); err != nil {
 			return err
 		}
 
@@ -137,7 +137,7 @@ func editProject(t *core.Track, name string) error {
 	}
 
 	return edit(t, &project, func(b []byte) error {
-		if err := json.Unmarshal(b, &project); err != nil {
+		if err := yaml.Unmarshal(b, &project); err != nil {
 			return err
 		}
 
@@ -160,7 +160,7 @@ func editConfig(t *core.Track) error {
 
 	return edit(t, &conf, func(b []byte) error {
 		var newConfig core.Config
-		if err := json.Unmarshal(b, &newConfig); err != nil {
+		if err := yaml.Unmarshal(b, &newConfig); err != nil {
 			return err
 		}
 
@@ -172,13 +172,13 @@ func editConfig(t *core.Track) error {
 }
 
 func edit(t *core.Track, obj any, fn func(b []byte) error) error {
-	file, err := os.CreateTemp("", "track-*.json")
+	file, err := os.CreateTemp("", "track-*.yml")
 	if err != nil {
 		return err
 	}
 	defer os.Remove(file.Name())
 
-	bytes, err := json.MarshalIndent(obj, "", "\t")
+	bytes, err := yaml.Marshal(obj)
 	if err != nil {
 		return err
 	}

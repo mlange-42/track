@@ -1,7 +1,6 @@
 package core
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -9,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/mlange-42/track/fs"
+	"gopkg.in/yaml.v2"
 )
 
 // Config for track
@@ -50,7 +50,7 @@ func tryLoadConfig() (Config, error) {
 
 	var conf Config
 
-	if err := json.Unmarshal(file, &conf); err != nil {
+	if err := yaml.Unmarshal(file, &conf); err != nil {
 		return Config{}, err
 	}
 
@@ -66,7 +66,7 @@ func SaveConfig(conf Config) error {
 		return err
 	}
 
-	bytes, err := json.MarshalIndent(&conf, "", "\t")
+	bytes, err := yaml.Marshal(&conf)
 	if err != nil {
 		return err
 	}

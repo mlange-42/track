@@ -1,7 +1,6 @@
 package core
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -12,9 +11,10 @@ import (
 
 	"github.com/mlange-42/track/fs"
 	"github.com/mlange-42/track/util"
+	"gopkg.in/yaml.v2"
 )
 
-const tagPrefix = "#"
+const tagPrefix = "+"
 
 var (
 	// ErrNoRecords is an error for no records found for a date
@@ -48,7 +48,7 @@ func (r Record) Duration() time.Duration {
 func (t *Track) RecordPath(tm time.Time) string {
 	return filepath.Join(
 		t.RecordDir(tm),
-		fmt.Sprintf("%s.json", tm.Format(util.FileTimeFormat)),
+		fmt.Sprintf("%s.yml", tm.Format(util.FileTimeFormat)),
 	)
 }
 
@@ -77,7 +77,7 @@ func (t *Track) SaveRecord(record Record, force bool) error {
 		return err
 	}
 
-	bytes, err := json.MarshalIndent(&record, "", "\t")
+	bytes, err := yaml.Marshal(&record)
 	if err != nil {
 		return err
 	}
@@ -102,7 +102,7 @@ func (t *Track) LoadRecord(path string) (Record, error) {
 
 	var record Record
 
-	if err := json.Unmarshal(file, &record); err != nil {
+	if err := yaml.Unmarshal(file, &record); err != nil {
 		return Record{}, err
 	}
 
@@ -255,7 +255,7 @@ func (t *Track) ExtractTags(tokens []string) []string {
 			if strings.HasPrefix(subToken, tagPrefix) {
 				if _, ok := mapped[subToken]; !ok {
 					mapped[subToken] = true
-					result = append(result, subToken)
+					result = append(result, strings.TrimPrefix(subToken, tagPrefix))
 				}
 			}
 		}
