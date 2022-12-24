@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"math"
+	"sort"
 	"strings"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/mlange-42/track/out"
 	"github.com/mlange-42/track/util"
 	"github.com/spf13/cobra"
+	"golang.org/x/exp/maps"
 )
 
 var timelineModes = map[string]func(*core.Reporter) string{
@@ -102,8 +104,10 @@ func projectsReportCommand(t *core.Track, options *reportOptions) *cobra.Command
 				return
 			}
 
-			for name, dur := range reporter.ProjectTime {
-				out.Print("%-15s %s\n", name, util.FormatDuration(dur))
+			keys := maps.Keys(reporter.ProjectTime)
+			sort.Strings(keys)
+			for _, name := range keys {
+				out.Print("%-15s %s\n", name, util.FormatDuration(reporter.ProjectTime[name]))
 			}
 		},
 	}

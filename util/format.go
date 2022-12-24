@@ -2,7 +2,12 @@ package util
 
 import (
 	"fmt"
+	"sort"
+	"strings"
 	"time"
+	"unicode/utf8"
+
+	"github.com/mlange-42/track/tree"
 )
 
 const (
@@ -27,4 +32,74 @@ const (
 // FormatDuration formats a duration
 func FormatDuration(d time.Duration) string {
 	return fmt.Sprintf("%.1fhr", d.Hours())
+}
+
+// TreeFormatter formats trees
+type TreeFormatter[T tree.Named] struct {
+	NameFunc     func(t *tree.MapTree[T], indent int) string
+	Indent       int
+	prefixNone   string
+	prefixEmpty  string
+	prefixNormal string
+	prefixLast   string
+}
+
+// NewTreeFormatter creates a new TreeFormatter
+func NewTreeFormatter[T tree.Named](
+	nameFunc func(t *tree.MapTree[T], indent int) string,
+	indent int,
+) TreeFormatter[T] {
+	return TreeFormatter[T]{
+		NameFunc:     nameFunc,
+		Indent:       indent,
+		prefixNone:   strings.Repeat(" ", indent),
+		prefixEmpty:  "│" + strings.Repeat(" ", indent-1),
+		prefixNormal: "├" + strings.Repeat("─", indent-1),
+		prefixLast:   "└" + strings.Repeat("─", indent-1),
+	}
+}
+
+// FormatTree formats a tree
+func (f *TreeFormatter[T]) FormatTree(t *tree.MapTree[T]) string {
+	sb := strings.Builder{}
+	f.formatTree(&sb, t, 0, false, "")
+	return sb.String()
+}
+
+func (f *TreeFormatter[T]) formatTree(sb *strings.Builder, t *tree.MapTree[T], depth int, last bool, prefix string) {
+	pref := prefix
+	if depth > 0 {
+		pref = prefix + f.createPrefix(last)
+	}
+	fmt.Fprint(sb, pref)
+	fmt.Fprintf(sb, "%s", f.NameFunc(t, utf8.RuneCountInString(pref)))
+	fmt.Fprint(sb, "\n")
+
+	if depth > 0 {
+		pref = prefix + f.createPrefixEmpty(last)
+	}
+
+	names := make([]string, 0, len(t.Children))
+	for name := range t.Children {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	for i, name := range names {
+		last := i == len(names)-1
+		f.formatTree(sb, t.Children[name], depth+1, last, pref)
+	}
+}
+
+func (f *TreeFormatter[T]) createPrefix(last bool) string {
+	if last {
+		return f.prefixLast
+	}
+	return f.prefixNormal
+}
+
+func (f *TreeFormatter[T]) createPrefixEmpty(last bool) string {
+	if last {
+		return f.prefixNone
+	}
+	return f.prefixEmpty
 }

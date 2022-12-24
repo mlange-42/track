@@ -1,6 +1,9 @@
 package cli
 
 import (
+	"fmt"
+
+	"github.com/gookit/color"
 	"github.com/mlange-42/track/core"
 	"github.com/mlange-42/track/out"
 	"github.com/mlange-42/track/util"
@@ -41,13 +44,17 @@ func listProjectsCommand(t *core.Track) *cobra.Command {
 				active = rec.Project
 			}
 
-			for _, project := range projects {
-				if project.Name == active {
-					out.Print("*%s\n", project.Name)
-				} else {
-					out.Print(" %s\n", project.Name)
-				}
-			}
+			tree := core.ToProjectTree(projects)
+			formatter := util.NewTreeFormatter(
+				func(t *core.ProjectTree, indent int) string {
+					if t.Value.Name == active {
+						return color.BgBlue.Sprintf("%s", t.Value.Name)
+					}
+					return fmt.Sprintf("%s", t.Value.Name)
+				},
+				2,
+			)
+			fmt.Print(formatter.FormatTree(tree))
 		},
 	}
 

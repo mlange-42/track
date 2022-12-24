@@ -52,8 +52,5 @@ $ track report timeline days
 	root.AddCommand(reportCommand(t))
 	root.AddCommand(editCommand(t))
 
-	// TODO: rename "project" to "activity" or "topic"?
-	// TODO: use project hierarchy
-
 	return root
 }

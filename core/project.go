@@ -8,12 +8,21 @@ import (
 	"path/filepath"
 
 	"github.com/mlange-42/track/fs"
+	"github.com/mlange-42/track/tree"
 )
+
+// ProjectTree is a tree of projects
+type ProjectTree = tree.MapTree[Project]
 
 // Project holds and manipulates data for a project
 type Project struct {
 	Name   string
 	Parent string
+}
+
+// GetName returns the name ofthe project
+func (p Project) GetName() string {
+	return p.Name
 }
 
 // ProjectPath returns the full path for a project
@@ -72,7 +81,7 @@ func (t *Track) LoadProject(path string) (Project, error) {
 }
 
 // LoadAllProjects loads all projects
-func (t *Track) LoadAllProjects() ([]Project, error) {
+func (t *Track) LoadAllProjects() (map[string]Project, error) {
 	path := fs.ProjectsDir()
 
 	files, err := ioutil.ReadDir(path)
@@ -80,7 +89,7 @@ func (t *Track) LoadAllProjects() ([]Project, error) {
 		return nil, err
 	}
 
-	var projects []Project
+	projects := make(map[string]Project)
 	for _, file := range files {
 		if file.IsDir() {
 			continue
@@ -89,8 +98,29 @@ func (t *Track) LoadAllProjects() ([]Project, error) {
 		if err != nil {
 			return nil, err
 		}
-		projects = append(projects, project)
+		projects[project.Name] = project
 	}
 
 	return projects, nil
+}
+
+// ToProjectTree creates a tree of thegiven projects
+func ToProjectTree(projects map[string]Project) *ProjectTree {
+	root := tree.New(Project{Name: "<root>"})
+
+	tempTrees := make(map[string]*ProjectTree)
+
+	for name, project := range projects {
+		tempTrees[name] = tree.New(project)
+	}
+
+	for name, tree := range tempTrees {
+		if tree.Value.Parent == "" {
+			root.Children[name] = tree
+		} else {
+			tempTrees[tree.Value.Parent].Children[name] = tree
+		}
+	}
+
+	return root
 }
