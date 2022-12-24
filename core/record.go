@@ -14,7 +14,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const tagPrefix = "#"
+const tagPrefix = "+"
 
 var (
 	// ErrNoRecords is an error for no records found for a date
@@ -255,7 +255,7 @@ func (t *Track) ExtractTags(tokens []string) []string {
 			if strings.HasPrefix(subToken, tagPrefix) {
 				if _, ok := mapped[subToken]; !ok {
 					mapped[subToken] = true
-					result = append(result, subToken)
+					result = append(result, strings.TrimPrefix(subToken, tagPrefix))
 				}
 			}
 		}
