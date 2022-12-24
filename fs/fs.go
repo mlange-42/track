@@ -13,7 +13,7 @@ const (
 	rootDirName     = ".track"
 	projectsDirName = "projects"
 	recordsDirName  = "records"
-	configFile      = "config.json"
+	configFile      = "config.yml"
 )
 
 var (

@@ -1,7 +1,6 @@
 package core
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -9,6 +8,7 @@ import (
 
 	"github.com/mlange-42/track/fs"
 	"github.com/mlange-42/track/tree"
+	"gopkg.in/yaml.v2"
 )
 
 // ProjectTree is a tree of projects
@@ -27,7 +27,7 @@ func (p Project) GetName() string {
 
 // ProjectPath returns the full path for a project
 func (t *Track) ProjectPath(name string) string {
-	return filepath.Join(fs.ProjectsDir(), fs.Sanitize(name)+".json")
+	return filepath.Join(fs.ProjectsDir(), fs.Sanitize(name)+".yml")
 }
 
 // ProjectExists checks if a project exists
@@ -48,7 +48,7 @@ func (t *Track) SaveProject(project Project, force bool) error {
 		return err
 	}
 
-	bytes, err := json.MarshalIndent(&project, "", "\t")
+	bytes, err := yaml.Marshal(&project)
 	if err != nil {
 		return err
 	}
@@ -73,7 +73,7 @@ func (t *Track) LoadProject(path string) (Project, error) {
 
 	var project Project
 
-	if err := json.Unmarshal(file, &project); err != nil {
+	if err := yaml.Unmarshal(file, &project); err != nil {
 		return Project{}, err
 	}
 
