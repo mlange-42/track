@@ -17,22 +17,26 @@ func (r TimeRange) Duration() time.Duration {
 
 // Reporter for generating reports
 type Reporter struct {
-	Track       *Track
-	Records     []Record
-	Projects    map[string]Project
-	ProjectTime map[string]time.Duration
-	TimeRange   TimeRange
+	Track        *Track
+	Records      []Record
+	Projects     map[string]Project
+	ProjectTime  map[string]time.Duration
+	AllProjects  map[string]Project
+	ProjectsTree *ProjectTree
+	TimeRange    TimeRange
 }
 
 // NewReporter creates a new Reporter from filters
 func NewReporter(t *Track, proj []string, filters FilterFunctions) (*Reporter, error) {
-	var err error
+	allProjects, err := t.LoadAllProjects()
+	if err != nil {
+		return nil, err
+	}
+	projectsTree := ToProjectTree(allProjects)
+
 	projects := make(map[string]Project)
 	if len(proj) == 0 {
-		projects, err = t.LoadAllProjects()
-		if err != nil {
-			return nil, err
-		}
+		projects = allProjects
 	} else {
 		for _, p := range proj {
 			project, err := t.LoadProjectByName(p)
@@ -71,11 +75,13 @@ func NewReporter(t *Track, proj []string, filters FilterFunctions) (*Reporter, e
 	}
 
 	report := Reporter{
-		Track:       t,
-		Records:     records,
-		Projects:    projects,
-		ProjectTime: totals,
-		TimeRange:   tRange,
+		Track:        t,
+		Records:      records,
+		Projects:     projects,
+		ProjectTime:  totals,
+		AllProjects:  allProjects,
+		ProjectsTree: projectsTree,
+		TimeRange:    tRange,
 	}
 	return &report, nil
 }

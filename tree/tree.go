@@ -7,24 +7,46 @@ type Named interface {
 
 // MapTree is a tree data structure
 type MapTree[T Named] struct {
-	Children map[string]*MapTree[T]
+	Root  *MapNode[T]
+	Nodes map[string]*MapNode[T]
+}
+
+// MapNode is a node in the tree data structure
+type MapNode[T Named] struct {
+	Children map[string]*MapNode[T]
 	Value    T
 }
 
-// New creates a new tree
-func New[T Named](value T) *MapTree[T] {
-	return &MapTree[T]{
-		Children: make(map[string]*MapTree[T]),
+// NewNode creates a new tree node
+func NewNode[T Named](value T) *MapNode[T] {
+	return &MapNode[T]{
+		Children: make(map[string]*MapNode[T]),
 		Value:    value,
 	}
 }
 
 // AddTree adds a sub-tree without children
-func (t *MapTree[T]) Add(child T) {
-	t.Children[child.GetName()] = New(child)
+func (t *MapNode[T]) Add(child T) {
+	t.Children[child.GetName()] = NewNode(child)
 }
 
 // AddTree adds a sub-tree
-func (t *MapTree[T]) AddTree(child *MapTree[T]) {
+func (t *MapNode[T]) AddTree(child *MapNode[T]) {
 	t.Children[child.Value.GetName()] = child
+}
+
+// AddTree adds a sub-tree
+func (t *MapNode[T]) Find(name string) (*MapNode[T], bool) {
+	if t.Value.GetName() == name {
+		return t, true
+	}
+	if tr, ok := t.Children[name]; ok {
+		return tr, true
+	}
+	for _, child := range t.Children {
+		if tr, ok := child.Find(name); ok {
+			return tr, ok
+		}
+	}
+	return nil, false
 }
