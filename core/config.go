@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/mlange-42/track/fs"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 // Config for track
@@ -67,6 +67,11 @@ func SaveConfig(conf Config) error {
 	}
 
 	bytes, err := yaml.Marshal(&conf)
+	if err != nil {
+		return err
+	}
+
+	_, err = fmt.Fprintf(file, "# Track config\n\n")
 	if err != nil {
 		return err
 	}

@@ -8,7 +8,7 @@ import (
 
 	"github.com/mlange-42/track/fs"
 	"github.com/mlange-42/track/tree"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 // ProjectTree is a tree of projects
@@ -49,6 +49,11 @@ func (t *Track) SaveProject(project Project, force bool) error {
 	}
 
 	bytes, err := yaml.Marshal(&project)
+	if err != nil {
+		return err
+	}
+
+	_, err = fmt.Fprintf(file, "# Project %s\n\n", project.Name)
 	if err != nil {
 		return err
 	}

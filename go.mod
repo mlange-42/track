@@ -6,7 +6,6 @@ require (
 	github.com/gookit/color v1.5.2
 	github.com/spf13/cobra v1.6.1
 	golang.org/x/exp v0.0.0-20221217163422-3c43f8badb15
-	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 

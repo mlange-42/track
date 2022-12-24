@@ -11,7 +11,7 @@ import (
 
 	"github.com/mlange-42/track/fs"
 	"github.com/mlange-42/track/util"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 const tagPrefix = "+"
@@ -78,6 +78,11 @@ func (t *Track) SaveRecord(record Record, force bool) error {
 	}
 
 	bytes, err := yaml.Marshal(&record)
+	if err != nil {
+		return err
+	}
+
+	_, err = fmt.Fprintf(file, "# Record %s\n\n", record.Start.Format(util.DateTimeFormat))
 	if err != nil {
 		return err
 	}

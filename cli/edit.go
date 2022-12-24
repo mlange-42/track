@@ -115,26 +115,28 @@ func editRecord(t *core.Track, tm time.Time) error {
 		return err
 	}
 
-	return edit(t, &record, func(b []byte) error {
-		var newRecord core.Record
-		if err := yaml.Unmarshal(b, &newRecord); err != nil {
-			return err
-		}
+	return edit(t, &record,
+		fmt.Sprintf("# Record %s\n\n", record.Start.Format(util.DateTimeFormat)),
+		func(b []byte) error {
+			var newRecord core.Record
+			if err := yaml.Unmarshal(b, &newRecord); err != nil {
+				return err
+			}
 
-		// TODO could change, but requires deleting original file
-		if newRecord.Start != record.Start {
-			return fmt.Errorf("can't change start time")
-		}
+			// TODO could change, but requires deleting original file
+			if newRecord.Start != record.Start {
+				return fmt.Errorf("can't change start time")
+			}
 
-		if !newRecord.End.IsZero() && newRecord.End.Before(newRecord.Start) {
-			return fmt.Errorf("end time is before start time")
-		}
+			if !newRecord.End.IsZero() && newRecord.End.Before(newRecord.Start) {
+				return fmt.Errorf("end time is before start time")
+			}
 
-		if err = t.SaveRecord(newRecord, true); err != nil {
-			return err
-		}
-		return nil
-	})
+			if err = t.SaveRecord(newRecord, true); err != nil {
+				return err
+			}
+			return nil
+		})
 }
 
 func editProject(t *core.Track, name string) error {
@@ -143,20 +145,22 @@ func editProject(t *core.Track, name string) error {
 		return err
 	}
 
-	return edit(t, &project, func(b []byte) error {
-		if err := yaml.Unmarshal(b, &project); err != nil {
-			return err
-		}
+	return edit(t, &project,
+		fmt.Sprintf("# Project %s\n\n", project.Name),
+		func(b []byte) error {
+			if err := yaml.Unmarshal(b, &project); err != nil {
+				return err
+			}
 
-		if project.Name != name {
-			return fmt.Errorf("can't change project name")
-		}
+			if project.Name != name {
+				return fmt.Errorf("can't change project name")
+			}
 
-		if err = t.SaveProject(project, true); err != nil {
-			return err
-		}
-		return nil
-	})
+			if err = t.SaveProject(project, true); err != nil {
+				return err
+			}
+			return nil
+		})
 }
 
 func editConfig(t *core.Track) error {
@@ -165,20 +169,22 @@ func editConfig(t *core.Track) error {
 		return err
 	}
 
-	return edit(t, &conf, func(b []byte) error {
-		var newConfig core.Config
-		if err := yaml.Unmarshal(b, &newConfig); err != nil {
-			return err
-		}
+	return edit(t, &conf,
+		fmt.Sprintf("# Track config\n\n"),
+		func(b []byte) error {
+			var newConfig core.Config
+			if err := yaml.Unmarshal(b, &newConfig); err != nil {
+				return err
+			}
 
-		if err = core.SaveConfig(newConfig); err != nil {
-			return err
-		}
-		return nil
-	})
+			if err = core.SaveConfig(newConfig); err != nil {
+				return err
+			}
+			return nil
+		})
 }
 
-func edit(t *core.Track, obj any, fn func(b []byte) error) error {
+func edit(t *core.Track, obj any, prefix string, fn func(b []byte) error) error {
 	file, err := os.CreateTemp("", "track-*.yml")
 	if err != nil {
 		return err
@@ -190,11 +196,18 @@ func edit(t *core.Track, obj any, fn func(b []byte) error) error {
 		return err
 	}
 
+	_, err = file.WriteString(prefix)
+	if err != nil {
+		return err
+	}
 	_, err = file.Write(bytes)
 	if err != nil {
 		return err
 	}
-	file.WriteString(editComment)
+	_, err = file.WriteString(editComment)
+	if err != nil {
+		return err
+	}
 
 	file.Close()
 
