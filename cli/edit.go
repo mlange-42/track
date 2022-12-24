@@ -21,6 +21,13 @@ var (
 	ErrUserAbort = errors.New("aborted by user")
 )
 
+const editComment string = `
+# Edit the above YAML definition.
+# Then, save the file and close the editor.
+# 
+# If you remove everything, the operation will be aborted.
+`
+
 func editCommand(t *core.Track) *cobra.Command {
 	create := &cobra.Command{
 		Use:     "edit",
@@ -187,6 +194,8 @@ func edit(t *core.Track, obj any, fn func(b []byte) error) error {
 	if err != nil {
 		return err
 	}
+	file.WriteString(editComment)
+
 	file.Close()
 
 	err = fs.EditFile(file.Name(), t.Config.TextEditor)
