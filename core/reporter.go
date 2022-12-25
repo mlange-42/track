@@ -35,6 +35,12 @@ func NewReporter(t *Track, proj []string, filters FilterFunctions) (*Reporter, e
 	if err != nil {
 		return nil, err
 	}
+	for _, p := range proj {
+		if _, ok := allProjects[p]; !ok {
+			return nil, fmt.Errorf("no project named '%s'", p)
+		}
+	}
+
 	projectsTree := ToProjectTree(allProjects)
 
 	projects := make(map[string]Project)

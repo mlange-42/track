@@ -126,7 +126,11 @@ func ToProjectTree(projects map[string]Project) *ProjectTree {
 		if tree.Value.Parent == "" {
 			root.AddNode(tree)
 		} else {
-			tempTrees[tree.Value.Parent].AddNode(tree)
+			if tt, ok := tempTrees[tree.Value.Parent]; ok {
+				tt.AddNode(tree)
+			} else {
+				root.AddNode(tree)
+			}
 		}
 	}
 

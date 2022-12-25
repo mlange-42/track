@@ -3,15 +3,15 @@ package cli
 import (
 	"fmt"
 	"math"
-	"sort"
 	"strings"
 	"time"
+	"unicode/utf8"
 
+	"github.com/gookit/color"
 	"github.com/mlange-42/track/core"
 	"github.com/mlange-42/track/out"
 	"github.com/mlange-42/track/util"
 	"github.com/spf13/cobra"
-	"golang.org/x/exp/maps"
 )
 
 var timelineModes = map[string]func(*core.Reporter) string{
@@ -42,8 +42,8 @@ func reportCommand(t *core.Track) *cobra.Command {
 		},
 	}
 
-	report.PersistentFlags().StringSliceVarP(&options.projects, "projects", "p", []string{}, "Projects to include. Includes all projects if not specified")
-	report.PersistentFlags().StringSliceVarP(&options.tags, "tags", "t", []string{}, "Tags to include. Includes records with any of the given tags")
+	report.PersistentFlags().StringSliceVarP(&options.projects, "projects", "p", []string{}, "Projects to include (comma-separated). All projects if not specified")
+	report.PersistentFlags().StringSliceVarP(&options.tags, "tags", "t", []string{}, "Tags to include (comma-separated). Includes records with any of the given tags")
 	report.PersistentFlags().StringVarP(&options.start, "start", "s", "", "Start date")
 	report.PersistentFlags().StringVarP(&options.end, "end", "e", "", "End date")
 
@@ -104,11 +104,28 @@ func projectsReportCommand(t *core.Track, options *reportOptions) *cobra.Command
 				return
 			}
 
-			keys := maps.Keys(reporter.ProjectTime)
-			sort.Strings(keys)
-			for _, name := range keys {
-				out.Print("%-15s %s\n", name, util.FormatDuration(reporter.ProjectTime[name]))
+			tree := core.ToProjectTree(reporter.Projects)
+			var active string
+			if rec, ok := t.OpenRecord(); ok {
+				active = rec.Project
 			}
+			formatter := util.NewTreeFormatter(
+				func(t *core.ProjectNode, indent int) string {
+					fillLen := 16 - (indent + utf8.RuneCountInString(t.Value.Name))
+					var str string
+					if t.Value.Name == active {
+						str = color.BgBlue.Sprintf("%s", t.Value.Name)
+					} else {
+						str = fmt.Sprintf("%s", t.Value.Name)
+					}
+					if fillLen > 0 {
+						str += strings.Repeat(" ", fillLen)
+					}
+					return fmt.Sprintf("%s %s", str, util.FormatDuration(reporter.ProjectTime[t.Value.Name]))
+				},
+				2,
+			)
+			fmt.Print(formatter.FormatTree(tree))
 		},
 	}
 	return projects
