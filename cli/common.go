@@ -38,6 +38,7 @@ func createFilters(options *filterOptions, projects bool) (core.FilterFunctions,
 		if err != nil {
 			return nil, err
 		}
+		endTime = endTime.Add(time.Hour * 24)
 	}
 	if !(startTime.IsZero() && endTime.IsZero()) {
 		filters = append(filters, core.FilterByTime(startTime, endTime))

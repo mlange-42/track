@@ -21,8 +21,11 @@ func exportCommand(t *core.Track) *cobra.Command {
 	options := filterOptions{}
 
 	export := &cobra.Command{
-		Use:     "export",
-		Short:   "Export resources",
+		Use:   "export",
+		Short: "Export resources",
+		Long: `Export resources
+
+Currently, only export of (potentially filtered) records to CSV is supported.`,
 		Aliases: []string{"ex"},
 		Run: func(cmd *cobra.Command, args []string) {
 			_ = cmd.Help()
@@ -31,8 +34,8 @@ func exportCommand(t *core.Track) *cobra.Command {
 
 	export.PersistentFlags().StringSliceVarP(&options.projects, "projects", "p", []string{}, "Projects to include (comma-separated). All projects if not specified")
 	export.PersistentFlags().StringSliceVarP(&options.tags, "tags", "t", []string{}, "Tags to include (comma-separated). Includes records with any of the given tags")
-	export.PersistentFlags().StringVarP(&options.start, "start", "s", "", "Start date")
-	export.PersistentFlags().StringVarP(&options.end, "end", "e", "", "End date")
+	export.PersistentFlags().StringVarP(&options.start, "start", "s", "", "Start date (start at 00:00)")
+	export.PersistentFlags().StringVarP(&options.end, "end", "e", "", "End date (inclusive: end at 24:00)")
 
 	export.AddCommand(exportRecordsCommand(t, &options))
 
@@ -41,8 +44,11 @@ func exportCommand(t *core.Track) *cobra.Command {
 
 func exportRecordsCommand(t *core.Track, options *filterOptions) *cobra.Command {
 	records := &cobra.Command{
-		Use:     "records",
-		Short:   "Export records",
+		Use:   "records",
+		Short: "Export records",
+		Long: `Export records
+
+Currently, only export to CSV is supported.`,
 		Aliases: []string{"r"},
 		Args:    util.WrappedArgs(cobra.NoArgs),
 		Run: func(cmd *cobra.Command, args []string) {

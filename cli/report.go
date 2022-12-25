@@ -37,8 +37,8 @@ func reportCommand(t *core.Track) *cobra.Command {
 
 	report.PersistentFlags().StringSliceVarP(&options.projects, "projects", "p", []string{}, "Projects to include (comma-separated). All projects if not specified")
 	report.PersistentFlags().StringSliceVarP(&options.tags, "tags", "t", []string{}, "Tags to include (comma-separated). Includes records with any of the given tags")
-	report.PersistentFlags().StringVarP(&options.start, "start", "s", "", "Start date")
-	report.PersistentFlags().StringVarP(&options.end, "end", "e", "", "End date")
+	report.PersistentFlags().StringVarP(&options.start, "start", "s", "", "Start date (start at 00:00)")
+	report.PersistentFlags().StringVarP(&options.end, "end", "e", "", "End date (inclusive: end at 24:00)")
 
 	report.AddCommand(timelineReportCommand(t, &options))
 	report.AddCommand(projectsReportCommand(t, &options))
