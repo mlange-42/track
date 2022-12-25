@@ -1,7 +1,10 @@
 package core
 
 import (
+	"fmt"
 	"time"
+
+	"golang.org/x/exp/maps"
 )
 
 // TimeRange represents a time range
@@ -17,38 +20,57 @@ func (r TimeRange) Duration() time.Duration {
 
 // Reporter for generating reports
 type Reporter struct {
-	Track       *Track
-	Records     []Record
-	Projects    map[string]Project
-	ProjectTime map[string]time.Duration
-	TimeRange   TimeRange
+	Track        *Track
+	Records      []Record
+	Projects     map[string]Project
+	ProjectTime  map[string]time.Duration
+	AllProjects  map[string]Project
+	ProjectsTree *ProjectTree
+	TimeRange    TimeRange
 }
 
 // NewReporter creates a new Reporter from filters
 func NewReporter(t *Track, proj []string, filters FilterFunctions) (*Reporter, error) {
-	var err error
-	projects := make(map[string]Project)
-	if len(proj) == 0 {
-		projects, err = t.LoadAllProjects()
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		for _, p := range proj {
-			project, err := t.LoadProjectByName(p)
-			if err != nil {
-				return nil, err
-			}
-			projects[project.Name] = project
+	allProjects, err := t.LoadAllProjects()
+	if err != nil {
+		return nil, err
+	}
+	for _, p := range proj {
+		if _, ok := allProjects[p]; !ok {
+			return nil, fmt.Errorf("no project named '%s'", p)
 		}
 	}
 
+	projectsTree := ToProjectTree(allProjects)
+
+	projects := make(map[string]Project)
+	if len(proj) == 0 {
+		projects = allProjects
+	} else {
+		for _, p := range proj {
+			project := allProjects[p]
+			projects[project.Name] = project
+
+			desc, ok := projectsTree.Descendants(project.Name)
+			if !ok {
+				return nil, fmt.Errorf("BUG! Project '%s' not in project tree", project.Name)
+			}
+			for _, p2 := range desc {
+				if _, ok = projects[p2.Value.Name]; !ok {
+					projects[p2.Value.Name] = p2.Value
+				}
+			}
+		}
+	}
+
+	filters = append(filters, FilterByProjects(maps.Keys(projects)))
 	records, err := t.LoadAllRecordsFiltered(filters)
 	if err != nil {
 		return nil, err
 	}
 
-	totals := make(map[string]time.Duration, len(projects))
+	totals := make(map[string]time.Duration, len(projects)+1)
+	totals[projectsTree.Root.Value.Name] = time.Second * 0.0
 	for _, p := range projects {
 		totals[p.Name] = time.Second * 0.0
 	}
@@ -70,12 +92,26 @@ func NewReporter(t *Track, proj []string, filters FilterFunctions) (*Reporter, e
 		}
 	}
 
+	for project := range totals {
+		anc, ok := projectsTree.Ancestors(project)
+		if !ok {
+			return nil, fmt.Errorf("BUG! Project '%s' not in project tree", project)
+		}
+		for _, node := range anc {
+			if _, ok := totals[node.Value.Name]; ok {
+				totals[node.Value.Name] += totals[project]
+			}
+		}
+	}
+
 	report := Reporter{
-		Track:       t,
-		Records:     records,
-		Projects:    projects,
-		ProjectTime: totals,
-		TimeRange:   tRange,
+		Track:        t,
+		Records:      records,
+		Projects:     projects,
+		ProjectTime:  totals,
+		AllProjects:  allProjects,
+		ProjectsTree: projectsTree,
+		TimeRange:    tRange,
 	}
 	return &report, nil
 }

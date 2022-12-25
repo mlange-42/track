@@ -5,26 +5,86 @@ type Named interface {
 	GetName() string
 }
 
-// MapTree is a tree data structure
-type MapTree[T Named] struct {
-	Children map[string]*MapTree[T]
+// MapNode is a node in the tree data structure
+type MapNode[T Named] struct {
+	Parent   *MapNode[T]
+	Children map[string]*MapNode[T]
 	Value    T
 }
 
-// New creates a new tree
-func New[T Named](value T) *MapTree[T] {
-	return &MapTree[T]{
-		Children: make(map[string]*MapTree[T]),
+// NewNode creates a new tree node
+func NewNode[T Named](value T) *MapNode[T] {
+	return &MapNode[T]{
+		Children: make(map[string]*MapNode[T]),
 		Value:    value,
 	}
 }
 
-// AddTree adds a sub-tree without children
-func (t *MapTree[T]) Add(child T) {
-	t.Children[child.GetName()] = New(child)
+// MapTree is a tree data structure
+type MapTree[T Named] struct {
+	Root  *MapNode[T]
+	Nodes map[string]*MapNode[T]
 }
 
-// AddTree adds a sub-tree
-func (t *MapTree[T]) AddTree(child *MapTree[T]) {
-	t.Children[child.Value.GetName()] = child
+// NewTree creates a new tree node
+func NewTree[T Named](value T) *MapTree[T] {
+	root := NewNode(value)
+	return &MapTree[T]{
+		Root:  root,
+		Nodes: map[string]*MapNode[T]{value.GetName(): root},
+	}
+}
+
+// Ancestors returns a slice of all ancestors (i.e. recursive parents),
+// and an ok bool whether the requested node was found.
+//
+// The first ancestor is the direct parent, while the last ancestor is the root node.
+func (t *MapTree[T]) Ancestors(name string) ([]*MapNode[T], bool) {
+	res := []*MapNode[T]{}
+	curr, ok := t.Nodes[name]
+	if !ok {
+		return res, false
+	}
+	for curr.Parent != nil {
+		res = append(res, curr.Parent)
+		curr = curr.Parent
+	}
+	return res, true
+}
+
+// Descendants returns a slice of all descendants (i.e. recursive children),
+// and an ok bool whether the requested node was found.
+//
+// Descendants in the returned slice have undefined order.
+func (t *MapTree[T]) Descendants(name string) ([]*MapNode[T], bool) {
+	res := []*MapNode[T]{}
+	curr, ok := t.Nodes[name]
+	if !ok {
+		return res, false
+	}
+	desc := t.descendants(curr, res)
+	return desc, true
+}
+
+func (t *MapTree[T]) descendants(n *MapNode[T], res []*MapNode[T]) []*MapNode[T] {
+	for _, child := range n.Children {
+		res = append(res, child)
+		res = t.descendants(child, res)
+	}
+	return res
+}
+
+// AddTree adds a sub-tree without children
+func (t *MapTree[T]) Add(parent *MapNode[T], child T) {
+	node := NewNode(child)
+	node.Parent = parent
+	parent.Children[child.GetName()] = node
+	t.Nodes[child.GetName()] = node
+}
+
+// AddNode adds a sub-tree
+func (t *MapTree[T]) AddNode(parent *MapNode[T], child *MapNode[T]) {
+	child.Parent = parent
+	parent.Children[child.Value.GetName()] = child
+	t.Nodes[child.Value.GetName()] = child
 }

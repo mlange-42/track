@@ -31,12 +31,12 @@ const (
 
 // FormatDuration formats a duration
 func FormatDuration(d time.Duration) string {
-	return fmt.Sprintf("%.1fhr", d.Hours())
+	return fmt.Sprintf("%02d:%02d", int(d.Hours()), int(d.Minutes())%60)
 }
 
 // TreeFormatter formats trees
 type TreeFormatter[T tree.Named] struct {
-	NameFunc     func(t *tree.MapTree[T], indent int) string
+	NameFunc     func(t *tree.MapNode[T], indent int) string
 	Indent       int
 	prefixNone   string
 	prefixEmpty  string
@@ -46,7 +46,7 @@ type TreeFormatter[T tree.Named] struct {
 
 // NewTreeFormatter creates a new TreeFormatter
 func NewTreeFormatter[T tree.Named](
-	nameFunc func(t *tree.MapTree[T], indent int) string,
+	nameFunc func(t *tree.MapNode[T], indent int) string,
 	indent int,
 ) TreeFormatter[T] {
 	return TreeFormatter[T]{
@@ -62,11 +62,11 @@ func NewTreeFormatter[T tree.Named](
 // FormatTree formats a tree
 func (f *TreeFormatter[T]) FormatTree(t *tree.MapTree[T]) string {
 	sb := strings.Builder{}
-	f.formatTree(&sb, t, 0, false, "")
+	f.formatTree(&sb, t.Root, 0, false, "")
 	return sb.String()
 }
 
-func (f *TreeFormatter[T]) formatTree(sb *strings.Builder, t *tree.MapTree[T], depth int, last bool, prefix string) {
+func (f *TreeFormatter[T]) formatTree(sb *strings.Builder, t *tree.MapNode[T], depth int, last bool, prefix string) {
 	pref := prefix
 	if depth > 0 {
 		pref = prefix + f.createPrefix(last)

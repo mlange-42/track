@@ -55,12 +55,16 @@ func editRecordCommand(t *core.Track) *cobra.Command {
 			timeString := strings.Join(args, " ")
 			tm, err := util.ParseDateTime(timeString)
 			if err != nil {
-				out.Err("failed to edit project: %s", err)
+				out.Err("failed to edit record: %s", err)
 				return
 			}
 			err = editRecord(t, tm)
 			if err != nil {
-				out.Err("failed to edit project: %s", err)
+				if err == ErrUserAbort {
+					out.Warn("failed to edit record: %s", err)
+					return
+				}
+				out.Err("failed to edit record: %s", err)
 				return
 			}
 			out.Success("Saved record '%s'", tm.Format(util.DateTimeFormat))
@@ -80,6 +84,10 @@ func editProjectCommand(t *core.Track) *cobra.Command {
 			name := args[0]
 			err := editProject(t, name)
 			if err != nil {
+				if err == ErrUserAbort {
+					out.Warn("failed to edit project: %s", err)
+					return
+				}
 				out.Err("failed to edit project: %s", err)
 				return
 			}
@@ -99,6 +107,10 @@ func editConfigCommand(t *core.Track) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			err := editConfig(t)
 			if err != nil {
+				if err == ErrUserAbort {
+					out.Warn("failed to edit config: %s", err)
+					return
+				}
 				out.Err("failed to edit config: %s", err)
 				return
 			}

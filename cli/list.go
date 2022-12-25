@@ -46,7 +46,7 @@ func listProjectsCommand(t *core.Track) *cobra.Command {
 
 			tree := core.ToProjectTree(projects)
 			formatter := util.NewTreeFormatter(
-				func(t *core.ProjectTree, indent int) string {
+				func(t *core.ProjectNode, indent int) string {
 					if t.Value.Name == active {
 						return color.BgBlue.Sprintf("%s", t.Value.Name)
 					}

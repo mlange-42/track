@@ -11,8 +11,13 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+const rootName = "<workspace>"
+
 // ProjectTree is a tree of projects
 type ProjectTree = tree.MapTree[Project]
+
+// ProjectNode is a tree of projects
+type ProjectNode = tree.MapNode[Project]
 
 // Project holds and manipulates data for a project
 type Project struct {
@@ -111,21 +116,28 @@ func (t *Track) LoadAllProjects() (map[string]Project, error) {
 
 // ToProjectTree creates a tree of thegiven projects
 func ToProjectTree(projects map[string]Project) *ProjectTree {
-	root := tree.New(Project{Name: "<root>"})
+	pTree := tree.NewTree(Project{Name: rootName})
 
-	tempTrees := make(map[string]*ProjectTree)
+	nodes := map[string]*ProjectNode{pTree.Root.Value.Name: pTree.Root}
 
 	for name, project := range projects {
-		tempTrees[name] = tree.New(project)
+		nodes[name] = tree.NewNode(project)
 	}
 
-	for name, tree := range tempTrees {
+	for _, tree := range nodes {
+		if tree == pTree.Root {
+			continue
+		}
 		if tree.Value.Parent == "" {
-			root.Children[name] = tree
+			pTree.AddNode(pTree.Root, tree)
 		} else {
-			tempTrees[tree.Value.Parent].Children[name] = tree
+			if tt, ok := nodes[tree.Value.Parent]; ok {
+				pTree.AddNode(tt, tree)
+			} else {
+				pTree.AddNode(pTree.Root, tree)
+			}
 		}
 	}
 
-	return root
+	return pTree
 }
