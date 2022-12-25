@@ -30,6 +30,40 @@ type Record struct {
 	End     time.Time
 }
 
+type yamlRecord struct {
+	Project string
+	Note    string
+	Tags    []string
+	Start   util.Time
+	End     util.Time
+}
+
+// MarshalYAML converts a Record to YAML bytes
+func (r *Record) MarshalYAML() (interface{}, error) {
+	return &yamlRecord{
+		Project: r.Project,
+		Note:    r.Note,
+		Tags:    r.Tags,
+		Start:   util.Time(r.Start),
+		End:     util.Time(r.End),
+	}, nil
+}
+
+// UnmarshalYAML converts YAML bytes to a Record
+func (r *Record) UnmarshalYAML(value *yaml.Node) error {
+	rec := yamlRecord{}
+	if err := value.Decode(&rec); err != nil {
+		return err
+	}
+	r.Project = rec.Project
+	r.Note = rec.Note
+	r.Tags = rec.Tags
+	r.Start = time.Time(rec.Start)
+	r.End = time.Time(rec.End)
+
+	return nil
+}
+
 // HasEnded reports whether the record has an end time
 func (r Record) HasEnded() bool {
 	return !r.End.IsZero()
