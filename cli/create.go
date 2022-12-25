@@ -3,6 +3,7 @@ package cli
 import (
 	"github.com/mlange-42/track/core"
 	"github.com/mlange-42/track/out"
+	"github.com/mlange-42/track/util"
 	"github.com/spf13/cobra"
 )
 
@@ -28,7 +29,7 @@ func createProjectCommand(t *core.Track) *cobra.Command {
 		Use:     "project <NAME>",
 		Short:   "Create a new project",
 		Aliases: []string{"p"},
-		Args:    cobra.ExactArgs(1),
+		Args:    util.WrappedArgs(cobra.ExactArgs(1)),
 		Run: func(cmd *cobra.Command, args []string) {
 			name := args[0]
 

@@ -58,7 +58,7 @@ func timelineReportCommand(t *core.Track, options *reportOptions) *cobra.Command
 		Use:     "timeline <days/weeks/months>",
 		Short:   "Timeline reports of time tracking",
 		Aliases: []string{"t"},
-		Args:    cobra.ExactArgs(1),
+		Args:    util.WrappedArgs(cobra.ExactArgs(1)),
 		Run: func(cmd *cobra.Command, args []string) {
 			mode := args[0]
 
@@ -91,7 +91,7 @@ func projectsReportCommand(t *core.Track, options *reportOptions) *cobra.Command
 		Use:     "projects",
 		Short:   "Timeline reports of time tracking",
 		Aliases: []string{"p"},
-		Args:    cobra.NoArgs,
+		Args:    util.WrappedArgs(cobra.NoArgs),
 		Run: func(cmd *cobra.Command, args []string) {
 			filters, err := createFilters(options)
 			if err != nil {

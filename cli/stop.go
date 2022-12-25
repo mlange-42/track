@@ -5,6 +5,7 @@ import (
 
 	"github.com/mlange-42/track/core"
 	"github.com/mlange-42/track/out"
+	"github.com/mlange-42/track/util"
 	"github.com/spf13/cobra"
 )
 
@@ -13,7 +14,7 @@ func stopCommand(t *core.Track) *cobra.Command {
 		Use:     "stop",
 		Short:   "Stop the current record",
 		Aliases: []string{"x"},
-		Args:    cobra.NoArgs,
+		Args:    util.WrappedArgs(cobra.NoArgs),
 		Run: func(cmd *cobra.Command, args []string) {
 			record, err := t.StopRecord(time.Now())
 

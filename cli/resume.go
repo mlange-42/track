@@ -6,6 +6,7 @@ import (
 
 	"github.com/mlange-42/track/core"
 	"github.com/mlange-42/track/out"
+	"github.com/mlange-42/track/util"
 	"github.com/spf13/cobra"
 )
 
@@ -14,7 +15,7 @@ func resumeCommand(t *core.Track) *cobra.Command {
 		Use:     "resume [message]",
 		Short:   "Resume the last project",
 		Aliases: []string{"re"},
-		Args:    cobra.MinimumNArgs(0),
+		Args:    util.WrappedArgs(cobra.MinimumNArgs(0)),
 		Run: func(cmd *cobra.Command, args []string) {
 			last, err := t.LatestRecord()
 			if err != nil {

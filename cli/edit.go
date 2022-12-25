@@ -47,10 +47,10 @@ func editCommand(t *core.Track) *cobra.Command {
 
 func editRecordCommand(t *core.Track) *cobra.Command {
 	editProject := &cobra.Command{
-		Use:     "record <TIME>",
+		Use:     "record <DATE> <TIME>",
 		Short:   "Edit a record",
 		Aliases: []string{"r"},
-		Args:    cobra.ExactArgs(2),
+		Args:    util.WrappedArgs(cobra.ExactArgs(2)),
 		Run: func(cmd *cobra.Command, args []string) {
 			timeString := strings.Join(args, " ")
 			tm, err := util.ParseDateTime(timeString)
@@ -79,7 +79,7 @@ func editProjectCommand(t *core.Track) *cobra.Command {
 		Use:     "project <NAME>",
 		Short:   "Edit a project",
 		Aliases: []string{"p"},
-		Args:    cobra.ExactArgs(1),
+		Args:    util.WrappedArgs(cobra.ExactArgs(1)),
 		Run: func(cmd *cobra.Command, args []string) {
 			name := args[0]
 			err := editProject(t, name)
@@ -103,7 +103,7 @@ func editConfigCommand(t *core.Track) *cobra.Command {
 		Use:     "config",
 		Short:   "Edit track's config",
 		Aliases: []string{"c"},
-		Args:    cobra.NoArgs,
+		Args:    util.WrappedArgs(cobra.NoArgs),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := editConfig(t)
 			if err != nil {

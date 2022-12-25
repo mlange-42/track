@@ -6,6 +6,7 @@ import (
 
 	"github.com/mlange-42/track/core"
 	"github.com/mlange-42/track/out"
+	"github.com/mlange-42/track/util"
 	"github.com/spf13/cobra"
 )
 
@@ -14,7 +15,7 @@ func startCommand(t *core.Track) *cobra.Command {
 		Use:     "start <project> [message]",
 		Short:   "Start a record",
 		Aliases: []string{"+"},
-		Args:    cobra.MinimumNArgs(1),
+		Args:    util.WrappedArgs(cobra.MinimumNArgs(1)),
 		Run: func(cmd *cobra.Command, args []string) {
 			project := args[0]
 
