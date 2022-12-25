@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -12,8 +13,12 @@ import (
 
 func startCommand(t *core.Track) *cobra.Command {
 	start := &cobra.Command{
-		Use:     "start <project> [message]",
-		Short:   "Start a record",
+		Use:   "start <PROJECT> [note...]",
+		Short: "Start a record for a project",
+		Long: fmt.Sprintf(`Start a record for a project
+		
+Everything after the project name is considered a note for the record.
+Notes can contain tags, denoted by the prefix "%s", like "%stag"`, core.TagPrefix, core.TagPrefix),
 		Aliases: []string{"+"},
 		Args:    util.WrappedArgs(cobra.MinimumNArgs(1)),
 		Run: func(cmd *cobra.Command, args []string) {

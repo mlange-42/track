@@ -14,7 +14,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const tagPrefix = "+"
+// TagPrefix denotes tags in record notes
+const TagPrefix = "+"
 
 var (
 	// ErrNoRecords is an error for no records found for a date
@@ -367,10 +368,10 @@ func (t *Track) ExtractTags(tokens []string) []string {
 	for _, token := range tokens {
 		subTokens := strings.Split(token, " ")
 		for _, subToken := range subTokens {
-			if strings.HasPrefix(subToken, tagPrefix) {
+			if strings.HasPrefix(subToken, TagPrefix) {
 				if _, ok := mapped[subToken]; !ok {
 					mapped[subToken] = true
-					result = append(result, strings.TrimPrefix(subToken, tagPrefix))
+					result = append(result, strings.TrimPrefix(subToken, TagPrefix))
 				}
 			}
 		}
