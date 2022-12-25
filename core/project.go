@@ -126,7 +126,9 @@ func ToProjectTree(projects map[string]Project) *ProjectTree {
 		if tree.Value.Parent == "" {
 			root.Children[name] = tree
 		} else {
-			tempTrees[tree.Value.Parent].Children[name] = tree
+			parent := tempTrees[tree.Value.Parent]
+			parent.Children[name] = tree
+			tree.Parent = parent
 		}
 	}
 
