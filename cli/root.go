@@ -51,6 +51,7 @@ $ track report timeline days
 	root.AddCommand(switchCommand(t))
 	root.AddCommand(reportCommand(t))
 	root.AddCommand(editCommand(t))
+	root.AddCommand(exportCommand(t))
 
 	return root
 }
