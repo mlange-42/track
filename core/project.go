@@ -122,13 +122,11 @@ func ToProjectTree(projects map[string]Project) *ProjectTree {
 		tempTrees[name] = tree.NewNode(project)
 	}
 
-	for name, tree := range tempTrees {
+	for _, tree := range tempTrees {
 		if tree.Value.Parent == "" {
-			root.Children[name] = tree
+			root.AddNode(tree)
 		} else {
-			parent := tempTrees[tree.Value.Parent]
-			parent.Children[name] = tree
-			tree.Parent = parent
+			tempTrees[tree.Value.Parent].AddNode(tree)
 		}
 	}
 

@@ -37,9 +37,11 @@ func TestToTree(t *testing.T) {
 		expDescendants []*ProjectNode
 	}{
 		{
-			title:        "Node p1",
-			node:         pTree.Nodes["p1"],
-			expAncestors: []*ProjectNode{},
+			title: "Node p1",
+			node:  pTree.Nodes["p1"],
+			expAncestors: []*ProjectNode{
+				pTree.Root,
+			},
 			expDescendants: []*ProjectNode{
 				pTree.Nodes["p1a"],
 				pTree.Nodes["p1b"],
@@ -50,6 +52,7 @@ func TestToTree(t *testing.T) {
 			node:  pTree.Nodes["p1a"],
 			expAncestors: []*ProjectNode{
 				pTree.Nodes["p1"],
+				pTree.Root,
 			},
 			expDescendants: []*ProjectNode{},
 		},
@@ -58,13 +61,16 @@ func TestToTree(t *testing.T) {
 			node:  pTree.Nodes["p1b"],
 			expAncestors: []*ProjectNode{
 				pTree.Nodes["p1"],
+				pTree.Root,
 			},
 			expDescendants: []*ProjectNode{},
 		},
 		{
-			title:        "Node p2",
-			node:         pTree.Nodes["p2"],
-			expAncestors: []*ProjectNode{},
+			title: "Node p2",
+			node:  pTree.Nodes["p2"],
+			expAncestors: []*ProjectNode{
+				pTree.Root,
+			},
 			expDescendants: []*ProjectNode{
 				pTree.Nodes["p2a"],
 			},
@@ -74,6 +80,7 @@ func TestToTree(t *testing.T) {
 			node:  pTree.Nodes["p2a"],
 			expAncestors: []*ProjectNode{
 				pTree.Nodes["p2"],
+				pTree.Root,
 			},
 			expDescendants: []*ProjectNode{},
 		},
