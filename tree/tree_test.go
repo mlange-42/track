@@ -18,33 +18,34 @@ type testTree = MapTree[testStruct]
 type testNode = MapNode[testStruct]
 
 func TestAdd(t *testing.T) {
-	node := NewNode(testStruct{Name: "root"})
-	node.Add(testStruct{Name: "child"})
+	tr := NewTree(testStruct{Name: "root"})
+	tr.Add(tr.Root, testStruct{Name: "child"})
 
-	assert.Equal(t, 1, len(node.Children))
+	assert.Equal(t, 1, len(tr.Root.Children))
 
-	ch, ok := node.Children["child"]
+	ch, ok := tr.Root.Children["child"]
 	assert.Equal(t, true, ok)
 	assert.Equal(t, testStruct{Name: "child"}, ch.Value)
 
-	assert.Equal(t, node, ch.Parent)
+	assert.Equal(t, tr.Root, ch.Parent)
 }
 
 func TestNodeAdd(t *testing.T) {
-	node := NewNode(testStruct{Name: "root"})
-	node.AddNode(NewNode(testStruct{Name: "child"}))
+	tr := NewTree(testStruct{Name: "root"})
+	tr.AddNode(tr.Root, NewNode(testStruct{Name: "child"}))
 
-	assert.Equal(t, 1, len(node.Children))
+	assert.Equal(t, 1, len(tr.Root.Children))
 
-	ch, ok := node.Children["child"]
+	ch, ok := tr.Root.Children["child"]
 	assert.Equal(t, true, ok)
 	assert.Equal(t, testStruct{Name: "child"}, ch.Value)
 
-	assert.Equal(t, node, ch.Parent)
+	assert.Equal(t, tr.Root, ch.Parent)
 }
 
 func TestAncestorDescendants(t *testing.T) {
-	root := NewNode(testStruct{Name: "root"})
+	tr := NewTree(testStruct{Name: "root"})
+	root := tr.Root
 	a := NewNode(testStruct{Name: "a"})
 	a1 := NewNode(testStruct{Name: "a1"})
 	a2 := NewNode(testStruct{Name: "a2"})
@@ -52,13 +53,13 @@ func TestAncestorDescendants(t *testing.T) {
 	b1 := NewNode(testStruct{Name: "b1"})
 	b11 := NewNode(testStruct{Name: "b11"})
 
-	root.AddNode(a)
-	a.AddNode(a1)
-	a.AddNode(a2)
+	tr.AddNode(root, a)
+	tr.AddNode(a, a1)
+	tr.AddNode(a, a2)
 
-	root.AddNode(b)
-	b.AddNode(b1)
-	b1.AddNode(b11)
+	tr.AddNode(root, b)
+	tr.AddNode(b, b1)
+	tr.AddNode(b1, b11)
 
 	tree := MapTree[testStruct]{
 		Root: root,

@@ -116,31 +116,28 @@ func (t *Track) LoadAllProjects() (map[string]Project, error) {
 
 // ToProjectTree creates a tree of thegiven projects
 func ToProjectTree(projects map[string]Project) *ProjectTree {
-	root := tree.NewNode(Project{Name: rootName})
+	pTree := tree.NewTree(Project{Name: rootName})
 
-	tempTrees := map[string]*ProjectNode{root.Value.Name: root}
+	nodes := map[string]*ProjectNode{pTree.Root.Value.Name: pTree.Root}
 
 	for name, project := range projects {
-		tempTrees[name] = tree.NewNode(project)
+		nodes[name] = tree.NewNode(project)
 	}
 
-	for _, tree := range tempTrees {
-		if tree == root {
+	for _, tree := range nodes {
+		if tree == pTree.Root {
 			continue
 		}
 		if tree.Value.Parent == "" {
-			root.AddNode(tree)
+			pTree.AddNode(pTree.Root, tree)
 		} else {
-			if tt, ok := tempTrees[tree.Value.Parent]; ok {
-				tt.AddNode(tree)
+			if tt, ok := nodes[tree.Value.Parent]; ok {
+				pTree.AddNode(tt, tree)
 			} else {
-				root.AddNode(tree)
+				pTree.AddNode(pTree.Root, tree)
 			}
 		}
 	}
 
-	return &ProjectTree{
-		Root:  root,
-		Nodes: tempTrees,
-	}
+	return pTree
 }

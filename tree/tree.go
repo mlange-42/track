@@ -5,10 +5,34 @@ type Named interface {
 	GetName() string
 }
 
+// MapNode is a node in the tree data structure
+type MapNode[T Named] struct {
+	Parent   *MapNode[T]
+	Children map[string]*MapNode[T]
+	Value    T
+}
+
+// NewNode creates a new tree node
+func NewNode[T Named](value T) *MapNode[T] {
+	return &MapNode[T]{
+		Children: make(map[string]*MapNode[T]),
+		Value:    value,
+	}
+}
+
 // MapTree is a tree data structure
 type MapTree[T Named] struct {
 	Root  *MapNode[T]
 	Nodes map[string]*MapNode[T]
+}
+
+// NewTree creates a new tree node
+func NewTree[T Named](value T) *MapTree[T] {
+	root := NewNode(value)
+	return &MapTree[T]{
+		Root:  root,
+		Nodes: map[string]*MapNode[T]{value.GetName(): root},
+	}
 }
 
 // Ancestors returns a slice of all ancestors (i.e. recursive parents),
@@ -50,30 +74,17 @@ func (t *MapTree[T]) descendants(n *MapNode[T], res []*MapNode[T]) []*MapNode[T]
 	return res
 }
 
-// MapNode is a node in the tree data structure
-type MapNode[T Named] struct {
-	Parent   *MapNode[T]
-	Children map[string]*MapNode[T]
-	Value    T
-}
-
-// NewNode creates a new tree node
-func NewNode[T Named](value T) *MapNode[T] {
-	return &MapNode[T]{
-		Children: make(map[string]*MapNode[T]),
-		Value:    value,
-	}
-}
-
 // AddTree adds a sub-tree without children
-func (t *MapNode[T]) Add(child T) {
+func (t *MapTree[T]) Add(parent *MapNode[T], child T) {
 	node := NewNode(child)
-	node.Parent = t
-	t.Children[child.GetName()] = node
+	node.Parent = parent
+	parent.Children[child.GetName()] = node
+	t.Nodes[child.GetName()] = node
 }
 
 // AddNode adds a sub-tree
-func (t *MapNode[T]) AddNode(child *MapNode[T]) {
-	child.Parent = t
-	t.Children[child.Value.GetName()] = child
+func (t *MapTree[T]) AddNode(parent *MapNode[T], child *MapNode[T]) {
+	child.Parent = parent
+	parent.Children[child.Value.GetName()] = child
+	t.Nodes[child.Value.GetName()] = child
 }
