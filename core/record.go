@@ -178,6 +178,82 @@ func (t *Track) LoadAllRecordsFiltered(filters FilterFunctions) ([]Record, error
 	return records, nil
 }
 
+// FilterResult contains a Report or an error from async filtering
+type FilterResult struct {
+	Record Record
+	Err    error
+}
+
+// AllRecordsFiltered is an async version of LoadAllRecordsFiltered
+func (t *Track) AllRecordsFiltered(filters FilterFunctions) (func(), chan FilterResult) {
+	results := make(chan FilterResult, 32)
+
+	return func() {
+		path := fs.RecordsDir()
+
+		dirs, err := ioutil.ReadDir(path)
+		if err != nil {
+			results <- FilterResult{Record{}, err}
+			return
+		}
+
+		for _, dir := range dirs {
+			if !dir.IsDir() {
+				continue
+			}
+			recs, err := t.LoadDateRecordsFiltered(dir.Name(), filters)
+			if err != nil {
+				results <- FilterResult{Record{}, err}
+				return
+			}
+			for _, rec := range recs {
+				results <- FilterResult{rec, nil}
+			}
+		}
+		close(results)
+	}, results
+}
+
+// AllRecordsFiltered is an async version of LoadAllRecordsFiltered
+func (t *Track) allRecordsFiltered(
+	filters FilterFunctions,
+	results chan struct {
+		Record
+		error
+	}) {
+	path := fs.RecordsDir()
+
+	dirs, err := ioutil.ReadDir(path)
+	if err != nil {
+		results <- struct {
+			Record
+			error
+		}{Record{}, err}
+		return
+	}
+
+	for _, dir := range dirs {
+		if !dir.IsDir() {
+			continue
+		}
+		recs, err := t.LoadDateRecordsFiltered(dir.Name(), filters)
+		if err != nil {
+			results <- struct {
+				Record
+				error
+			}{Record{}, err}
+			return
+		}
+		for _, rec := range recs {
+			results <- struct {
+				Record
+				error
+			}{rec, nil}
+		}
+	}
+	close(results)
+}
+
 // LoadDateRecords loads all records for the given date string/directory
 func (t *Track) LoadDateRecords(dir string) ([]Record, error) {
 	return t.LoadDateRecordsFiltered(dir, []func(*Record) bool{})

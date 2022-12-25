@@ -23,15 +23,8 @@ var timelineModes = map[string]func(*core.Reporter) string{
 	"m":      timelineMonths,
 }
 
-type reportOptions struct {
-	projects []string
-	tags     []string
-	start    string
-	end      string
-}
-
 func reportCommand(t *core.Track) *cobra.Command {
-	options := reportOptions{}
+	options := filterOptions{}
 
 	report := &cobra.Command{
 		Use:     "report",
@@ -53,7 +46,7 @@ func reportCommand(t *core.Track) *cobra.Command {
 	return report
 }
 
-func timelineReportCommand(t *core.Track, options *reportOptions) *cobra.Command {
+func timelineReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 	timeline := &cobra.Command{
 		Use:     "timeline <days/weeks/months>",
 		Short:   "Timeline reports of time tracking",
@@ -62,7 +55,7 @@ func timelineReportCommand(t *core.Track, options *reportOptions) *cobra.Command
 		Run: func(cmd *cobra.Command, args []string) {
 			mode := args[0]
 
-			filters, err := createFilters(options)
+			filters, err := createFilters(options, false)
 			if err != nil {
 				out.Err("failed to generate report: %s", err)
 				return
@@ -86,14 +79,14 @@ func timelineReportCommand(t *core.Track, options *reportOptions) *cobra.Command
 	return timeline
 }
 
-func projectsReportCommand(t *core.Track, options *reportOptions) *cobra.Command {
+func projectsReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 	projects := &cobra.Command{
 		Use:     "projects",
 		Short:   "Timeline reports of time tracking",
 		Aliases: []string{"p"},
 		Args:    util.WrappedArgs(cobra.NoArgs),
 		Run: func(cmd *cobra.Command, args []string) {
-			filters, err := createFilters(options)
+			filters, err := createFilters(options, false)
 			if err != nil {
 				out.Err("failed to generate report: %s", err)
 				return
@@ -129,34 +122,6 @@ func projectsReportCommand(t *core.Track, options *reportOptions) *cobra.Command
 		},
 	}
 	return projects
-}
-
-func createFilters(options *reportOptions) (core.FilterFunctions, error) {
-	var filters core.FilterFunctions
-
-	if len(options.tags) > 0 {
-		filters = append(filters, core.FilterByTagsAny(options.tags))
-	}
-	var err error
-	var startTime time.Time
-	var endTime time.Time
-	if len(options.start) > 0 {
-		startTime, err = util.ParseDate(options.start)
-		if err != nil {
-			return nil, err
-		}
-	}
-	if len(options.end) > 0 {
-		endTime, err = util.ParseDate(options.end)
-		if err != nil {
-			return nil, err
-		}
-	}
-	if !(startTime.IsZero() && endTime.IsZero()) {
-		filters = append(filters, core.FilterByTime(startTime, endTime))
-	}
-
-	return filters, nil
 }
 
 func timelineDays(r *core.Reporter) string {
