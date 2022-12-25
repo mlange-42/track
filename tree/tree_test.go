@@ -135,6 +135,6 @@ func TestAncestorDescendants(t *testing.T) {
 			desStr[i] = a.Value.Name
 		}
 		assert.Equal(t, test.expAncestors, ancStr, "Ancestors don't match in %s", test.title)
-		assert.Equal(t, test.expDescendants, desStr, "Descendants don't match in %s", test.title)
+		assert.ElementsMatch(t, test.expDescendants, desStr, "Descendants don't match in %s", test.title)
 	}
 }

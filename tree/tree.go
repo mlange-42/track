@@ -30,6 +30,8 @@ func (t *MapTree[T]) Ancestors(name string) ([]*MapNode[T], bool) {
 
 // Descendants returns a slice of all descendants (i.e. recursive children),
 // and an ok bool whether the requested node was found.
+//
+// Descendants in the returned slice have undefined order.
 func (t *MapTree[T]) Descendants(name string) ([]*MapNode[T], bool) {
 	res := []*MapNode[T]{}
 	curr, ok := t.Nodes[name]

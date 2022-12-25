@@ -96,6 +96,6 @@ func TestToTree(t *testing.T) {
 			t.Fatalf("Should be able to determine descendants")
 		}
 		assert.Equal(t, test.expAncestors, anc, "Ancestors don't match in %s", test.title)
-		assert.Equal(t, test.expDescendants, des, "Descendants don't match in %s", test.title)
+		assert.ElementsMatch(t, test.expDescendants, des, "Descendants don't match in %s", test.title)
 	}
 }
