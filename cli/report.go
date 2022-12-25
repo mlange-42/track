@@ -117,9 +117,6 @@ func projectsReportCommand(t *core.Track, options *reportOptions) *cobra.Command
 func createFilters(options *reportOptions) (core.FilterFunctions, error) {
 	var filters core.FilterFunctions
 
-	if len(options.projects) > 0 {
-		filters = append(filters, core.FilterByProjects(options.projects))
-	}
 	if len(options.tags) > 0 {
 		filters = append(filters, core.FilterByTagsAny(options.tags))
 	}

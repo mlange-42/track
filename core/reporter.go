@@ -1,7 +1,10 @@
 package core
 
 import (
+	"fmt"
 	"time"
+
+	"golang.org/x/exp/maps"
 )
 
 // TimeRange represents a time range
@@ -39,14 +42,22 @@ func NewReporter(t *Track, proj []string, filters FilterFunctions) (*Reporter, e
 		projects = allProjects
 	} else {
 		for _, p := range proj {
-			project, err := t.LoadProjectByName(p)
-			if err != nil {
-				return nil, err
-			}
+			project := allProjects[p]
 			projects[project.Name] = project
+
+			desc, ok := projectsTree.Descendants(project.Name)
+			if !ok {
+				return nil, fmt.Errorf("BUG! Project '%s' not in project tree", project.Name)
+			}
+			for _, p2 := range desc {
+				if _, ok = projects[p2.Value.Name]; !ok {
+					projects[p2.Value.Name] = p2.Value
+				}
+			}
 		}
 	}
 
+	filters = append(filters, FilterByProjects(maps.Keys(projects)))
 	records, err := t.LoadAllRecordsFiltered(filters)
 	if err != nil {
 		return nil, err
@@ -70,6 +81,18 @@ func NewReporter(t *Track, proj []string, filters FilterFunctions) (*Reporter, e
 		} else {
 			if tRange.End.IsZero() || rec.End.After(tRange.End) {
 				tRange.End = rec.End
+			}
+		}
+	}
+
+	for project := range totals {
+		anc, ok := projectsTree.Ancestors(project)
+		if !ok {
+			return nil, fmt.Errorf("BUG! Project '%s' not in project tree", project)
+		}
+		for _, node := range anc {
+			if _, ok := totals[node.Value.Name]; ok {
+				totals[node.Value.Name] += totals[project]
 			}
 		}
 	}
