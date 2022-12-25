@@ -69,7 +69,8 @@ func NewReporter(t *Track, proj []string, filters FilterFunctions) (*Reporter, e
 		return nil, err
 	}
 
-	totals := make(map[string]time.Duration, len(projects))
+	totals := make(map[string]time.Duration, len(projects)+1)
+	totals[projectsTree.Root.Value.Name] = time.Second * 0.0
 	for _, p := range projects {
 		totals[p.Name] = time.Second * 0.0
 	}
