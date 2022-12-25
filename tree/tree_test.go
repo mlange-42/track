@@ -76,44 +76,44 @@ func TestAncestorDescendants(t *testing.T) {
 	tt := []struct {
 		title          string
 		node           *testNode
-		expAncestors   []*testNode
-		expDescendants []*testNode
+		expAncestors   []string
+		expDescendants []string
 	}{
 		{
 			title:          "Node root",
 			node:           root,
-			expAncestors:   []*testNode{},
-			expDescendants: []*testNode{a, a1, a2, b, b1, b11},
+			expAncestors:   []string{},
+			expDescendants: []string{"a", "a1", "a2", "b", "b1", "b11"},
 		},
 		{
 			title:          "Node a",
 			node:           a,
-			expAncestors:   []*testNode{root},
-			expDescendants: []*testNode{a1, a2},
+			expAncestors:   []string{"root"},
+			expDescendants: []string{"a1", "a2"},
 		},
 		{
 			title:          "Node a1",
 			node:           a1,
-			expAncestors:   []*testNode{a, root},
-			expDescendants: []*testNode{},
+			expAncestors:   []string{"a", "root"},
+			expDescendants: []string{},
 		},
 		{
 			title:          "Node b",
 			node:           b,
-			expAncestors:   []*testNode{root},
-			expDescendants: []*testNode{b1, b11},
+			expAncestors:   []string{"root"},
+			expDescendants: []string{"b1", "b11"},
 		},
 		{
 			title:          "Node b1",
 			node:           b1,
-			expAncestors:   []*testNode{b, root},
-			expDescendants: []*testNode{b11},
+			expAncestors:   []string{"b", "root"},
+			expDescendants: []string{"b11"},
 		},
 		{
 			title:          "Node b11",
 			node:           b11,
-			expAncestors:   []*testNode{b1, b, root},
-			expDescendants: []*testNode{},
+			expAncestors:   []string{"b1", "b", "root"},
+			expDescendants: []string{},
 		},
 	}
 
@@ -126,7 +126,15 @@ func TestAncestorDescendants(t *testing.T) {
 		if !ok {
 			t.Fatalf("Should be able to determine descendants")
 		}
-		assert.Equal(t, test.expAncestors, anc, "Ancestors don't match in %s", test.title)
-		assert.Equal(t, test.expDescendants, des, "Descendants don't match in %s", test.title)
+		ancStr := make([]string, len(anc), len(anc))
+		desStr := make([]string, len(des), len(des))
+		for i, a := range anc {
+			ancStr[i] = a.Value.Name
+		}
+		for i, a := range des {
+			desStr[i] = a.Value.Name
+		}
+		assert.Equal(t, test.expAncestors, ancStr, "Ancestors don't match in %s", test.title)
+		assert.Equal(t, test.expDescendants, desStr, "Descendants don't match in %s", test.title)
 	}
 }
