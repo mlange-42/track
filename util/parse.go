@@ -8,9 +8,11 @@ import (
 func ParseDate(text string) (time.Time, error) {
 	switch text {
 	case "today":
-		return time.Now(), nil
+		return Date(time.Now().Date()), nil
+	case "tomorrow":
+		return Date(time.Now().Date()).Add(24 * time.Hour), nil
 	case "yesterday":
-		return time.Now().Add(-24 * time.Hour), nil
+		return Date(time.Now().Date()).Add(-24 * time.Hour), nil
 	}
 	return time.Parse(DateFormat, text)
 }
