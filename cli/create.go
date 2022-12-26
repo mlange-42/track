@@ -11,6 +11,7 @@ func createCommand(t *core.Track) *cobra.Command {
 	create := &cobra.Command{
 		Use:     "create",
 		Short:   "Create a new resource",
+		Long:    "Create a new resource",
 		Aliases: []string{"c"},
 		Run: func(cmd *cobra.Command, args []string) {
 			_ = cmd.Help()
@@ -18,7 +19,7 @@ func createCommand(t *core.Track) *cobra.Command {
 	}
 
 	create.AddCommand(createProjectCommand(t))
-
+	create.Long += "\n\n" + util.FormatCmdTree(create)
 	return create
 }
 

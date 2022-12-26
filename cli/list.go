@@ -11,19 +11,21 @@ import (
 )
 
 func listCommand(t *core.Track) *cobra.Command {
-	create := &cobra.Command{
+	list := &cobra.Command{
 		Use:     "list",
 		Short:   "List resources",
+		Long:    "List resources",
 		Aliases: []string{"l"},
 		Run: func(cmd *cobra.Command, args []string) {
 			_ = cmd.Help()
 		},
 	}
 
-	create.AddCommand(listProjectsCommand(t))
-	create.AddCommand(listRecordsCommand(t))
+	list.AddCommand(listProjectsCommand(t))
+	list.AddCommand(listRecordsCommand(t))
 
-	return create
+	list.Long += "\n\n" + util.FormatCmdTree(list)
+	return list
 }
 
 func listProjectsCommand(t *core.Track) *cobra.Command {

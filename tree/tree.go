@@ -72,12 +72,13 @@ func (t *MapTree[T]) descendants(n *MapNode[T], res []*MapNode[T]) []*MapNode[T]
 }
 
 // AddTree adds a sub-tree without children
-func (t *MapTree[T]) Add(parent *MapNode[T], child T) {
+func (t *MapTree[T]) Add(parent *MapNode[T], child T) *MapNode[T] {
 	node := NewNode(child)
 	node.Parent = parent
 	name := t.NameFn(child)
 	parent.Children[name] = node
 	t.Nodes[name] = node
+	return node
 }
 
 // AddNode adds a sub-tree

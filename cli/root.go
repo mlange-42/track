@@ -2,6 +2,7 @@ package cli
 
 import (
 	"github.com/mlange-42/track/core"
+	"github.com/mlange-42/track/util"
 	"github.com/spf13/cobra"
 )
 
@@ -30,7 +31,8 @@ $ track list records today
 Show a daily timeline:
 $ track report timeline days
 
-`,
+Subcommands
+-----------`,
 		Version:       version,
 		SilenceUsage:  true,
 		SilenceErrors: true,
@@ -52,6 +54,8 @@ $ track report timeline days
 	root.AddCommand(reportCommand(t))
 	root.AddCommand(editCommand(t))
 	root.AddCommand(exportCommand(t))
+
+	root.Long += "\n\n" + util.FormatCmdTree(root)
 
 	return root
 }

@@ -29,6 +29,7 @@ func reportCommand(t *core.Track) *cobra.Command {
 	report := &cobra.Command{
 		Use:     "report",
 		Short:   "Generate reports of time tracking",
+		Long:    "Generate reports of time tracking",
 		Aliases: []string{"r"},
 		Run: func(cmd *cobra.Command, args []string) {
 			_ = cmd.Help()
@@ -43,6 +44,7 @@ func reportCommand(t *core.Track) *cobra.Command {
 	report.AddCommand(timelineReportCommand(t, &options))
 	report.AddCommand(projectsReportCommand(t, &options))
 
+	report.Long += "\n\n" + util.FormatCmdTree(report)
 	return report
 }
 

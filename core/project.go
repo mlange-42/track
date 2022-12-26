@@ -18,7 +18,7 @@ type ProjectTree = tree.MapTree[Project]
 
 // NewTree creates a new project tree
 func NewTree(project Project) *ProjectTree {
-	return tree.NewTree[Project](
+	return tree.NewTree(
 		project,
 		func(p Project) string { return p.Name },
 	)
