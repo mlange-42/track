@@ -29,7 +29,7 @@ const editComment string = `
 `
 
 func editCommand(t *core.Track) *cobra.Command {
-	create := &cobra.Command{
+	edit := &cobra.Command{
 		Use:   "edit",
 		Short: "Edit a resource",
 		Long: `Edit a resource
@@ -42,11 +42,12 @@ See file .track/config.yml to configure the editor to be used.`,
 		},
 	}
 
-	create.AddCommand(editProjectCommand(t))
-	create.AddCommand(editRecordCommand(t))
-	create.AddCommand(editConfigCommand(t))
+	edit.AddCommand(editProjectCommand(t))
+	edit.AddCommand(editRecordCommand(t))
+	edit.AddCommand(editConfigCommand(t))
 
-	return create
+	edit.Long += "\n\n" + formatCmdTree(edit)
+	return edit
 }
 
 func editRecordCommand(t *core.Track) *cobra.Command {

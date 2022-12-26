@@ -11,19 +11,21 @@ import (
 )
 
 func listCommand(t *core.Track) *cobra.Command {
-	create := &cobra.Command{
+	list := &cobra.Command{
 		Use:     "list",
 		Short:   "List resources",
+		Long:    "List resources",
 		Aliases: []string{"l"},
 		Run: func(cmd *cobra.Command, args []string) {
 			_ = cmd.Help()
 		},
 	}
 
-	create.AddCommand(listProjectsCommand(t))
-	create.AddCommand(listRecordsCommand(t))
+	list.AddCommand(listProjectsCommand(t))
+	list.AddCommand(listRecordsCommand(t))
 
-	return create
+	list.Long += "\n\n" + formatCmdTree(list)
+	return list
 }
 
 func listProjectsCommand(t *core.Track) *cobra.Command {
@@ -44,7 +46,11 @@ func listProjectsCommand(t *core.Track) *cobra.Command {
 				active = rec.Project
 			}
 
-			tree := core.ToProjectTree(projects)
+			tree, err := core.ToProjectTree(projects)
+			if err != nil {
+				out.Err("failed to load projects: %s", err)
+				return
+			}
 			formatter := util.NewTreeFormatter(
 				func(t *core.ProjectNode, indent int) string {
 					if t.Value.Name == active {

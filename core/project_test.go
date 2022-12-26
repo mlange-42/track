@@ -28,7 +28,10 @@ func TestToTree(t *testing.T) {
 		},
 	}
 
-	pTree := ToProjectTree(projects)
+	pTree, err := ToProjectTree(projects)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	tt := []struct {
 		title          string

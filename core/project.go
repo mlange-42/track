@@ -16,6 +16,14 @@ const rootName = "<workspace>"
 // ProjectTree is a tree of projects
 type ProjectTree = tree.MapTree[Project]
 
+// NewTree creates a new project tree
+func NewTree(project Project) *ProjectTree {
+	return tree.NewTree(
+		project,
+		func(p Project) string { return p.Name },
+	)
+}
+
 // ProjectNode is a tree of projects
 type ProjectNode = tree.MapNode[Project]
 
@@ -23,11 +31,6 @@ type ProjectNode = tree.MapNode[Project]
 type Project struct {
 	Name   string
 	Parent string
-}
-
-// GetName returns the name ofthe project
-func (p Project) GetName() string {
-	return p.Name
 }
 
 // ProjectPath returns the full path for a project
@@ -115,8 +118,8 @@ func (t *Track) LoadAllProjects() (map[string]Project, error) {
 }
 
 // ToProjectTree creates a tree of thegiven projects
-func ToProjectTree(projects map[string]Project) *ProjectTree {
-	pTree := tree.NewTree(Project{Name: rootName})
+func ToProjectTree(projects map[string]Project) (*ProjectTree, error) {
+	pTree := NewTree(Project{Name: rootName})
 
 	nodes := map[string]*ProjectNode{pTree.Root.Value.Name: pTree.Root}
 
@@ -128,16 +131,20 @@ func ToProjectTree(projects map[string]Project) *ProjectTree {
 		if tree == pTree.Root {
 			continue
 		}
+		var err error
 		if tree.Value.Parent == "" {
-			pTree.AddNode(pTree.Root, tree)
+			err = pTree.AddNode(pTree.Root, tree)
 		} else {
 			if tt, ok := nodes[tree.Value.Parent]; ok {
-				pTree.AddNode(tt, tree)
+				err = pTree.AddNode(tt, tree)
 			} else {
-				pTree.AddNode(pTree.Root, tree)
+				err = pTree.AddNode(pTree.Root, tree)
 			}
+		}
+		if err != nil {
+			return nil, err
 		}
 	}
 
-	return pTree
+	return pTree, nil
 }

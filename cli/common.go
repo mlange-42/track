@@ -5,7 +5,16 @@ import (
 
 	"github.com/mlange-42/track/core"
 	"github.com/mlange-42/track/util"
+	"github.com/spf13/cobra"
 )
+
+func formatCmdTree(command *cobra.Command) string {
+	str, err := util.FormatCmdTree(command)
+	if err != nil {
+		panic(err)
+	}
+	return str
+}
 
 type filterOptions struct {
 	projects []string
