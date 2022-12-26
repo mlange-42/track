@@ -1,9 +1,11 @@
 package cli
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/mlange-42/track/core"
+	"github.com/mlange-42/track/out"
 	"github.com/mlange-42/track/util"
 	"github.com/spf13/cobra"
 )
@@ -54,4 +56,22 @@ func createFilters(options *filterOptions, projects bool) (core.FilterFunctions,
 	}
 
 	return filters, nil
+}
+
+func confirmDeleteRecord(rec core.Record) bool {
+	question := fmt.Sprintf(
+		"Really delete record %s (%s) from project '%s' (y/n): ",
+		rec.Start.Format(util.DateTimeFormat),
+		util.FormatDuration(rec.Duration()),
+		rec.Project,
+	)
+
+	answer, err := out.Scan(question)
+	if err != nil {
+		return false
+	}
+	if answer != "y" {
+		return false
+	}
+	return true
 }

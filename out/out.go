@@ -11,6 +11,7 @@ var (
 	successColor = color.BgGreen
 	warningColor = color.BgYellow
 	errorColor   = color.BgRed
+	promptColor  = color.BgBlue
 )
 
 // Print prints a neutral message
@@ -37,6 +38,17 @@ func Success(format string, a ...interface{}) {
 	successColor.Print(" SUCCESS ")
 	fmt.Print(" ")
 	printErr(format, a...)
+}
+
+// Scan prints a prompt message and scans foruser input
+func Scan(format string, a ...interface{}) (string, error) {
+	promptColor.Print(" PROMPT ")
+	fmt.Print(" ")
+	printOut(format, a...)
+
+	var answer string
+	_, err := fmt.Scanln(&answer)
+	return answer, err
 }
 
 func printOut(format string, a ...interface{}) {
