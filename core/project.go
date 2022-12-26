@@ -118,7 +118,7 @@ func (t *Track) LoadAllProjects() (map[string]Project, error) {
 }
 
 // ToProjectTree creates a tree of thegiven projects
-func ToProjectTree(projects map[string]Project) *ProjectTree {
+func ToProjectTree(projects map[string]Project) (*ProjectTree, error) {
 	pTree := NewTree(Project{Name: rootName})
 
 	nodes := map[string]*ProjectNode{pTree.Root.Value.Name: pTree.Root}
@@ -131,16 +131,20 @@ func ToProjectTree(projects map[string]Project) *ProjectTree {
 		if tree == pTree.Root {
 			continue
 		}
+		var err error
 		if tree.Value.Parent == "" {
-			pTree.AddNode(pTree.Root, tree)
+			err = pTree.AddNode(pTree.Root, tree)
 		} else {
 			if tt, ok := nodes[tree.Value.Parent]; ok {
-				pTree.AddNode(tt, tree)
+				err = pTree.AddNode(tt, tree)
 			} else {
-				pTree.AddNode(pTree.Root, tree)
+				err = pTree.AddNode(pTree.Root, tree)
 			}
+		}
+		if err != nil {
+			return nil, err
 		}
 	}
 
-	return pTree
+	return pTree, nil
 }

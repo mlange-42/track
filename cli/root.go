@@ -2,7 +2,6 @@ package cli
 
 import (
 	"github.com/mlange-42/track/core"
-	"github.com/mlange-42/track/util"
 	"github.com/spf13/cobra"
 )
 
@@ -55,7 +54,7 @@ Subcommands
 	root.AddCommand(editCommand(t))
 	root.AddCommand(exportCommand(t))
 
-	root.Long += "\n\n" + util.FormatCmdTree(root)
+	root.Long += "\n\n" + formatCmdTree(root)
 
 	return root
 }

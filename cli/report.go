@@ -44,7 +44,7 @@ func reportCommand(t *core.Track) *cobra.Command {
 	report.AddCommand(timelineReportCommand(t, &options))
 	report.AddCommand(projectsReportCommand(t, &options))
 
-	report.Long += "\n\n" + util.FormatCmdTree(report)
+	report.Long += "\n\n" + formatCmdTree(report)
 	return report
 }
 
@@ -99,7 +99,11 @@ func projectsReportCommand(t *core.Track, options *filterOptions) *cobra.Command
 				return
 			}
 
-			tree := core.ToProjectTree(reporter.Projects)
+			tree, err := core.ToProjectTree(reporter.Projects)
+			if err != nil {
+				out.Err("failed to generate report: %s", err)
+				return
+			}
 			var active string
 			if rec, ok := t.OpenRecord(); ok {
 				active = rec.Project

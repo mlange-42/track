@@ -46,7 +46,7 @@ See file .track/config.yml to configure the editor to be used.`,
 	edit.AddCommand(editRecordCommand(t))
 	edit.AddCommand(editConfigCommand(t))
 
-	edit.Long += "\n\n" + util.FormatCmdTree(edit)
+	edit.Long += "\n\n" + formatCmdTree(edit)
 	return edit
 }
 

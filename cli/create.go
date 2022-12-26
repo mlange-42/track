@@ -19,7 +19,7 @@ func createCommand(t *core.Track) *cobra.Command {
 	}
 
 	create.AddCommand(createProjectCommand(t))
-	create.Long += "\n\n" + util.FormatCmdTree(create)
+	create.Long += "\n\n" + formatCmdTree(create)
 	return create
 }
 

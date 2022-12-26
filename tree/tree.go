@@ -1,5 +1,7 @@
 package tree
 
+import "fmt"
+
 // MapNode is a node in the tree data structure
 type MapNode[T any] struct {
 	Parent   *MapNode[T]
@@ -17,18 +19,18 @@ func NewNode[T any](value T) *MapNode[T] {
 
 // MapTree is a tree data structure
 type MapTree[T any] struct {
-	Root   *MapNode[T]
-	Nodes  map[string]*MapNode[T]
-	NameFn func(T) string
+	Root  *MapNode[T]
+	Nodes map[string]*MapNode[T]
+	KeyFn func(T) string
 }
 
 // NewTree creates a new tree node
 func NewTree[T any](value T, fn func(T) string) *MapTree[T] {
 	root := NewNode(value)
 	return &MapTree[T]{
-		Root:   root,
-		Nodes:  map[string]*MapNode[T]{fn(value): root},
-		NameFn: fn,
+		Root:  root,
+		Nodes: map[string]*MapNode[T]{fn(value): root},
+		KeyFn: fn,
 	}
 }
 
@@ -72,19 +74,30 @@ func (t *MapTree[T]) descendants(n *MapNode[T], res []*MapNode[T]) []*MapNode[T]
 }
 
 // AddTree adds a sub-tree without children
-func (t *MapTree[T]) Add(parent *MapNode[T], child T) *MapNode[T] {
+func (t *MapTree[T]) Add(parent *MapNode[T], child T) (*MapNode[T], error) {
+	name := t.KeyFn(child)
+	if _, ok := t.Nodes[name]; ok {
+		return nil, fmt.Errorf("duplicate key '%s'", name)
+	}
+
 	node := NewNode(child)
 	node.Parent = parent
-	name := t.NameFn(child)
 	parent.Children[name] = node
 	t.Nodes[name] = node
-	return node
+
+	return node, nil
 }
 
 // AddNode adds a sub-tree
-func (t *MapTree[T]) AddNode(parent *MapNode[T], child *MapNode[T]) {
+func (t *MapTree[T]) AddNode(parent *MapNode[T], child *MapNode[T]) error {
+	name := t.KeyFn(child.Value)
+	if _, ok := t.Nodes[name]; ok {
+		return fmt.Errorf("duplicate key '%s'", name)
+	}
+
 	child.Parent = parent
-	name := t.NameFn(child.Value)
 	parent.Children[name] = child
 	t.Nodes[name] = child
+
+	return nil
 }

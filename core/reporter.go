@@ -41,7 +41,10 @@ func NewReporter(t *Track, proj []string, filters FilterFunctions) (*Reporter, e
 		}
 	}
 
-	projectsTree := ToProjectTree(allProjects)
+	projectsTree, err := ToProjectTree(allProjects)
+	if err != nil {
+		return nil, fmt.Errorf("duplicate project name: %s", err)
+	}
 
 	projects := make(map[string]Project)
 	if len(proj) == 0 {

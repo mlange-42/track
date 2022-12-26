@@ -24,7 +24,7 @@ func listCommand(t *core.Track) *cobra.Command {
 	list.AddCommand(listProjectsCommand(t))
 	list.AddCommand(listRecordsCommand(t))
 
-	list.Long += "\n\n" + util.FormatCmdTree(list)
+	list.Long += "\n\n" + formatCmdTree(list)
 	return list
 }
 
@@ -46,7 +46,11 @@ func listProjectsCommand(t *core.Track) *cobra.Command {
 				active = rec.Project
 			}
 
-			tree := core.ToProjectTree(projects)
+			tree, err := core.ToProjectTree(projects)
+			if err != nil {
+				out.Err("failed to load projects: %s", err)
+				return
+			}
 			formatter := util.NewTreeFormatter(
 				func(t *core.ProjectNode, indent int) string {
 					if t.Value.Name == active {

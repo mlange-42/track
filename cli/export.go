@@ -39,7 +39,7 @@ Currently, only export of (potentially filtered) records to CSV is supported.`,
 
 	export.AddCommand(exportRecordsCommand(t, &options))
 
-	export.Long += "\n\n" + util.FormatCmdTree(export)
+	export.Long += "\n\n" + formatCmdTree(export)
 	return export
 }
 
