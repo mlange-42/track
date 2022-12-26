@@ -34,6 +34,18 @@ func FormatDuration(d time.Duration) string {
 	return fmt.Sprintf("%02d:%02d", int(d.Hours()), int(d.Minutes())%60)
 }
 
+// Format formats a string with named placeholders.
+//
+// Example:
+// s := Format("foo {name} bar", map[string]string{"name": "baz"})
+func Format(str string, repl map[string]string) string {
+	format := "{%s}"
+	for k, v := range repl {
+		str = strings.ReplaceAll(str, fmt.Sprintf(format, k), v)
+	}
+	return str
+}
+
 // TreeFormatter formats trees
 type TreeFormatter[T tree.Named] struct {
 	NameFunc     func(t *tree.MapNode[T], indent int) string
