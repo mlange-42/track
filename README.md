@@ -58,7 +58,7 @@ track stop
 
 #### `status`
 
-`status` informs about the running project:
+The `status` status informs about the running project:
 
 ```shell
 track status
@@ -75,11 +75,33 @@ Prints something like:
 
 #### `list`
 
-`list` ...
+The `list` commands lists projects or records.
+
+```shell
+track list projects
+```
+
+```shell
+track list records today
+track list records yesterday
+track list records 2022-12-31
+```
 
 #### `report`
 
-`report` ...
+The `report` command generates several kinds of reports.
+
+Subcommand `projects` shows statistics of time tracked per project:
+
+```shell
+track report projects
+```
+
+Subcommand `timeline` shows statistics of time tracked per day, week or month:
+
+```shell
+track report timeline days
+```
 
 ## References
 
