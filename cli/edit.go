@@ -30,8 +30,12 @@ const editComment string = `
 
 func editCommand(t *core.Track) *cobra.Command {
 	create := &cobra.Command{
-		Use:     "edit",
-		Short:   "Edit a resource",
+		Use:   "edit",
+		Short: "Edit a resource",
+		Long: `Edit a resource
+
+Opens the resource as a temporary YAML file for editing in a text editor.
+See file .track/config.yml to configure the editor to be used.`,
 		Aliases: []string{"e"},
 		Run: func(cmd *cobra.Command, args []string) {
 			_ = cmd.Help()
@@ -47,8 +51,12 @@ func editCommand(t *core.Track) *cobra.Command {
 
 func editRecordCommand(t *core.Track) *cobra.Command {
 	editProject := &cobra.Command{
-		Use:     "record <DATE> <TIME>",
-		Short:   "Edit a record",
+		Use:   "record <DATE> <TIME>",
+		Short: "Edit a record",
+		Long: `Edit a record
+
+Opens the record as a temporary YAML file for editing in a text editor.
+See file .track/config.yml to configure the editor to be used.`,
 		Aliases: []string{"r"},
 		Args:    util.WrappedArgs(cobra.ExactArgs(2)),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -76,8 +84,12 @@ func editRecordCommand(t *core.Track) *cobra.Command {
 
 func editProjectCommand(t *core.Track) *cobra.Command {
 	editProject := &cobra.Command{
-		Use:     "project <NAME>",
-		Short:   "Edit a project",
+		Use:   "project <NAME>",
+		Short: "Edit a project",
+		Long: `Edit a project
+
+Opens the project as a temporary YAML file for editing in a text editor.
+See file .track/config.yml to configure the editor to be used.`,
 		Aliases: []string{"p"},
 		Args:    util.WrappedArgs(cobra.ExactArgs(1)),
 		Run: func(cmd *cobra.Command, args []string) {

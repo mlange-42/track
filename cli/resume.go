@@ -12,8 +12,13 @@ import (
 
 func resumeCommand(t *core.Track) *cobra.Command {
 	start := &cobra.Command{
-		Use:     "resume [message]",
-		Short:   "Resume the last project",
+		Use:   "resume [note...]",
+		Short: "Resume the last project",
+		Long: `Resume the last project
+
+If no note is provided, the note and tags from the last record are applied.
+
+For details on notes and tags, see command 'start'.`,
 		Aliases: []string{"re"},
 		Args:    util.WrappedArgs(cobra.MinimumNArgs(0)),
 		Run: func(cmd *cobra.Command, args []string) {

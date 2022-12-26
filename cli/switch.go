@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -14,8 +15,12 @@ func switchCommand(t *core.Track) *cobra.Command {
 	var force bool
 
 	switchCom := &cobra.Command{
-		Use:     "switch <project> [message]",
-		Short:   "Start a record and stop any running record",
+		Use:   "switch <PROJECT> [note...]",
+		Short: "Start a record and stop any running record",
+		Long: fmt.Sprintf(`Start a record and stop any running record
+
+Everything after the project name is considered a note for the record.
+Notes can contain tags, denoted by the prefix "%s", like "%stag"`, core.TagPrefix, core.TagPrefix),
 		Aliases: []string{"sw"},
 		Args:    util.WrappedArgs(cobra.MinimumNArgs(1)),
 		Run: func(cmd *cobra.Command, args []string) {

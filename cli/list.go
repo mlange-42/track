@@ -63,8 +63,12 @@ func listProjectsCommand(t *core.Track) *cobra.Command {
 
 func listRecordsCommand(t *core.Track) *cobra.Command {
 	listProjects := &cobra.Command{
-		Use:        "records <date>",
-		Short:      "List all records",
+		Use:   "records <DATE>",
+		Short: "List all records for a date",
+		Long: `List all records for a date
+
+The date can either be a date in default formatting, like "2022-12-31",
+or a word like "today" or "tomorrow".`,
 		Aliases:    []string{"r"},
 		Args:       util.WrappedArgs(cobra.ExactArgs(1)),
 		ArgAliases: []string{"date"},
