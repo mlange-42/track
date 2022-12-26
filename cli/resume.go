@@ -11,7 +11,9 @@ import (
 )
 
 func resumeCommand(t *core.Track) *cobra.Command {
-	start := &cobra.Command{
+	var continueIt bool
+
+	resume := &cobra.Command{
 		Use:   "resume [note...]",
 		Short: "Resume the last project",
 		Long: `Resume the last project
@@ -46,15 +48,37 @@ For details on notes and tags, see command 'start'.`,
 				tags = t.ExtractTags(args[1:])
 			}
 
+			if continueIt {
+				oldEnd := last.End
+				last.Note = note
+				last.Tags = tags
+				last.End = time.Time{}
+
+				err = t.SaveRecord(last, true)
+				if err != nil {
+					out.Err("failed to resume: %s", err)
+					return
+				}
+				out.Success(
+					"Continue record in '%s' at %s - skipping %s break.",
+					project,
+					time.Now().Format(util.TimeFormat),
+					util.FormatDuration(time.Now().Sub(oldEnd)),
+				)
+				return
+			}
+
 			record, err := t.StartRecord(project, note, tags, time.Now())
 			if err != nil {
 				out.Err("failed to resume: %s", err.Error())
 				return
 			}
 
-			out.Success("Resume record in '%s' at %02d:%02d", project, record.Start.Hour(), record.Start.Minute())
+			out.Success("Resume record in '%s' at %s", project, record.Start.Format(util.TimeFormat))
 		},
 	}
 
-	return start
+	resume.Flags().BoolVarP(&continueIt, "continue", "C", false, "Continue the last record instead of starting a new one. Skips the breaks.")
+
+	return resume
 }
