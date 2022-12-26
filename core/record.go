@@ -99,7 +99,7 @@ func (t *Track) RecordDir(tm time.Time) string {
 func (t *Track) SaveRecord(record Record, force bool) error {
 	path := t.RecordPath(record.Start)
 	if !force && fs.FileExists(path) {
-		return fmt.Errorf("Record already exists")
+		return fmt.Errorf("record already exists")
 	}
 	dir := t.RecordDir(record.Start)
 	err := fs.CreateDir(dir)
@@ -108,6 +108,8 @@ func (t *Track) SaveRecord(record Record, force bool) error {
 	}
 
 	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	defer file.Close()
+
 	if err != nil {
 		return err
 	}
@@ -127,6 +129,15 @@ func (t *Track) SaveRecord(record Record, force bool) error {
 	return err
 }
 
+// DeleteRecord deletes a record
+func (t *Track) DeleteRecord(record Record) error {
+	path := t.RecordPath(record.Start)
+	if !fs.FileExists(path) {
+		return fmt.Errorf("record does not exist")
+	}
+	return os.Remove(path)
+}
+
 // LoadRecordByTime loads a record
 func (t *Track) LoadRecordByTime(tm time.Time) (Record, error) {
 	path := t.RecordPath(tm)
@@ -135,7 +146,7 @@ func (t *Track) LoadRecordByTime(tm time.Time) (Record, error) {
 
 // LoadRecord loads a record
 func (t *Track) LoadRecord(path string) (Record, error) {
-	file, err := ioutil.ReadFile(path)
+	file, err := os.ReadFile(path)
 	if err != nil {
 		return Record{}, err
 	}
