@@ -6,6 +6,7 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/mlange-42/track/fs"
 	"gopkg.in/yaml.v3"
@@ -13,7 +14,8 @@ import (
 
 // Config for track
 type Config struct {
-	TextEditor string
+	TextEditor       string        `yaml:"textEditor"`
+	MaxBreakDuration time.Duration `yaml:"maxBreakDuration"`
 }
 
 // LoadConfig loads the track config, or creates and saves default settings
@@ -31,7 +33,8 @@ func LoadConfig() (Config, error) {
 	}
 
 	conf = Config{
-		TextEditor: editor,
+		TextEditor:       editor,
+		MaxBreakDuration: 2 * time.Hour,
 	}
 
 	err = SaveConfig(conf)
