@@ -16,6 +16,14 @@ const rootName = "<workspace>"
 // ProjectTree is a tree of projects
 type ProjectTree = tree.MapTree[Project]
 
+// NewTree creates a new project tree
+func NewTree(project Project) *ProjectTree {
+	return tree.NewTree[Project](
+		project,
+		func(p Project) string { return p.Name },
+	)
+}
+
 // ProjectNode is a tree of projects
 type ProjectNode = tree.MapNode[Project]
 
@@ -23,11 +31,6 @@ type ProjectNode = tree.MapNode[Project]
 type Project struct {
 	Name   string
 	Parent string
-}
-
-// GetName returns the name ofthe project
-func (p Project) GetName() string {
-	return p.Name
 }
 
 // ProjectPath returns the full path for a project
@@ -116,7 +119,7 @@ func (t *Track) LoadAllProjects() (map[string]Project, error) {
 
 // ToProjectTree creates a tree of thegiven projects
 func ToProjectTree(projects map[string]Project) *ProjectTree {
-	pTree := tree.NewTree(Project{Name: rootName})
+	pTree := NewTree(Project{Name: rootName})
 
 	nodes := map[string]*ProjectNode{pTree.Root.Value.Name: pTree.Root}
 

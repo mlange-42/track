@@ -1,19 +1,14 @@
 package tree
 
-// Named is the interface for named nodes in a MapTree
-type Named interface {
-	GetName() string
-}
-
 // MapNode is a node in the tree data structure
-type MapNode[T Named] struct {
+type MapNode[T any] struct {
 	Parent   *MapNode[T]
 	Children map[string]*MapNode[T]
 	Value    T
 }
 
 // NewNode creates a new tree node
-func NewNode[T Named](value T) *MapNode[T] {
+func NewNode[T any](value T) *MapNode[T] {
 	return &MapNode[T]{
 		Children: make(map[string]*MapNode[T]),
 		Value:    value,
@@ -21,17 +16,19 @@ func NewNode[T Named](value T) *MapNode[T] {
 }
 
 // MapTree is a tree data structure
-type MapTree[T Named] struct {
-	Root  *MapNode[T]
-	Nodes map[string]*MapNode[T]
+type MapTree[T any] struct {
+	Root   *MapNode[T]
+	Nodes  map[string]*MapNode[T]
+	NameFn func(T) string
 }
 
 // NewTree creates a new tree node
-func NewTree[T Named](value T) *MapTree[T] {
+func NewTree[T any](value T, fn func(T) string) *MapTree[T] {
 	root := NewNode(value)
 	return &MapTree[T]{
-		Root:  root,
-		Nodes: map[string]*MapNode[T]{value.GetName(): root},
+		Root:   root,
+		Nodes:  map[string]*MapNode[T]{fn(value): root},
+		NameFn: fn,
 	}
 }
 
@@ -78,13 +75,15 @@ func (t *MapTree[T]) descendants(n *MapNode[T], res []*MapNode[T]) []*MapNode[T]
 func (t *MapTree[T]) Add(parent *MapNode[T], child T) {
 	node := NewNode(child)
 	node.Parent = parent
-	parent.Children[child.GetName()] = node
-	t.Nodes[child.GetName()] = node
+	name := t.NameFn(child)
+	parent.Children[name] = node
+	t.Nodes[name] = node
 }
 
 // AddNode adds a sub-tree
 func (t *MapTree[T]) AddNode(parent *MapNode[T], child *MapNode[T]) {
 	child.Parent = parent
-	parent.Children[child.Value.GetName()] = child
-	t.Nodes[child.Value.GetName()] = child
+	name := t.NameFn(child.Value)
+	parent.Children[name] = child
+	t.Nodes[name] = child
 }
