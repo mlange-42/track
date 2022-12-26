@@ -46,7 +46,7 @@ func stopCommand(t *core.Track) *cobra.Command {
 				out.Err("failed to delete record: %s", err)
 				return
 			}
-			out.Success("Deleted record in '%s' at %02d:%02d", record.Project, record.End.Hour(), record.End.Minute())
+			out.Success("Deleted record %s from '%s'", record.Start.Format(util.DateTimeFormat), record.Project)
 		},
 	}
 
