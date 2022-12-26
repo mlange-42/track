@@ -58,7 +58,7 @@ track stop
 
 #### `status`
 
-`status` simply informs about any running record:
+`status` informs about the running project:
 
 ```shell
 track status
@@ -66,8 +66,11 @@ track status
 
 Prints something like:
 
-```shell
-Tracking project 'MyProject' since 08:10 (00:45)
+```text
++------------------+-------+-------+-------+
+|          project |  curr | today | break |
+|        MyProject | 00:30 | 01:45 | 00:13 |
++------------------+-------+-------+-------+
 ```
 
 #### `list`

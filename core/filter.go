@@ -31,8 +31,16 @@ func FilterByProjects(projects []string) FilterFunction {
 }
 
 // FilterByTime returns a function for filtering by time
+//
+// Keeps all records that are partially included in the given time span.
+// Zero times in the given time span are ignored, resulting in an open time span.
+//
+// For records with a zero end, only the start time is compared
 func FilterByTime(start, end time.Time) FilterFunction {
 	return func(r *Record) bool {
+		if r.End.IsZero() {
+			return (start.IsZero() || r.Start.After(start)) && (end.IsZero() || r.Start.Before(end))
+		}
 		return (start.IsZero() || r.End.After(start)) && (end.IsZero() || r.Start.Before(end))
 	}
 }

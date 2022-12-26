@@ -25,18 +25,18 @@ var (
 // Record holds and manipulates data for a record
 type Record struct {
 	Project string
-	Note    string
-	Tags    []string
 	Start   time.Time
 	End     time.Time
+	Note    string
+	Tags    []string
 }
 
 type yamlRecord struct {
 	Project string
-	Note    string
-	Tags    []string
 	Start   util.Time
 	End     util.Time
+	Note    string
+	Tags    []string
 }
 
 // MarshalYAML converts a Record to YAML bytes
