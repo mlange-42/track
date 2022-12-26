@@ -9,7 +9,7 @@ import (
 	"github.com/mlange-42/track/out"
 )
 
-const version = "v0.1.0"
+const version = "0.1.0"
 
 func main() {
 	if !color.SupportColor() || !isTerminal() {
