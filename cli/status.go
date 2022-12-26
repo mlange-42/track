@@ -25,10 +25,21 @@ func statusCommand(t *core.Track) *cobra.Command {
 				}
 			} else {
 				if !hasOpenRecord {
-					out.Err("No running record. Start tracking or specify a project.")
-					return
+					last, err := t.LatestRecord()
+					out.Warn("No running record. Start tracking or specify a project.")
+					if err != nil {
+						return
+					}
+					out.Print("\n")
+					out.Warn(
+						"Stopped project '%s' %s ago\n",
+						last.Project,
+						util.FormatDuration(time.Now().Sub(last.End)),
+					)
+					project = last.Project
+				} else {
+					project = open.Project
 				}
-				project = open.Project
 			}
 
 			now := time.Now()
