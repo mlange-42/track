@@ -11,6 +11,8 @@ import (
 
 func stopCommand(t *core.Track) *cobra.Command {
 	var deleteRecord bool
+	var atTime string
+	var ago time.Duration
 
 	stop := &cobra.Command{
 		Use:     "stop",
@@ -29,12 +31,18 @@ func stopCommand(t *core.Track) *cobra.Command {
 				return
 			}
 
-			record, err := t.StopRecord(time.Now())
+			stopTime, err := getStopTime(&open, ago, atTime)
 			if err != nil {
 				out.Err("failed to stop record: %s", err)
 				return
 			}
-			out.Success("Stopped record in '%s' at %02d:%02d", record.Project, record.End.Hour(), record.End.Minute())
+
+			record, err := t.StopRecord(stopTime)
+			if err != nil {
+				out.Err("failed to stop record: %s", err)
+				return
+			}
+			out.Success("Stopped record in '%s' at %s", record.Project, record.End.Format(util.TimeFormat))
 
 			if !deleteRecord {
 				return
@@ -51,6 +59,10 @@ func stopCommand(t *core.Track) *cobra.Command {
 	}
 
 	stop.Flags().BoolVarP(&deleteRecord, "delete", "D", false, "Delete the running record.")
+	stop.Flags().StringVar(&atTime, "at", "", "Stop the record at a different time than now.")
+	stop.Flags().DurationVar(&ago, "ago", 0*time.Second, "Stop the record at a different time than now, given as a duration.")
+
+	stop.MarkFlagsMutuallyExclusive("at", "ago")
 
 	return stop
 }

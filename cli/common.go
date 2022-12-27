@@ -75,3 +75,59 @@ func confirmDeleteRecord(rec core.Record) bool {
 	}
 	return true
 }
+
+func getStopTime(open *core.Record, ago time.Duration, at string) (time.Time, error) {
+	now := time.Now()
+	stopTime := now
+	if ago != 0 {
+		stopTime = stopTime.Add(-ago)
+	}
+	if at != "" {
+		var err error
+		stopTime, err = util.ParseDateTime(fmt.Sprintf("%s %s", stopTime.Format(util.DateFormat), at))
+		if err != nil {
+			return time.Time{}, err
+		}
+		if stopTime.After(now) {
+			altTime := stopTime.Add(-24 * time.Hour)
+			if altTime.Before(now) && altTime.After(open.Start) {
+				stopTime = altTime
+			}
+		}
+	}
+	if stopTime.After(now) {
+		return stopTime, fmt.Errorf("can't stop at a time in the future")
+	}
+	if stopTime.Before(open.Start) {
+		return stopTime, fmt.Errorf("can't stop at a time before the start of the record")
+	}
+	return stopTime, nil
+}
+
+func getStartTime(latest *core.Record, ago time.Duration, at string) (time.Time, error) {
+	now := time.Now()
+	startTime := now
+	if ago != 0 {
+		startTime = startTime.Add(-ago)
+	}
+	if at != "" {
+		var err error
+		startTime, err = util.ParseDateTime(fmt.Sprintf("%s %s", startTime.Format(util.DateFormat), at))
+		if err != nil {
+			return time.Time{}, err
+		}
+		if latest != nil && startTime.After(now) {
+			altTime := startTime.Add(-24 * time.Hour)
+			if altTime.Before(now) && altTime.After(latest.End) {
+				startTime = altTime
+			}
+		}
+	}
+	if startTime.After(now) {
+		return startTime, fmt.Errorf("can't start at a time in the future")
+	}
+	if latest != nil && startTime.Before(latest.End) {
+		return startTime, fmt.Errorf("can't stop at a time before the end of the last record")
+	}
+	return startTime, nil
+}

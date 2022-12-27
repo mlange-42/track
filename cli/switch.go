@@ -13,6 +13,8 @@ import (
 
 func switchCommand(t *core.Track) *cobra.Command {
 	var force bool
+	var atTime string
+	var ago time.Duration
 
 	switchCom := &cobra.Command{
 		Use:   "switch PROJECT [NOTE...]",
@@ -31,8 +33,16 @@ Notes can contain tags, denoted by the prefix "%s", like "%stag"`, core.TagPrefi
 				return
 			}
 
-			if _, ok := t.OpenRecord(); ok {
-				record, err := t.StopRecord(time.Now())
+			var startStopTime time.Time
+			if open, ok := t.OpenRecord(); ok {
+				var err error
+				startStopTime, err = getStopTime(&open, ago, atTime)
+				if err != nil {
+					out.Err("failed to stop record: %s", err)
+					return
+				}
+
+				record, err := t.StopRecord(startStopTime)
 				if err != nil {
 					out.Err("failed to create record: %s", err.Error())
 					return
@@ -44,6 +54,20 @@ Notes can contain tags, denoted by the prefix "%s", like "%stag"`, core.TagPrefi
 				}
 
 				out.Success("Stopped record in '%s' at %s\n", record.Project, record.End.Format(util.TimeFormat))
+			} else {
+				if latest, err := t.LatestRecord(); err == nil {
+					startStopTime, err = getStartTime(&latest, ago, atTime)
+					if err != nil {
+						out.Err("failed to create record: %s", err.Error())
+						return
+					}
+				} else {
+					startStopTime, err = getStartTime(nil, ago, atTime)
+					if err != nil {
+						out.Err("failed to create record: %s", err.Error())
+						return
+					}
+				}
 			}
 
 			note := strings.Join(args[1:], " ")
@@ -60,6 +84,10 @@ Notes can contain tags, denoted by the prefix "%s", like "%stag"`, core.TagPrefi
 	}
 
 	switchCom.Flags().BoolVarP(&force, "force", "f", false, "Force start of a new record if the project is already running")
+	switchCom.Flags().StringVar(&atTime, "at", "", "Stop the record at a different time than now.")
+	switchCom.Flags().DurationVar(&ago, "ago", 0*time.Second, "Stop the record at a different time than now, given as a duration.")
+
+	switchCom.MarkFlagsMutuallyExclusive("at", "ago")
 
 	return switchCom
 }

@@ -12,6 +12,9 @@ import (
 )
 
 func startCommand(t *core.Track) *cobra.Command {
+	var atTime string
+	var ago time.Duration
+
 	start := &cobra.Command{
 		Use:   "start PROJECT [NOTE...]",
 		Short: "Start a record for a project",
@@ -34,10 +37,25 @@ Notes can contain tags, denoted by the prefix "%s", like "%stag"`, core.TagPrefi
 				return
 			}
 
+			var startTime time.Time
+			if latest, err := t.LatestRecord(); err == nil {
+				startTime, err = getStartTime(&latest, ago, atTime)
+				if err != nil {
+					out.Err("failed to create record: %s", err.Error())
+					return
+				}
+			} else {
+				startTime, err = getStartTime(nil, ago, atTime)
+				if err != nil {
+					out.Err("failed to create record: %s", err.Error())
+					return
+				}
+			}
+
 			note := strings.Join(args[1:], " ")
 			tags := t.ExtractTags(args[1:])
 
-			record, err := t.StartRecord(project, note, tags, time.Now())
+			record, err := t.StartRecord(project, note, tags, startTime)
 			if err != nil {
 				out.Err("failed to create record: %s", err.Error())
 				return
@@ -46,6 +64,11 @@ Notes can contain tags, denoted by the prefix "%s", like "%stag"`, core.TagPrefi
 			out.Success("Started record in '%s' at %02d:%02d", project, record.Start.Hour(), record.Start.Minute())
 		},
 	}
+
+	start.Flags().StringVar(&atTime, "at", "", "Stop the record at a different time than now.")
+	start.Flags().DurationVar(&ago, "ago", 0*time.Second, "Stop the record at a different time than now, given as a duration.")
+
+	start.MarkFlagsMutuallyExclusive("at", "ago")
 
 	return start
 }
