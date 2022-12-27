@@ -101,16 +101,22 @@ Subcommand `projects` shows statistics of time tracked per project:
 track report projects
 ```
 
-Subcommand `timeline` shows statistics of time tracked per day, week or month:
-
-```shell
-track report timeline days
-```
-
 Subcommand `day` shows a timeline over the current or the given day:
 
 ```shell
 track report day
+```
+
+Subcommand `day` shows a calendar-like view of the current or given week:
+
+```shell
+track report week
+```
+
+Subcommand `timeline` shows statistics of time tracked per day, week or month:
+
+```shell
+track report timeline days
 ```
 
 ### All subcommands
