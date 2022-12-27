@@ -15,3 +15,4 @@
 ### Other
 
 * Simplify CLI help usage strings (#26)
+* Date is optional in `track list records` (#27)

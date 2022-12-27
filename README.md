@@ -24,6 +24,10 @@ Download binaries for your OS from the [Releases](https://github.com/mlange-42/t
 
 ## Usage
 
+* [First steps](#first-steps)
+* [Getting information](#getting-information)
+* [All subcommands](#all-subcommands)
+
 Get Help:
 
 ```shell
@@ -107,6 +111,34 @@ Subcommand `day` shows a timeline over the current or the given day:
 
 ```shell
 track report day
+```
+
+### All subcommands
+
+```text
+track
+├─create
+│ └─project PROJECT
+├─delete
+│ └─record DATE TIME
+├─edit
+│ ├─config
+│ ├─project PROJECT
+│ └─record DATE TIME
+├─export
+│ └─records
+├─list
+│ ├─projects
+│ └─records [DATE]
+├─report
+│ ├─day [DATE]
+│ ├─projects
+│ └─timeline (days|weeks|months)
+├─resume [NOTE...]
+├─start PROJECT [NOTE...]
+├─status [PROJECT]
+├─stop
+└─switch PROJECT [NOTE...]
 ```
 
 ## References
