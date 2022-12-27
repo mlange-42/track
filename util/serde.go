@@ -15,7 +15,7 @@ func (t Time) MarshalYAML() (interface{}, error) {
 	if tm.IsZero() {
 		return "nil", nil
 	}
-	return tm.Format(DateTimeFormat), nil
+	return tm.Format(YAMLTimeFormat), nil
 }
 
 // UnmarshalYAML converts YAML bytes to a Time
@@ -24,7 +24,7 @@ func (t *Time) UnmarshalYAML(value *yaml.Node) (err error) {
 		*t = Time{}
 		return
 	}
-	now, err := time.ParseInLocation(DateTimeFormat, value.Value, time.Local)
+	now, err := time.ParseInLocation(YAMLTimeFormat, value.Value, time.Local)
 	*t = Time(now)
 	return
 }

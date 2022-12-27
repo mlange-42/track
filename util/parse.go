@@ -6,26 +6,32 @@ import (
 
 // ParseDate parses a date string
 func ParseDate(text string) (time.Time, error) {
+	now := time.Now()
 	switch text {
 	case "today":
-		return Date(time.Now().Date()), nil
+		return ToDate(now), nil
 	case "tomorrow":
-		return Date(time.Now().Date()).Add(24 * time.Hour), nil
+		return ToDate(now).Add(24 * time.Hour), nil
 	case "yesterday":
-		return Date(time.Now().Date()).Add(-24 * time.Hour), nil
+		return ToDate(now).Add(-24 * time.Hour), nil
 	}
-	return time.Parse(DateFormat, text)
+	return time.ParseInLocation(DateFormat, text, time.Local)
 }
 
-// ParseDateTime parses a datetime string
+// ParseDateTime parses a datetime string. Assumes the local time zone.
 func ParseDateTime(text string) (time.Time, error) {
-	return time.Parse(DateTimeFormat, text)
+	return time.ParseInLocation(DateTimeFormat, text, time.Local)
 }
 
-// Date creates a date
+// ToDate creates a date from a time by setting to 00:00
+func ToDate(t time.Time) time.Time {
+	year, month, day := t.Date()
+	return time.Date(year, month, day, 0, 0, 0, 0, t.Location())
+}
+
+// Date creates a date from a year, a month and a day. Assumes the local time zone.
 func Date(year int, month time.Month, day int) time.Time {
-	tz := time.Time{}.Location()
-	return time.Date(year, month, day, 0, 0, 0, 0, tz)
+	return time.Date(year, month, day, 0, 0, 0, 0, time.Local)
 }
 
 // DateTime creates a datetime

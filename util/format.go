@@ -21,13 +21,28 @@ const (
 	FileTimeFormat = "15-04"
 	// DateTimeFormat for date and time formatting
 	DateTimeFormat = "2006-01-02 15:04"
-	// JSONTimeFormat for JSON date and time formatting
-	JSONTimeFormat = "2006-01-02 15:04:05"
-	// NoTime string representation for zero time
-	NoTime = " --- "
+	// YAMLTimeFormat for YAML date and time formatting
+	YAMLTimeFormat = "2006-01-02 15:04 -0700 MST"
+	// NoTime string representation for zero end time
+	NoTime = " now "
 	// NoDateTime string representation for zero time
 	NoDateTime = "      ---       "
 )
+
+// BlockRunes are utf8 8th blocks from empty to full
+var BlockRunes = [9]rune{'·', 9601, 9602, 9603, 9604, 9605, 9606, 9607, 9608}
+
+// FloatToBlock returns utf8 8th blocks for values between 0 and 1
+func FloatToBlock(value float64) rune {
+	idx := int(value * float64(len(BlockRunes)))
+	if idx < 0 {
+		return BlockRunes[0]
+	}
+	if idx >= len(BlockRunes) {
+		return BlockRunes[len(BlockRunes)-1]
+	}
+	return BlockRunes[idx]
+}
 
 // FormatDuration formats a duration
 func FormatDuration(d time.Duration) string {

@@ -60,7 +60,7 @@ Columns of the status are:
 			}
 
 			now := time.Now()
-			start := util.Date(now.Date())
+			start := util.ToDate(now)
 			filterStart := start.Add(-time.Hour * 24)
 
 			filters := core.FilterFunctions{
