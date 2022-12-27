@@ -1,8 +1,6 @@
 package core
 
 import (
-	"fmt"
-
 	"github.com/mlange-42/track/fs"
 )
 
@@ -22,19 +20,9 @@ func NewTrack() (Track, error) {
 	}
 
 	track.Config = conf
-	track.createWorkspaceDirs()
+	track.createWorkspaceDirs(track.Config.Workspace)
 
 	return track, nil
-}
-
-// Workspace returns the current workspace
-func (t *Track) Workspace() string {
-	return t.Config.Workspace
-}
-
-// WorkspaceLabel returns the current workspace label
-func (t *Track) WorkspaceLabel() string {
-	return fmt.Sprintf(RootPattern, t.Config.Workspace)
 }
 
 func (t *Track) createRootDir() {
@@ -44,12 +32,12 @@ func (t *Track) createRootDir() {
 	}
 }
 
-func (t *Track) createWorkspaceDirs() {
-	err := fs.CreateDir(t.ProjectsDir())
+func (t *Track) createWorkspaceDirs(workspace string) {
+	err := fs.CreateDir(t.WorkspaceProjectsDir(workspace))
 	if err != nil {
 		panic(err)
 	}
-	err = fs.CreateDir(t.RecordsDir())
+	err = fs.CreateDir(t.WorkspaceRecordsDir(workspace))
 	if err != nil {
 		panic(err)
 	}

@@ -22,6 +22,7 @@ func listCommand(t *core.Track) *cobra.Command {
 		},
 	}
 
+	list.AddCommand(listWorkspacesCommand(t))
 	list.AddCommand(listProjectsCommand(t))
 	list.AddCommand(listRecordsCommand(t))
 
@@ -66,6 +67,35 @@ func listProjectsCommand(t *core.Track) *cobra.Command {
 	}
 
 	return listProjects
+}
+
+func listWorkspacesCommand(t *core.Track) *cobra.Command {
+	listWorkspaces := &cobra.Command{
+		Use:     "workspaces",
+		Short:   "List all workspaces",
+		Aliases: []string{"w"},
+		Args:    util.WrappedArgs(cobra.NoArgs),
+		Run: func(cmd *cobra.Command, args []string) {
+			ws, err := t.AllWorkspaces()
+			if err != nil {
+				out.Err("failed to load workspaces: %s", err)
+				return
+			}
+
+			for i, w := range ws {
+				if w == t.Workspace() {
+					color.BgBlue.Printf("%s", w)
+				} else {
+					fmt.Printf("%s", w)
+				}
+				if i < len(ws)-1 {
+					fmt.Print("\n")
+				}
+			}
+		},
+	}
+
+	return listWorkspaces
 }
 
 func listRecordsCommand(t *core.Track) *cobra.Command {

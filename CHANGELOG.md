@@ -6,6 +6,7 @@
 
 * Day report with horizontal timelines over projects as rows: `track report day [DATE]` (#25)
 * Command `track break DURATION` to insert breaks (#28)
+* Projects are structured in workspaces (#30)
 
 ### Bug fixes
 

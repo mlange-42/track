@@ -39,6 +39,11 @@ func (t *Track) ProjectsDir() string {
 	return filepath.Join(fs.RootDir(), t.Workspace(), fs.ProjectsDirName())
 }
 
+// WorkspaceProjectsDir returns the projects storage directory for the given workspace
+func (t *Track) WorkspaceProjectsDir(ws string) string {
+	return filepath.Join(fs.RootDir(), ws, fs.ProjectsDirName())
+}
+
 // ProjectPath returns the full path for a project
 func (t *Track) ProjectPath(name string) string {
 	return filepath.Join(t.ProjectsDir(), fs.Sanitize(name)+".yml")

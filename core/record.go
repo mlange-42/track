@@ -84,6 +84,11 @@ func (t *Track) RecordsDir() string {
 	return filepath.Join(fs.RootDir(), t.Workspace(), fs.RecordsDirName())
 }
 
+// WorkspaceRecordsDir returns the records storage directory for the given workspace
+func (t *Track) WorkspaceRecordsDir(ws string) string {
+	return filepath.Join(fs.RootDir(), ws, fs.RecordsDirName())
+}
+
 // RecordPath returns the full path for a record
 func (t *Track) RecordPath(tm time.Time) string {
 	return filepath.Join(
