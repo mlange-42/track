@@ -317,29 +317,20 @@ func renderDayTimeline(t *core.Track, reporter *core.Reporter, active string, st
 		}
 	}
 
+	interval := 6
+	if bph > 1 {
+		interval = 3
+	}
+
 	timelineStr := map[string]string{}
 	for pr, values := range timelines {
 		runes := make([]rune, bph*24, bph*24)
 		for i, v := range values {
 			runes[i] = util.FloatToBlock(v)
 		}
-		timelineStr[pr] = fmt.Sprintf(
-			"|%s|%s|%s|%s|",
-			string(runes[0:6*bph]),
-			string(runes[6*bph:12*bph]),
-			string(runes[12*bph:18*bph]),
-			string(runes[18*bph:24*bph]),
-		)
+		timelineStr[pr] = toDayTimeline(runes, interval*bph)
 	}
-	fill := strings.Repeat(" ", 6*bph-5)
-	timelineStr[t.WorkspaceLabel()] = fmt.Sprintf(
-		"|%02d:00%s|%02d:00%s|%02d:00%s|%02d:00%s|%02d:00",
-		0, fill,
-		6, fill,
-		12, fill,
-		18, fill,
-		24,
-	)
+	timelineStr[t.WorkspaceLabel()] = toDayAxis(bph, interval*bph)
 
 	formatter := util.NewTreeFormatter(
 		func(t *core.ProjectNode, indent int) string {
@@ -359,4 +350,32 @@ func renderDayTimeline(t *core.Track, reporter *core.Reporter, active string, st
 		2,
 	)
 	return formatter.FormatTree(tree), nil
+}
+
+func toDayTimeline(runes []rune, interval int) string {
+	sb := strings.Builder{}
+
+	for i, r := range runes {
+		if i%interval == 0 {
+			fmt.Fprint(&sb, "|")
+		}
+		fmt.Fprint(&sb, string(r))
+	}
+
+	fmt.Fprint(&sb, "|")
+
+	return sb.String()
+}
+
+func toDayAxis(blocksPerHour int, interval int) string {
+	fill := strings.Repeat(" ", interval-5)
+
+	sb := strings.Builder{}
+
+	for i := 0; i < 24*blocksPerHour; i += interval {
+		fmt.Fprintf(&sb, "|%02d:00%s", i/blocksPerHour, fill)
+	}
+	fmt.Fprint(&sb, "|")
+
+	return sb.String()
 }
