@@ -369,6 +369,9 @@ func renderDayTimeline(t *core.Track, reporter *core.Reporter, active string, st
 		}
 		startIdx := int(start)
 		endIdx := int(end)
+		if endIdx >= bph*24 {
+			endIdx = bph*24 - 1
+		}
 
 		timeline := timelines[rec.Project]
 		for i := startIdx; i <= endIdx; i++ {
@@ -478,14 +481,14 @@ func renderWeekTimeline(t *core.Track, reporter *core.Reporter, active string, s
 		start := rec.Start.Sub(startDate).Hours() * float64(bph)
 		end := endTime.Sub(startDate).Hours() * float64(bph)
 
-		if start < 0 {
-			start = 0
-		}
-		if end > float64(bph*24*7) {
-			end = float64(bph * 24 * 7)
-		}
 		startIdx := int(start)
 		endIdx := int(end)
+		if startIdx < 0 {
+			startIdx = 0
+		}
+		if endIdx >= bph*24*7 {
+			endIdx = bph*24*7 - 1
+		}
 
 		index := indices[rec.Project]
 
