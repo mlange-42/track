@@ -95,17 +95,20 @@ func NewReporter(t *Track, proj []string, filters FilterFunctions) (*Reporter, e
 		}
 	}
 
-	for project := range totals {
-		anc, ok := projectsTree.Ancestors(project)
-		if !ok {
-			return nil, fmt.Errorf("BUG! Project '%s' not in project tree", project)
-		}
-		for _, node := range anc {
-			if _, ok := totals[node.Value.Name]; ok {
-				totals[node.Value.Name] += totals[project]
+	// TODO This is probably not correct for deep hierarchies
+	/*
+		for project := range totals {
+			anc, ok := projectsTree.Ancestors(project)
+			if !ok {
+				return nil, fmt.Errorf("BUG! Project '%s' not in project tree", project)
+			}
+			for _, node := range anc {
+				if _, ok := totals[node.Value.Name]; ok {
+					totals[node.Value.Name] += totals[project]
+				}
 			}
 		}
-	}
+	*/
 
 	report := Reporter{
 		Track:        t,

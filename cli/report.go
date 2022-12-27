@@ -131,12 +131,12 @@ func projectsReportCommand(t *core.Track, options *filterOptions) *cobra.Command
 }
 
 func timelineDays(r *core.Reporter) string {
-	startDate := util.Date(r.TimeRange.Start.Date())
+	startDate := util.ToDate(r.TimeRange.Start)
 	return timeline(r, startDate, time.Hour*24, time.Minute*30)
 }
 
 func timelineWeeks(r *core.Reporter) string {
-	startDate := util.Date(r.TimeRange.Start.Date())
+	startDate := util.ToDate(r.TimeRange.Start)
 	weekDay := (int(startDate.Weekday()) + 6) % 7
 	startDate = startDate.Add(time.Duration(-weekDay * 24 * int(time.Hour)))
 	return timeline(r, startDate, time.Hour*24*7, time.Hour)
@@ -150,7 +150,7 @@ func timelineMonths(r *core.Reporter) string {
 	dates := make([]time.Time, numBins, numBins)
 	year, month := y1, m1
 	for i := range dates {
-		dates[i] = util.Date(year, time.Month(month), 1)
+		dates[i] = util.Date(year, month, 1)
 		month++
 		if month > 12 {
 			year++
@@ -169,7 +169,7 @@ func timelineMonths(r *core.Reporter) string {
 }
 func timeline(r *core.Reporter, startDate time.Time, delta time.Duration, unit time.Duration) string {
 	minDate := startDate
-	maxDate := util.Date(r.TimeRange.End.Add(delta).Date())
+	maxDate := util.ToDate(r.TimeRange.End.Add(delta))
 	numBins := int(maxDate.Sub(minDate).Hours() / delta.Hours())
 
 	dates := make([]time.Time, numBins, numBins)
