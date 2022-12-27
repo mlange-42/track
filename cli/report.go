@@ -500,6 +500,25 @@ func renderWeekTimeline(t *core.Track, reporter *core.Reporter, active string, s
 	}
 
 	sb := strings.Builder{}
+	fmt.Fprintf(&sb, "      |Week %s - %s\n", startDate.Format(util.DateFormat), startDate.Add(6*24*time.Hour).Format(util.DateFormat))
+
+	fmt.Fprint(&sb, "      ")
+	for weekday := 0; weekday < 7; weekday++ {
+		date := startDate.Add(time.Duration(weekday * 24 * int(time.Hour)))
+		str := fmt.Sprintf(
+			"%s %02d %s",
+			time.Weekday((weekday + 1) % 7).String()[:2],
+			date.Day(),
+			date.Month().String()[:3],
+		)
+		if len(str) > bph {
+			fmt.Fprintf(&sb, "|%s", str[:bph])
+		} else {
+			fmt.Fprintf(&sb, "|%s%s", str, strings.Repeat(" ", bph-len(str)))
+		}
+	}
+	fmt.Fprintln(&sb, "|")
+
 	for hour := 0; hour < 24; hour++ {
 		fmt.Fprintf(&sb, "%02d:00 ", hour)
 		for weekday := 0; weekday < 7; weekday++ {
