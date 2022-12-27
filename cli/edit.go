@@ -52,7 +52,7 @@ See file .track/config.yml to configure the editor to be used.`,
 
 func editRecordCommand(t *core.Track) *cobra.Command {
 	editProject := &cobra.Command{
-		Use:   "record <DATE> <TIME>",
+		Use:   "record DATE TIME",
 		Short: "Edit a record",
 		Long: `Edit a record
 
@@ -85,7 +85,7 @@ See file .track/config.yml to configure the editor to be used.`,
 
 func editProjectCommand(t *core.Track) *cobra.Command {
 	editProject := &cobra.Command{
-		Use:   "project <NAME>",
+		Use:   "project PROJECT",
 		Short: "Edit a project",
 		Long: `Edit a project
 

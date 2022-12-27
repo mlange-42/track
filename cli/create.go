@@ -27,7 +27,7 @@ func createProjectCommand(t *core.Track) *cobra.Command {
 	var parent string
 
 	createProject := &cobra.Command{
-		Use:     "project <PROJECT>",
+		Use:     "project PROJECT",
 		Short:   "Create a new project",
 		Aliases: []string{"p"},
 		Args:    util.WrappedArgs(cobra.ExactArgs(1)),

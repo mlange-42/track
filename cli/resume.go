@@ -14,7 +14,7 @@ func resumeCommand(t *core.Track) *cobra.Command {
 	var continueIt bool
 
 	resume := &cobra.Command{
-		Use:   "resume [note...]",
+		Use:   "resume [NOTE...]",
 		Short: "Resume the last project",
 		Long: `Resume the last project
 

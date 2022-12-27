@@ -30,7 +30,7 @@ func deleteRecordCommand(t *core.Track) *cobra.Command {
 	var force bool
 
 	delete := &cobra.Command{
-		Use:     "record <DATE> <TIME>",
+		Use:     "record DATE TIME",
 		Short:   "Delete a record",
 		Long:    "Delete a record",
 		Aliases: []string{"r"},

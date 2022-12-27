@@ -15,7 +15,7 @@ func switchCommand(t *core.Track) *cobra.Command {
 	var force bool
 
 	switchCom := &cobra.Command{
-		Use:   "switch <PROJECT> [note...]",
+		Use:   "switch PROJECT [NOTE...]",
 		Short: "Start a record and stop any running record",
 		Long: fmt.Sprintf(`Start a record and stop any running record
 

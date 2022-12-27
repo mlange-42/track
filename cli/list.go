@@ -69,7 +69,7 @@ func listProjectsCommand(t *core.Track) *cobra.Command {
 
 func listRecordsCommand(t *core.Track) *cobra.Command {
 	listProjects := &cobra.Command{
-		Use:   "records <DATE>",
+		Use:   "records DATE",
 		Short: "List all records for a date",
 		Long: `List all records for a date
 

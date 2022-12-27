@@ -13,7 +13,7 @@ import (
 
 func startCommand(t *core.Track) *cobra.Command {
 	start := &cobra.Command{
-		Use:   "start <PROJECT> [note...]",
+		Use:   "start PROJECT [NOTE...]",
 		Short: "Start a record for a project",
 		Long: fmt.Sprintf(`Start a record for a project
 		
