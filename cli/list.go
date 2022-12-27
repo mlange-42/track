@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/gookit/color"
 	"github.com/mlange-42/track/core"
@@ -69,21 +70,26 @@ func listProjectsCommand(t *core.Track) *cobra.Command {
 
 func listRecordsCommand(t *core.Track) *cobra.Command {
 	listProjects := &cobra.Command{
-		Use:   "records DATE",
+		Use:   "records [DATE]",
 		Short: "List all records for a date",
 		Long: `List all records for a date
 
 The date can either be a date in default formatting, like "2022-12-31",
-or a word like "today" or "tomorrow".`,
+or a word like "yesterday" or  "today" (the default).`,
 		Aliases:    []string{"r"},
-		Args:       util.WrappedArgs(cobra.ExactArgs(1)),
+		Args:       util.WrappedArgs(cobra.MaximumNArgs(1)),
 		ArgAliases: []string{"date"},
 		Run: func(cmd *cobra.Command, args []string) {
-			date, err := util.ParseDate(args[0])
-			if err != nil {
-				out.Err("failed to load records: %s", err)
-				return
+			date := util.ToDate(time.Now())
+			var err error
+			if len(args) > 0 {
+				date, err = util.ParseDate(args[0])
+				if err != nil {
+					out.Err("failed to load records: %s", err)
+					return
+				}
 			}
+
 			dir := date.Format(util.FileDateFormat)
 			records, err := t.LoadDateRecords(dir)
 			if err != nil {
