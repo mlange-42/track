@@ -31,8 +31,8 @@ func statusCommand(t *core.Track) *cobra.Command {
 Columns of the status are:
 
 * curr  - Time of the current record
-* total - Recorded time since the last break longer than --max-break
-* break - Break time since the last break longer than --max-break
+* total - Recorded time today since the last break longer than --max-break
+* break - Break time today since the last break longer than --max-break
 * today - Total recorded time since midnight
 `,
 		Aliases: []string{"s"},
@@ -156,7 +156,7 @@ func getStatus(t *core.Track, proj string, maxBreak time.Duration) (statusInfo, 
 		totalTime += worked
 		cumTime += worked
 		if rec.End.IsZero() {
-			currTime += worked
+			currTime += endTime.Sub(rec.Start)
 		}
 
 		prevEnd = endTime
