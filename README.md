@@ -19,7 +19,7 @@ Download binaries for your OS from the [Releases](https://github.com/mlange-42/t
 * Track your working time from the command line
 * Natural language-like syntax
 * Supports hierarchical project structure
-* Everything stored as YAML for human readibility
+* Everything stored as YAML for human readability
 * Different types of text-based and graphical reports (in progress)
 
 ## Usage
