@@ -103,6 +103,12 @@ Subcommand `timeline` shows statistics of time tracked per day, week or month:
 track report timeline days
 ```
 
+Subcommand `day` shows a timeline over the current or the given day:
+
+```shell
+track report day
+```
+
 ## References
 
 * Heavily inspired by [`github.com/dominikbraun/timetrace`](https://github.com/dominikbraun/timetrace)

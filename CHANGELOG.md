@@ -2,7 +2,11 @@
 
 ## [unpublished]
 
-## Bug fixes
+### Features
+
+* Day report with horizontal timelines over projects as rows: `track report day [DATE]` (#25)
+
+### Bug fixes
 
 * Store time zone in record files (#24)
 * Use local time zone when parsing dates and times from string (#24)
