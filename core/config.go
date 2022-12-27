@@ -12,8 +12,11 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+const defaultWorkspace = "default"
+
 // Config for track
 type Config struct {
+	Workspace        string        `yaml:"workspace"`
 	TextEditor       string        `yaml:"textEditor"`
 	MaxBreakDuration time.Duration `yaml:"maxBreakDuration"`
 }
@@ -33,6 +36,7 @@ func LoadConfig() (Config, error) {
 	}
 
 	conf = Config{
+		Workspace:        defaultWorkspace,
 		TextEditor:       editor,
 		MaxBreakDuration: 2 * time.Hour,
 	}

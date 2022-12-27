@@ -12,7 +12,7 @@ type Track struct {
 // NewTrack creates a new Track object
 func NewTrack() (Track, error) {
 	track := Track{}
-	track.createDirs()
+	track.createRootDir()
 
 	conf, err := LoadConfig()
 	if err != nil {
@@ -20,16 +20,24 @@ func NewTrack() (Track, error) {
 	}
 
 	track.Config = conf
+	track.createWorkspaceDirs(track.Config.Workspace)
+
 	return track, nil
 }
 
-// createDirs creates the storage directories
-func (t *Track) createDirs() {
-	err := fs.CreateDir(fs.ProjectsDir())
+func (t *Track) createRootDir() {
+	err := fs.CreateDir(fs.RootDir())
 	if err != nil {
 		panic(err)
 	}
-	err = fs.CreateDir(fs.RecordsDir())
+}
+
+func (t *Track) createWorkspaceDirs(workspace string) {
+	err := fs.CreateDir(t.WorkspaceProjectsDir(workspace))
+	if err != nil {
+		panic(err)
+	}
+	err = fs.CreateDir(t.WorkspaceRecordsDir(workspace))
 	if err != nil {
 		panic(err)
 	}

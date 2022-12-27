@@ -101,7 +101,7 @@ func projectsReportCommand(t *core.Track, options *filterOptions) *cobra.Command
 				return
 			}
 
-			tree, err := core.ToProjectTree(reporter.Projects)
+			tree, err := t.ToProjectTree(reporter.Projects)
 			if err != nil {
 				out.Err("failed to generate report: %s", err)
 				return
@@ -177,7 +177,7 @@ func dayReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 				active = rec.Project
 			}
 
-			str, err := renderDayTimeline(reporter, active, start, blocksPerHour)
+			str, err := renderDayTimeline(t, reporter, active, start, blocksPerHour)
 			if err != nil {
 				out.Err("failed to generate report: %s", err)
 				return
@@ -268,10 +268,10 @@ func renderTimeline(dates []time.Time, values []float64, unit float64) string {
 	return sb.String()
 }
 
-func renderDayTimeline(reporter *core.Reporter, active string, startDate time.Time, blocksPerHour int) (string, error) {
+func renderDayTimeline(t *core.Track, reporter *core.Reporter, active string, startDate time.Time, blocksPerHour int) (string, error) {
 	bph := blocksPerHour
 
-	tree, err := core.ToProjectTree(reporter.Projects)
+	tree, err := t.ToProjectTree(reporter.Projects)
 	if err != nil {
 		return "", err
 	}
@@ -332,7 +332,7 @@ func renderDayTimeline(reporter *core.Reporter, active string, startDate time.Ti
 		)
 	}
 	fill := strings.Repeat(" ", 6*bph-5)
-	timelineStr[core.RootName] = fmt.Sprintf(
+	timelineStr[t.WorkspaceLabel()] = fmt.Sprintf(
 		"|%02d:00%s|%02d:00%s|%02d:00%s|%02d:00%s|%02d:00",
 		0, fill,
 		6, fill,

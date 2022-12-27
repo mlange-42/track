@@ -55,6 +55,7 @@ Subcommands
 	root.AddCommand(editCommand(t))
 	root.AddCommand(deleteCommand(t))
 	root.AddCommand(exportCommand(t))
+	root.AddCommand(workspaceCommand(t))
 
 	root.Long += "\n\n" + formatCmdTree(root)
 

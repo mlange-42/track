@@ -18,6 +18,7 @@ func createCommand(t *core.Track) *cobra.Command {
 		},
 	}
 
+	create.AddCommand(createWorkspaceCommand(t))
 	create.AddCommand(createProjectCommand(t))
 	create.Long += "\n\n" + formatCmdTree(create)
 	return create
@@ -56,4 +57,26 @@ func createProjectCommand(t *core.Track) *cobra.Command {
 	createProject.Flags().StringVarP(&parent, "parent", "p", "", "Parent project of this project")
 
 	return createProject
+}
+
+func createWorkspaceCommand(t *core.Track) *cobra.Command {
+	createWorkspace := &cobra.Command{
+		Use:     "workspace WORKSPACE",
+		Short:   "Create a new workspace",
+		Aliases: []string{"w"},
+		Args:    util.WrappedArgs(cobra.ExactArgs(1)),
+		Run: func(cmd *cobra.Command, args []string) {
+			name := args[0]
+
+			err := t.CreateWorkspace(name)
+			if err != nil {
+				out.Err("failed to create workspace: %s", err.Error())
+				return
+			}
+
+			out.Success("Created workspace '%s'", name)
+		},
+	}
+
+	return createWorkspace
 }
