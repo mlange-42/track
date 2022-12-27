@@ -11,7 +11,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const rootName = "<workspace>"
+// RootName is the name of the project tree root
+const RootName = "<workspace>"
 
 // ProjectTree is a tree of projects
 type ProjectTree = tree.MapTree[Project]
@@ -119,7 +120,7 @@ func (t *Track) LoadAllProjects() (map[string]Project, error) {
 
 // ToProjectTree creates a tree of thegiven projects
 func ToProjectTree(projects map[string]Project) (*ProjectTree, error) {
-	pTree := NewTree(Project{Name: rootName})
+	pTree := NewTree(Project{Name: RootName})
 
 	nodes := map[string]*ProjectNode{pTree.Root.Value.Name: pTree.Root}
 

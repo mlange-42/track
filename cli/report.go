@@ -269,6 +269,8 @@ func renderTimeline(dates []time.Time, values []float64, unit float64) string {
 }
 
 func renderDayTimeline(reporter *core.Reporter, active string, startDate time.Time, blocksPerHour int) (string, error) {
+	bph := blocksPerHour
+
 	tree, err := core.ToProjectTree(reporter.Projects)
 	if err != nil {
 		return "", err
@@ -276,7 +278,7 @@ func renderDayTimeline(reporter *core.Reporter, active string, startDate time.Ti
 
 	timelines := map[string][]float64{}
 	for pr := range reporter.Projects {
-		timelines[pr] = make([]float64, blocksPerHour*24, blocksPerHour*24)
+		timelines[pr] = make([]float64, bph*24, bph*24)
 	}
 
 	now := time.Now()
@@ -289,14 +291,14 @@ func renderDayTimeline(reporter *core.Reporter, active string, startDate time.Ti
 		if endTime.Before(startDate) {
 			continue
 		}
-		start := rec.Start.Sub(startDate).Hours() * float64(blocksPerHour)
-		end := endTime.Sub(startDate).Hours() * float64(blocksPerHour)
+		start := rec.Start.Sub(startDate).Hours() * float64(bph)
+		end := endTime.Sub(startDate).Hours() * float64(bph)
 
 		if start < 0 {
 			start = 0
 		}
-		if end > float64(blocksPerHour*24) {
-			end = float64(blocksPerHour * 24)
+		if end > float64(bph*24) {
+			end = float64(bph * 24)
 		}
 		startIdx := int(start)
 		endIdx := int(end)
@@ -315,14 +317,29 @@ func renderDayTimeline(reporter *core.Reporter, active string, startDate time.Ti
 		}
 	}
 
-	timelineStr := map[string][]rune{}
+	timelineStr := map[string]string{}
 	for pr, values := range timelines {
-		runes := make([]rune, blocksPerHour*24, blocksPerHour*24)
+		runes := make([]rune, bph*24, bph*24)
 		for i, v := range values {
 			runes[i] = util.FloatToBlock(v)
 		}
-		timelineStr[pr] = runes
+		timelineStr[pr] = fmt.Sprintf(
+			"|%s|%s|%s|%s|",
+			string(runes[0:6*bph]),
+			string(runes[6*bph:12*bph]),
+			string(runes[12*bph:18*bph]),
+			string(runes[18*bph:24*bph]),
+		)
 	}
+	fill := strings.Repeat(" ", 6*bph-5)
+	timelineStr[core.RootName] = fmt.Sprintf(
+		"|%02d:00%s|%02d:00%s|%02d:00%s|%02d:00%s|%02d:00",
+		0, fill,
+		6, fill,
+		12, fill,
+		18, fill,
+		24,
+	)
 
 	formatter := util.NewTreeFormatter(
 		func(t *core.ProjectNode, indent int) string {
@@ -336,8 +353,8 @@ func renderDayTimeline(reporter *core.Reporter, active string, startDate time.Ti
 			if fillLen > 0 {
 				str += strings.Repeat(" ", fillLen)
 			}
-			runes, _ := timelineStr[t.Value.Name]
-			return fmt.Sprintf("%s %s", str, string(runes[:]))
+			text, _ := timelineStr[t.Value.Name]
+			return fmt.Sprintf("%s %s", str, text)
 		},
 		2,
 	)
