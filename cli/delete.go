@@ -14,7 +14,7 @@ func deleteCommand(t *core.Track) *cobra.Command {
 		Use:     "delete",
 		Short:   "Delete a resource",
 		Long:    `Delete a resource`,
-		Aliases: []string{"e"},
+		Aliases: []string{"D"},
 		Run: func(cmd *cobra.Command, args []string) {
 			_ = cmd.Help()
 		},

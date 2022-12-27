@@ -32,6 +32,7 @@ type ProjectNode = tree.MapNode[Project]
 type Project struct {
 	Name   string
 	Parent string
+	Color  uint8
 }
 
 // ProjectsDir returns the projects storage directory

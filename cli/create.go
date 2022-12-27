@@ -26,6 +26,7 @@ func createCommand(t *core.Track) *cobra.Command {
 
 func createProjectCommand(t *core.Track) *cobra.Command {
 	var parent string
+	var color uint8
 
 	createProject := &cobra.Command{
 		Use:     "project PROJECT",
@@ -43,6 +44,7 @@ func createProjectCommand(t *core.Track) *cobra.Command {
 			project := core.Project{
 				Name:   name,
 				Parent: parent,
+				Color:  color,
 			}
 
 			if err := t.SaveProject(project, false); err != nil {
@@ -55,6 +57,7 @@ func createProjectCommand(t *core.Track) *cobra.Command {
 	}
 
 	createProject.Flags().StringVarP(&parent, "parent", "p", "", "Parent project of this project")
+	createProject.Flags().Uint8VarP(&color, "color", "c", 0, "Background color for the project, as color index 0..256")
 
 	return createProject
 }

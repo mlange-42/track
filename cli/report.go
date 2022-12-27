@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"math"
+	"sort"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -12,6 +13,7 @@ import (
 	"github.com/mlange-42/track/out"
 	"github.com/mlange-42/track/util"
 	"github.com/spf13/cobra"
+	"golang.org/x/exp/maps"
 )
 
 var timelineModes = map[string]func(*core.Reporter) string{
@@ -42,6 +44,7 @@ func reportCommand(t *core.Track) *cobra.Command {
 	report.AddCommand(timelineReportCommand(t, &options))
 	report.AddCommand(projectsReportCommand(t, &options))
 	report.AddCommand(dayReportCommand(t, &options))
+	report.AddCommand(weekReportCommand(t, &options))
 
 	report.Long += "\n\n" + formatCmdTree(report)
 	return report
@@ -191,6 +194,66 @@ func dayReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 	}
 
 	day.Flags().IntVarP(&blocksPerHour, "width", "w", 3, "Width of the graph, in characters per hour")
+
+	return day
+}
+
+func weekReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
+	var blocksPerHour int
+
+	day := &cobra.Command{
+		Use:     "week [DATE]",
+		Short:   "Report of activities over a week",
+		Aliases: []string{"w"},
+		Args:    util.WrappedArgs(cobra.MaximumNArgs(1)),
+		Run: func(cmd *cobra.Command, args []string) {
+			start := util.ToDate(time.Now())
+
+			var err error
+			if len(args) > 0 {
+				start, err = util.ParseDate(args[0])
+				if err != nil {
+					out.Err("failed to generate report: %s", err)
+					return
+				}
+			}
+			weekDay := (int(start.Weekday()) + 6) % 7
+			start = start.Add(time.Duration(-weekDay * 24 * int(time.Hour)))
+
+			if blocksPerHour <= 0 {
+				out.Err("failed to generate report: argument --width must be > 0")
+				return
+			}
+			filterStart := start.Add(-time.Hour * 24)
+			filterEnd := start.Add(time.Hour * 24 * 7)
+
+			filters, err := createFilters(options, false)
+			if err != nil {
+				out.Err("failed to generate report: %s", err)
+				return
+			}
+			filters = append(filters, core.FilterByTime(filterStart, filterEnd))
+
+			reporter, err := core.NewReporter(t, options.projects, filters)
+			if err != nil {
+				out.Err("failed to generate report: %s", err)
+				return
+			}
+			var active string
+			if rec, ok := t.OpenRecord(); ok {
+				active = rec.Project
+			}
+
+			str, err := renderWeekTimeline(t, reporter, active, start, blocksPerHour)
+			if err != nil {
+				out.Err("failed to generate report: %s", err)
+				return
+			}
+			fmt.Print(str)
+		},
+	}
+
+	day.Flags().IntVarP(&blocksPerHour, "width", "w", 12, "Width of the graph, in characters per hour")
 
 	return day
 }
@@ -382,4 +445,79 @@ func toDayAxis(blocksPerHour int, interval int) string {
 	fmt.Fprint(&sb, "|")
 
 	return sb.String()
+}
+
+func renderWeekTimeline(t *core.Track, reporter *core.Reporter, active string, startDate time.Time, blocksPerHour int) (string, error) {
+	bph := blocksPerHour
+
+	projects := maps.Keys(reporter.Projects)
+	sort.Strings(projects)
+	indices := make(map[string]int, len(projects))
+	symbols := make([]rune, len(projects)+1, len(projects)+1)
+	colors := make([]uint8, len(projects)+1, len(projects)+1)
+	symbols[0] = '·'
+	colors[0] = 0
+	for i, p := range projects {
+		indices[p] = i + 1
+		symbols[i+1] = []rune(p)[0]
+		colors[i+1] = reporter.Projects[p].Color
+	}
+
+	timeline := make([]int, 24*7*blocksPerHour, 24*7*blocksPerHour)
+
+	now := time.Now()
+
+	for _, rec := range reporter.Records {
+		endTime := rec.End
+		if rec.End.IsZero() {
+			endTime = now
+		}
+		if endTime.Before(startDate) {
+			continue
+		}
+		start := rec.Start.Sub(startDate).Hours() * float64(bph)
+		end := endTime.Sub(startDate).Hours() * float64(bph)
+
+		if start < 0 {
+			start = 0
+		}
+		if end > float64(bph*24*7) {
+			end = float64(bph * 24 * 7)
+		}
+		startIdx := int(start)
+		endIdx := int(end)
+
+		index := indices[rec.Project]
+
+		for i := startIdx; i <= endIdx; i++ {
+			timeline[i] = index
+		}
+	}
+
+	timeStr := make([]rune, len(timeline), len(timeline))
+	for i, idx := range timeline {
+		timeStr[i] = symbols[idx]
+	}
+
+	sb := strings.Builder{}
+	for hour := 0; hour < 24; hour++ {
+		fmt.Fprintf(&sb, "%02d:00 ", hour)
+		for weekday := 0; weekday < 7; weekday++ {
+			s := (weekday*24 + hour) * bph
+			fmt.Fprint(&sb, "|")
+			for i := s; i < s+bph; i++ {
+				pr := timeline[i]
+				sym := symbols[pr]
+				col := colors[pr]
+				if col == 0 {
+					fmt.Fprintf(&sb, "%c", sym)
+				} else {
+					fmt.Fprint(&sb, color.C256(col, true).Sprintf("%c", sym))
+				}
+			}
+		}
+		fmt.Fprintln(&sb, "|")
+	}
+
+	return sb.String(), nil
 }
