@@ -538,5 +538,19 @@ func renderWeekTimeline(t *core.Track, reporter *core.Reporter, active string, s
 		fmt.Fprintln(&sb, "|")
 	}
 
+	totalWidth := 7 + 7*(bph+1)
+	lineWidth := 0
+	for i, p := range projects {
+		col := colors[i+1]
+		width := utf8.RuneCountInString(p)
+		if lineWidth > 0 && lineWidth+width+2 > totalWidth {
+			lineWidth = 0
+			fmt.Fprintln(&sb)
+		}
+
+		fmt.Fprint(&sb, color.C256(col, true).Sprintf(" %s ", p))
+		lineWidth += width + 2
+	}
+
 	return sb.String(), nil
 }
