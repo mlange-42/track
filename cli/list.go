@@ -25,6 +25,7 @@ func listCommand(t *core.Track) *cobra.Command {
 	list.AddCommand(listWorkspacesCommand(t))
 	list.AddCommand(listProjectsCommand(t))
 	list.AddCommand(listRecordsCommand(t))
+	list.AddCommand(listColorsCommand(t))
 
 	list.Long += "\n\n" + formatCmdTree(list)
 	return list
@@ -140,6 +141,20 @@ or a word like "yesterday" or  "today" (the default).`,
 	return listProjects
 }
 
+func listColorsCommand(t *core.Track) *cobra.Command {
+	listColors := &cobra.Command{
+		Use:     "colors",
+		Short:   "Lists the 256 available colors",
+		Aliases: []string{"c"},
+		Args:    util.WrappedArgs(cobra.NoArgs),
+		Run: func(cmd *cobra.Command, args []string) {
+			printColorChart()
+		},
+	}
+
+	return listColors
+}
+
 func printRecord(r core.Record) {
 	date := r.Start.Format(util.DateFormat)
 	start := r.Start.Format(util.TimeFormat)
@@ -157,4 +172,48 @@ func printRecord(r core.Record) {
 		date, start, end, util.FormatDuration(dur),
 		r.Note,
 	)
+}
+
+func printColorChart() {
+	var row, block, i uint8
+
+	color.C256(0, true).Printf("%3d", 0)
+	fmt.Print(" ")
+	for i = 1; i < 16; i++ {
+		color.S256(0, i).Printf("%3d", i)
+		fmt.Print(" ")
+	}
+	fmt.Print("\n\n")
+
+	const rowOffset uint8 = 6
+	const blockOffset uint8 = 36
+
+	for _, start := range []uint8{16, 124} {
+		for row = 0; row < 6; row++ {
+			for block = 0; block < 3; block++ {
+				idx := start + row*rowOffset + block*blockOffset
+				for i = 0; i < 6; i++ {
+					if row < 3 {
+						color.C256(idx+i, true).Printf("%3d", idx+i)
+					} else {
+						color.S256(0, idx+i).Printf("%3d", idx+i)
+					}
+					fmt.Print(" ")
+				}
+				fmt.Print("  ")
+			}
+			fmt.Println()
+		}
+		fmt.Println()
+	}
+
+	for i = 232; i < 244; i++ {
+		color.C256(i, true).Printf("%3d", i)
+		fmt.Print(" ")
+	}
+	fmt.Println()
+	for i := 244; i <= 255; i++ {
+		color.S256(0, uint8(i)).Printf("%3d", i)
+		fmt.Print(" ")
+	}
 }

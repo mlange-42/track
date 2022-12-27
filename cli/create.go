@@ -57,7 +57,7 @@ func createProjectCommand(t *core.Track) *cobra.Command {
 	}
 
 	createProject.Flags().StringVarP(&parent, "parent", "p", "", "Parent project of this project")
-	createProject.Flags().Uint8VarP(&color, "color", "c", 0, "Background color for the project, as color index 0..256")
+	createProject.Flags().Uint8VarP(&color, "color", "c", 0, "Background color for the project, as color index 0..256.\nSee: $ track list colors")
 
 	return createProject
 }
