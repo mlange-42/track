@@ -7,6 +7,12 @@ import (
 )
 
 func TestToTree(t *testing.T) {
+	track := Track{
+		Config: Config{
+			Workspace: "default",
+		},
+	}
+
 	projects := map[string]Project{
 		"p1": {
 			Name: "p1",
@@ -28,7 +34,7 @@ func TestToTree(t *testing.T) {
 		},
 	}
 
-	pTree, err := ToProjectTree(projects)
+	pTree, err := track.ToProjectTree(projects)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -32,14 +32,14 @@ func RootDir() string {
 	return filepath.Join(home, rootDirName)
 }
 
-// ProjectsDir returns the projects storage directory
-func ProjectsDir() string {
-	return filepath.Join(RootDir(), projectsDirName)
+// ProjectsDirName returns the directory name for projects
+func ProjectsDirName() string {
+	return projectsDirName
 }
 
-// RecordsDir returns the records storage directory
-func RecordsDir() string {
-	return filepath.Join(RootDir(), recordsDirName)
+// RecordsDirName returns the directory name for records
+func RecordsDirName() string {
+	return recordsDirName
 }
 
 // ConfigPath returns the default config path

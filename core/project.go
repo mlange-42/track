@@ -11,8 +11,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// RootName is the name of the project tree root
-const RootName = "<workspace>"
+// RootPattern is the pattern to display the workspace in the project tree
+const RootPattern = "<%s>"
 
 // ProjectTree is a tree of projects
 type ProjectTree = tree.MapTree[Project]
@@ -34,9 +34,14 @@ type Project struct {
 	Parent string
 }
 
+// ProjectsDir returns the projects storage directory
+func (t *Track) ProjectsDir() string {
+	return filepath.Join(fs.RootDir(), t.Workspace(), fs.ProjectsDirName())
+}
+
 // ProjectPath returns the full path for a project
 func (t *Track) ProjectPath(name string) string {
-	return filepath.Join(fs.ProjectsDir(), fs.Sanitize(name)+".yml")
+	return filepath.Join(t.ProjectsDir(), fs.Sanitize(name)+".yml")
 }
 
 // ProjectExists checks if a project exists
@@ -96,7 +101,7 @@ func (t *Track) LoadProject(path string) (Project, error) {
 
 // LoadAllProjects loads all projects
 func (t *Track) LoadAllProjects() (map[string]Project, error) {
-	path := fs.ProjectsDir()
+	path := t.ProjectsDir()
 
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
@@ -119,8 +124,8 @@ func (t *Track) LoadAllProjects() (map[string]Project, error) {
 }
 
 // ToProjectTree creates a tree of thegiven projects
-func ToProjectTree(projects map[string]Project) (*ProjectTree, error) {
-	pTree := NewTree(Project{Name: RootName})
+func (t *Track) ToProjectTree(projects map[string]Project) (*ProjectTree, error) {
+	pTree := NewTree(Project{Name: t.WorkspaceLabel()})
 
 	nodes := map[string]*ProjectNode{pTree.Root.Value.Name: pTree.Root}
 

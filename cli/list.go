@@ -47,7 +47,7 @@ func listProjectsCommand(t *core.Track) *cobra.Command {
 				active = rec.Project
 			}
 
-			tree, err := core.ToProjectTree(projects)
+			tree, err := t.ToProjectTree(projects)
 			if err != nil {
 				out.Err("failed to load projects: %s", err)
 				return

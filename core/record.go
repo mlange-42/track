@@ -79,6 +79,11 @@ func (r Record) Duration() time.Duration {
 	return t.Sub(r.Start)
 }
 
+// RecordsDir returns the records storage directory
+func (t *Track) RecordsDir() string {
+	return filepath.Join(fs.RootDir(), t.Workspace(), fs.RecordsDirName())
+}
+
 // RecordPath returns the full path for a record
 func (t *Track) RecordPath(tm time.Time) string {
 	return filepath.Join(
@@ -90,7 +95,7 @@ func (t *Track) RecordPath(tm time.Time) string {
 // RecordDir returns the directory path for a record
 func (t *Track) RecordDir(tm time.Time) string {
 	return filepath.Join(
-		fs.RecordsDir(),
+		t.RecordsDir(),
 		tm.Format(util.FileDateFormat),
 	)
 }
@@ -167,7 +172,7 @@ func (t *Track) LoadAllRecords() ([]Record, error) {
 
 // LoadAllRecordsFiltered loads all records
 func (t *Track) LoadAllRecordsFiltered(filters FilterFunctions) ([]Record, error) {
-	path := fs.RecordsDir()
+	path := t.RecordsDir()
 
 	dirs, err := ioutil.ReadDir(path)
 	if err != nil {
@@ -201,7 +206,7 @@ func (t *Track) AllRecordsFiltered(filters FilterFunctions) (func(), chan Filter
 	results := make(chan FilterResult, 32)
 
 	return func() {
-		path := fs.RecordsDir()
+		path := t.RecordsDir()
 
 		dirs, err := ioutil.ReadDir(path)
 		if err != nil {
@@ -233,7 +238,7 @@ func (t *Track) allRecordsFiltered(
 		Record
 		error
 	}) {
-	path := fs.RecordsDir()
+	path := t.RecordsDir()
 
 	dirs, err := ioutil.ReadDir(path)
 	if err != nil {
@@ -273,7 +278,7 @@ func (t *Track) LoadDateRecords(dir string) ([]Record, error) {
 
 // LoadDateRecordsFiltered loads all records for the given date string/directory
 func (t *Track) LoadDateRecordsFiltered(dir string, filters FilterFunctions) ([]Record, error) {
-	path := fs.RecordsDir()
+	path := t.RecordsDir()
 	subPath := filepath.Join(path, dir)
 
 	info, err := os.Stat(subPath)
@@ -310,7 +315,7 @@ func (t *Track) LoadDateRecordsFiltered(dir string, filters FilterFunctions) ([]
 
 // LatestRecord loads the latest record
 func (t *Track) LatestRecord() (Record, error) {
-	records := fs.RecordsDir()
+	records := t.RecordsDir()
 	records, err := fs.FindLatests(records, true)
 	if err != nil {
 		return Record{}, err

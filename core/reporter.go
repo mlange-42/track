@@ -41,7 +41,7 @@ func NewReporter(t *Track, proj []string, filters FilterFunctions) (*Reporter, e
 		}
 	}
 
-	projectsTree, err := ToProjectTree(allProjects)
+	projectsTree, err := t.ToProjectTree(allProjects)
 	if err != nil {
 		return nil, fmt.Errorf("duplicate project name: %s", err)
 	}
