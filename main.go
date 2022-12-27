@@ -12,7 +12,7 @@ import (
 const version = "0.1.0"
 
 func main() {
-	if !color.SupportColor() || !isTerminal() {
+	if !color.Support256Color() || !isTerminal() {
 		color.Disable()
 	}
 
