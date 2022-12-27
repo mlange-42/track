@@ -43,7 +43,7 @@ Notes can contain tags, denoted by the prefix "%s", like "%stag"`, core.TagPrefi
 					return
 				}
 
-				out.Success("Stopped record in '%s' at %02d:%02d\n", record.Project, record.End.Hour(), record.End.Minute())
+				out.Success("Stopped record in '%s' at %s\n", record.Project, record.End.Format(util.TimeFormat))
 			}
 
 			note := strings.Join(args[1:], " ")
@@ -55,7 +55,7 @@ Notes can contain tags, denoted by the prefix "%s", like "%stag"`, core.TagPrefi
 				return
 			}
 
-			out.Success("Started record in '%s' at %02d:%02d", project, record.Start.Hour(), record.Start.Minute())
+			out.Success("Started record in '%s' at %s", project, record.Start.Format(util.TimeFormat))
 		},
 	}
 
