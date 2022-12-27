@@ -24,6 +24,7 @@ type Reporter struct {
 	Records      []Record
 	Projects     map[string]Project
 	ProjectTime  map[string]time.Duration
+	TotalTime    map[string]time.Duration
 	AllProjects  map[string]Project
 	ProjectsTree *ProjectTree
 	TimeRange    TimeRange
@@ -95,29 +96,36 @@ func NewReporter(t *Track, proj []string, filters FilterFunctions) (*Reporter, e
 		}
 	}
 
-	// TODO This is probably not correct for deep hierarchies
-	/*
-		for project := range totals {
-			anc, ok := projectsTree.Ancestors(project)
-			if !ok {
-				return nil, fmt.Errorf("BUG! Project '%s' not in project tree", project)
-			}
-			for _, node := range anc {
-				if _, ok := totals[node.Value.Name]; ok {
-					totals[node.Value.Name] += totals[project]
-				}
-			}
-		}
-	*/
+	projectTotals := make(map[string]time.Duration, len(totals))
+	for k, v := range totals {
+		projectTotals[k] = v
+	}
+
+	aggregate(projectsTree.Root, totals, func(a, b time.Duration) time.Duration { return a + b })
 
 	report := Reporter{
 		Track:        t,
 		Records:      records,
 		Projects:     projects,
-		ProjectTime:  totals,
+		ProjectTime:  projectTotals,
+		TotalTime:    totals,
 		AllProjects:  allProjects,
 		ProjectsTree: projectsTree,
 		TimeRange:    tRange,
 	}
 	return &report, nil
+}
+
+func aggregate[T any](t *ProjectNode, values map[string]T, fn func(a, b T) T) (T, bool) {
+	agg, ok := values[t.Value.Name]
+	if !ok {
+		return agg, false
+	}
+	for _, child := range t.Children {
+		if v, ok := aggregate(child, values, fn); ok {
+			agg = fn(agg, v)
+		}
+	}
+	values[t.Value.Name] = agg
+	return agg, true
 }

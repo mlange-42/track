@@ -8,12 +8,14 @@
 * Command `track break DURATION` to insert breaks (#28)
 * Projects are structured in workspaces (#30)
 * Records can be started and stopped with explicit time or offset from now (#31)
+* Shows aggregated and self time of projects in report (#33)
 
 ### Bug fixes
 
 * Store time zone in record files (#24)
 * Use local time zone when parsing dates and times from string (#24)
 * Disable flawed time aggregation over parent projects (#24)
+* Correct time aggregation from child projects (#33)
 
 ### Other
 

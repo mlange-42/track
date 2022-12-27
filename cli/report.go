@@ -122,7 +122,11 @@ func projectsReportCommand(t *core.Track, options *filterOptions) *cobra.Command
 					if fillLen > 0 {
 						str += strings.Repeat(" ", fillLen)
 					}
-					return fmt.Sprintf("%s %s", str, util.FormatDuration(reporter.ProjectTime[t.Value.Name]))
+					return fmt.Sprintf(
+						"%s %s (%s)", str,
+						util.FormatDuration(reporter.TotalTime[t.Value.Name]),
+						util.FormatDuration(reporter.ProjectTime[t.Value.Name]),
+					)
 				},
 				2,
 			)
