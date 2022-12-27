@@ -117,8 +117,10 @@ track report day
 
 ```text
 track
+├─break DURATION
 ├─create
-│ └─project PROJECT
+│ ├─project PROJECT
+│ └─workspace WORKSPACE
 ├─delete
 │ └─record DATE TIME
 ├─edit
@@ -129,7 +131,8 @@ track
 │ └─records
 ├─list
 │ ├─projects
-│ └─records [DATE]
+│ ├─records [DATE]
+│ └─workspaces
 ├─report
 │ ├─day [DATE]
 │ ├─projects
@@ -138,7 +141,8 @@ track
 ├─start PROJECT [NOTE...]
 ├─status [PROJECT]
 ├─stop
-└─switch PROJECT [NOTE...]
+├─switch PROJECT [NOTE...]
+└─workspace WORKSPACE
 ```
 
 ## References
