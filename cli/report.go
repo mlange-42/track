@@ -164,6 +164,12 @@ func dayReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 				out.Err("failed to generate report: argument --width must be > 0")
 				return
 			}
+			if !cmd.Flags().Changed("width") {
+				if w, _, err := util.TerminalSize(); err == nil && w > 0 {
+					blocksPerHour = (w - 26) / 24
+				}
+			}
+
 			filterStart := start.Add(-time.Hour * 24)
 			filterEnd := start.Add(time.Hour * 24)
 
@@ -193,7 +199,7 @@ func dayReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 		},
 	}
 
-	day.Flags().IntVarP(&blocksPerHour, "width", "w", 3, "Width of the graph, in characters per hour")
+	day.Flags().IntVarP(&blocksPerHour, "width", "w", 3, "Width of the graph, in characters per hour. Auto-scale if not specified")
 
 	return day
 }
@@ -224,6 +230,12 @@ func weekReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 				out.Err("failed to generate report: argument --width must be > 0")
 				return
 			}
+			if !cmd.Flags().Changed("width") {
+				if w, _, err := util.TerminalSize(); err == nil && w > 0 {
+					blocksPerHour = (w - 14) / 7
+				}
+			}
+
 			filterStart := start.Add(-time.Hour * 24)
 			filterEnd := start.Add(time.Hour * 24 * 7)
 
@@ -253,7 +265,7 @@ func weekReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 		},
 	}
 
-	day.Flags().IntVarP(&blocksPerHour, "width", "w", 12, "Width of the graph, in characters per hour")
+	day.Flags().IntVarP(&blocksPerHour, "width", "w", 12, "Width of the graph, in characters per hour. Auto-scale if not specified")
 
 	return day
 }
