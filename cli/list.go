@@ -69,11 +69,24 @@ func listProjectsCommand(t *core.Track) *cobra.Command {
 			}
 			formatter := util.NewTreeFormatter(
 				func(t *core.ProjectNode, indent int) string {
-					marker := color.C256(t.Value.Color, true).Sprint("  ")
-					if t.Value.Name == active {
-						return fmt.Sprintf("%s %s", color.BgBlue.Sprint(t.Value.Name), marker)
+					fillLen := 16 - (indent + utf8.RuneCountInString(t.Value.Name))
+					name := t.Value.Name
+					if fillLen < 0 {
+						nameRunes := []rune(name)
+						name = string(nameRunes[:len(nameRunes)+fillLen-1]) + "."
 					}
-					return fmt.Sprintf("%s %s", t.Value.Name, marker)
+					var str string
+					if t.Value.Name == active {
+						str = color.BgBlue.Sprintf("%s", name)
+					} else {
+						str = fmt.Sprintf("%s", name)
+					}
+					if fillLen > 0 {
+						str += strings.Repeat(" ", fillLen)
+					}
+					str += " "
+					str += color.C256(t.Value.Color, true).Sprint("  ")
+					return str
 				},
 				2,
 			)
