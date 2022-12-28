@@ -40,6 +40,15 @@ For details on notes and tags, see command 'start'.`,
 				out.Err("failed to resume: project '%s' does not exist", project)
 				return
 			}
+			proj, err := t.LoadProjectByName(project)
+			if err != nil {
+				out.Err("failed to start record: %s", err)
+				return
+			}
+			if proj.Archived {
+				out.Err("failed to start record: project '%s' is archived", proj.Name)
+				return
+			}
 
 			note := last.Note
 			tags := last.Tags

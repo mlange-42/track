@@ -30,9 +30,10 @@ type ProjectNode = tree.MapNode[Project]
 
 // Project holds and manipulates data for a project
 type Project struct {
-	Name   string
-	Parent string
-	Color  uint8
+	Name     string
+	Parent   string
+	Color    uint8
+	Archived bool
 }
 
 // ProjectsDir returns the projects storage directory

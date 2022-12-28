@@ -19,17 +19,22 @@ func formatCmdTree(command *cobra.Command) string {
 }
 
 type filterOptions struct {
-	projects []string
-	tags     []string
-	start    string
-	end      string
+	projects        []string
+	tags            []string
+	start           string
+	end             string
+	includeArchived bool
 }
 
-func createFilters(options *filterOptions, projects bool) (core.FilterFunctions, error) {
+func createFilters(options *filterOptions, projects map[string]core.Project, filterProjects bool) (core.FilterFunctions, error) {
 	var filters core.FilterFunctions
 
-	if projects && len(options.projects) > 0 {
+	if filterProjects && len(options.projects) > 0 {
 		filters = append(filters, core.FilterByProjects(options.projects))
+	}
+
+	if !options.includeArchived {
+		filters = append(filters, core.FilterByArchived(false, projects))
 	}
 
 	if len(options.tags) > 0 {

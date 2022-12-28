@@ -31,7 +31,7 @@ type Reporter struct {
 }
 
 // NewReporter creates a new Reporter from filters
-func NewReporter(t *Track, proj []string, filters FilterFunctions) (*Reporter, error) {
+func NewReporter(t *Track, proj []string, filters FilterFunctions, includeArchived bool) (*Reporter, error) {
 	allProjects, err := t.LoadAllProjects()
 	if err != nil {
 		return nil, err
@@ -49,7 +49,15 @@ func NewReporter(t *Track, proj []string, filters FilterFunctions) (*Reporter, e
 
 	projects := make(map[string]Project)
 	if len(proj) == 0 {
-		projects = allProjects
+		if includeArchived {
+			projects = allProjects
+		} else {
+			for _, p := range allProjects {
+				if !p.Archived {
+					projects[p.Name] = p
+				}
+			}
+		}
 	} else {
 		for _, p := range proj {
 			project := allProjects[p]
@@ -60,8 +68,10 @@ func NewReporter(t *Track, proj []string, filters FilterFunctions) (*Reporter, e
 				return nil, fmt.Errorf("BUG! Project '%s' not in project tree", project.Name)
 			}
 			for _, p2 := range desc {
-				if _, ok = projects[p2.Value.Name]; !ok {
-					projects[p2.Value.Name] = p2.Value
+				if includeArchived || !p2.Value.Archived {
+					if _, ok = projects[p2.Value.Name]; !ok {
+						projects[p2.Value.Name] = p2.Value
+					}
 				}
 			}
 		}

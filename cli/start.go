@@ -32,6 +32,16 @@ Notes can contain tags, denoted by the prefix "%s", like "%stag"`, core.TagPrefi
 				return
 			}
 
+			proj, err := t.LoadProjectByName(project)
+			if err != nil {
+				out.Err("failed to start record: %s", err)
+				return
+			}
+			if proj.Archived {
+				out.Err("failed to start record: project '%s' is archived", proj.Name)
+				return
+			}
+
 			if rec, ok := t.OpenRecord(); ok {
 				out.Err("failed to start record: record in '%s' still running", rec.Project)
 				return
