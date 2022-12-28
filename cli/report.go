@@ -129,15 +129,23 @@ func projectsReportCommand(t *core.Track, options *filterOptions) *cobra.Command
 			formatter := util.NewTreeFormatter(
 				func(t *core.ProjectNode, indent int) string {
 					fillLen := 16 - (indent + utf8.RuneCountInString(t.Value.Name))
+					name := t.Value.Name
+					if fillLen < 0 {
+						nameRunes := []rune(name)
+						name = string(nameRunes[:len(nameRunes)+fillLen-1]) + "."
+					}
 					var str string
 					if t.Value.Name == active {
-						str = color.BgBlue.Sprintf("%s", t.Value.Name)
+						str = color.BgBlue.Sprintf("%s", name)
 					} else {
-						str = fmt.Sprintf("%s", t.Value.Name)
+						str = fmt.Sprintf("%s", name)
 					}
 					if fillLen > 0 {
 						str += strings.Repeat(" ", fillLen)
 					}
+					str += " "
+					str += color.C256(t.Value.Color, true).Sprintf(" %s ", t.Value.Symbol)
+
 					return fmt.Sprintf(
 						"%s %s (%s)", str,
 						util.FormatDuration(reporter.TotalTime[t.Value.Name]),
@@ -179,7 +187,7 @@ func dayReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 			}
 			if !cmd.Flags().Changed("width") {
 				if w, _, err := util.TerminalSize(); err == nil && w > 0 {
-					blocksPerHour = (w - 26) / 24
+					blocksPerHour = (w - 29) / 24
 				}
 			}
 
@@ -429,7 +437,7 @@ func renderDayTimeline(t *core.Track, reporter *core.Reporter, active string, st
 		interval = 3
 	}
 
-	fmt.Printf("                 |%s : %s/cell\n",
+	fmt.Printf("                    |%s : %s/cell\n",
 		startDate.Format(util.DateFormat),
 		time.Duration(1e9*(int(time.Hour)/(bph*1e9))).String(),
 	)
@@ -447,17 +455,24 @@ func renderDayTimeline(t *core.Track, reporter *core.Reporter, active string, st
 	formatter := util.NewTreeFormatter(
 		func(t *core.ProjectNode, indent int) string {
 			fillLen := 16 - (indent + utf8.RuneCountInString(t.Value.Name))
+			name := t.Value.Name
+			if fillLen < 0 {
+				nameRunes := []rune(name)
+				name = string(nameRunes[:len(nameRunes)+fillLen-1]) + "."
+			}
 			var str string
 			if t.Value.Name == active {
-				str = color.BgBlue.Sprintf("%s", t.Value.Name)
+				str = color.BgBlue.Sprintf("%s", name)
 			} else {
-				str = fmt.Sprintf("%s", t.Value.Name)
+				str = fmt.Sprintf("%s", name)
 			}
 			if fillLen > 0 {
 				str += strings.Repeat(" ", fillLen)
 			}
+			str += " "
+			str += color.C256(t.Value.Color, true).Sprintf(" %s ", t.Value.Symbol)
 			text, _ := timelineStr[t.Value.Name]
-			return fmt.Sprintf("%s %s", str, text)
+			return fmt.Sprintf("%s%s", str, text)
 		},
 		2,
 	)
@@ -507,7 +522,7 @@ func renderWeekTimeline(t *core.Track, reporter *core.Reporter, active string, s
 	colors[0] = 0
 	for i, p := range projects {
 		indices[p] = i + 1
-		symbols[i+1] = []rune(p)[0]
+		symbols[i+1] = []rune(reporter.Projects[p].Symbol)[0]
 		colors[i+1] = reporter.Projects[p].Color
 	}
 
@@ -595,13 +610,13 @@ func renderWeekTimeline(t *core.Track, reporter *core.Reporter, active string, s
 	for i, p := range projects {
 		col := colors[i+1]
 		width := utf8.RuneCountInString(p)
-		if lineWidth > 0 && lineWidth+width+2 > totalWidth {
+		if lineWidth > 0 && lineWidth+width+4 > totalWidth {
 			lineWidth = 0
 			fmt.Fprintln(&sb)
 		}
 
-		fmt.Fprint(&sb, color.C256(col, true).Sprintf(" %s ", p))
-		lineWidth += width + 2
+		fmt.Fprint(&sb, color.C256(col, true).Sprintf(" %c:%s ", symbols[indices[p]], p))
+		lineWidth += width + 4
 	}
 
 	return sb.String(), nil

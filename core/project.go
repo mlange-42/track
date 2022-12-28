@@ -33,6 +33,7 @@ type Project struct {
 	Name     string
 	Parent   string
 	Color    uint8
+	Symbol   string
 	Archived bool
 }
 
@@ -132,7 +133,12 @@ func (t *Track) LoadAllProjects() (map[string]Project, error) {
 
 // ToProjectTree creates a tree of thegiven projects
 func (t *Track) ToProjectTree(projects map[string]Project) (*ProjectTree, error) {
-	pTree := NewTree(Project{Name: t.WorkspaceLabel()})
+	pTree := NewTree(
+		Project{
+			Name:   t.WorkspaceLabel(),
+			Symbol: " ",
+		},
+	)
 
 	nodes := map[string]*ProjectNode{pTree.Root.Value.Name: pTree.Root}
 

@@ -2,7 +2,9 @@ package cli
 
 import (
 	"fmt"
+	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/gookit/color"
 	"github.com/mlange-42/track/core"
@@ -67,10 +69,24 @@ func listProjectsCommand(t *core.Track) *cobra.Command {
 			}
 			formatter := util.NewTreeFormatter(
 				func(t *core.ProjectNode, indent int) string {
-					if t.Value.Name == active {
-						return color.BgBlue.Sprintf("%s", t.Value.Name)
+					fillLen := 16 - (indent + utf8.RuneCountInString(t.Value.Name))
+					name := t.Value.Name
+					if fillLen < 0 {
+						nameRunes := []rune(name)
+						name = string(nameRunes[:len(nameRunes)+fillLen-1]) + "."
 					}
-					return fmt.Sprintf("%s", t.Value.Name)
+					var str string
+					if t.Value.Name == active {
+						str = color.BgBlue.Sprintf("%s", name)
+					} else {
+						str = fmt.Sprintf("%s", name)
+					}
+					if fillLen > 0 {
+						str += strings.Repeat(" ", fillLen)
+					}
+					str += " "
+					str += color.C256(t.Value.Color, true).Sprintf(" %s ", t.Value.Symbol)
+					return str
 				},
 				2,
 			)
@@ -152,8 +168,9 @@ or a word like "yesterday" or  "today" (the default).`,
 				return
 			}
 			for _, record := range records {
-				if includeArchived || !projects[record.Project].Archived {
-					printRecord(record)
+				project := projects[record.Project]
+				if includeArchived || !project.Archived {
+					printRecord(record, project)
 				}
 			}
 		},
@@ -177,7 +194,7 @@ func listColorsCommand(t *core.Track) *cobra.Command {
 	return listColors
 }
 
-func printRecord(r core.Record) {
+func printRecord(r core.Record, project core.Project) {
 	date := r.Start.Format(util.DateFormat)
 	start := r.Start.Format(util.TimeFormat)
 
@@ -189,8 +206,20 @@ func printRecord(r core.Record) {
 	}
 	dur := r.Duration()
 
+	fillLen := 16 - utf8.RuneCountInString(r.Project)
+	name := r.Project
+	if fillLen < 0 {
+		nameRunes := []rune(name)
+		name = string(nameRunes[:len(nameRunes)+fillLen-1]) + "."
+	}
+
+	fill := ""
+	if fillLen > 0 {
+		fill = strings.Repeat(" ", fillLen)
+	}
 	out.Print(
-		"%-15s %s %s - %s (%s)  %s\n", r.Project,
+		"%s%s %s %s %s - %s (%s)  %s\n", name, fill,
+		color.C256(project.Color, true).Sprintf(" %s ", project.Symbol),
 		date, start, end, util.FormatDuration(dur),
 		r.Note,
 	)

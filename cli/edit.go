@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/mlange-42/track/core"
 	"github.com/mlange-42/track/fs"
@@ -210,6 +211,9 @@ func editProject(t *core.Track, project core.Project) error {
 
 			if newProject.Name != project.Name {
 				return fmt.Errorf("can't change project name")
+			}
+			if utf8.RuneCountInString(newProject.Symbol) != 1 {
+				return fmt.Errorf("symbol must be a single character")
 			}
 			if err := t.CheckParents(newProject); err != nil {
 				return err
