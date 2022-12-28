@@ -1,12 +1,14 @@
 package core
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"runtime"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/mlange-42/track/fs"
 	"gopkg.in/yaml.v3"
@@ -14,11 +16,17 @@ import (
 
 const defaultWorkspace = "default"
 
+var (
+	// ErrNoConfig is an error for no config file available
+	ErrNoConfig = errors.New("no config file")
+)
+
 // Config for track
 type Config struct {
 	Workspace        string        `yaml:"workspace"`
 	TextEditor       string        `yaml:"textEditor"`
 	MaxBreakDuration time.Duration `yaml:"maxBreakDuration"`
+	EmptyCell        string        `yaml:"emptyCell"`
 }
 
 // LoadConfig loads the track config, or creates and saves default settings
@@ -26,6 +34,9 @@ func LoadConfig() (Config, error) {
 	conf, err := tryLoadConfig()
 	if err == nil {
 		return conf, nil
+	}
+	if !errors.Is(err, ErrNoConfig) {
+		return conf, err
 	}
 
 	var editor string
@@ -39,6 +50,7 @@ func LoadConfig() (Config, error) {
 		Workspace:        defaultWorkspace,
 		TextEditor:       editor,
 		MaxBreakDuration: 2 * time.Hour,
+		EmptyCell:        ".",
 	}
 
 	err = SaveConfig(conf)
@@ -52,7 +64,7 @@ func LoadConfig() (Config, error) {
 func tryLoadConfig() (Config, error) {
 	file, err := ioutil.ReadFile(fs.ConfigPath())
 	if err != nil {
-		return Config{}, err
+		return Config{}, ErrNoConfig
 	}
 
 	var conf Config
@@ -61,11 +73,19 @@ func tryLoadConfig() (Config, error) {
 		return Config{}, err
 	}
 
+	if err = CheckConfig(&conf); err != nil {
+		return conf, err
+	}
+
 	return conf, nil
 }
 
 // SaveConfig saves the given config to it's default location
 func SaveConfig(conf Config) error {
+	if err := CheckConfig(&conf); err != nil {
+		return err
+	}
+
 	path := fs.ConfigPath()
 
 	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
@@ -86,4 +106,12 @@ func SaveConfig(conf Config) error {
 	_, err = file.Write(bytes)
 
 	return err
+}
+
+// CheckConfig checks a config for consistency
+func CheckConfig(conf *Config) error {
+	if utf8.RuneCountInString(conf.EmptyCell) != 1 {
+		return fmt.Errorf("config entry EmptyCell must be a string of length 1. Got '%s'", conf.EmptyCell)
+	}
+	return nil
 }

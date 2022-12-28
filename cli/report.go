@@ -190,7 +190,7 @@ func dayReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 				active = rec.Project
 			}
 
-			str, err := renderDayTimeline(t, reporter, active, start, blocksPerHour)
+			str, err := renderDayTimeline(t, reporter, active, start, blocksPerHour, &[]rune(t.Config.EmptyCell)[0])
 			if err != nil {
 				out.Err("failed to generate report: %s", err)
 				return
@@ -256,7 +256,7 @@ func weekReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 				active = rec.Project
 			}
 
-			str, err := renderWeekTimeline(t, reporter, active, start, blocksPerHour)
+			str, err := renderWeekTimeline(t, reporter, active, start, blocksPerHour, &[]rune(t.Config.EmptyCell)[0])
 			if err != nil {
 				out.Err("failed to generate report: %s", err)
 				return
@@ -347,7 +347,7 @@ func renderTimeline(dates []time.Time, values []float64, unit float64) string {
 	return sb.String()
 }
 
-func renderDayTimeline(t *core.Track, reporter *core.Reporter, active string, startDate time.Time, blocksPerHour int) (string, error) {
+func renderDayTimeline(t *core.Track, reporter *core.Reporter, active string, startDate time.Time, blocksPerHour int, space *rune) (string, error) {
 	bph := blocksPerHour
 
 	tree, err := t.ToProjectTree(reporter.Projects)
@@ -408,7 +408,7 @@ func renderDayTimeline(t *core.Track, reporter *core.Reporter, active string, st
 	for pr, values := range timelines {
 		runes := make([]rune, bph*24, bph*24)
 		for i, v := range values {
-			runes[i] = util.FloatToBlock(v)
+			runes[i] = util.FloatToBlock(v, space)
 		}
 		timelineStr[pr] = toDayTimeline(runes, interval*bph)
 	}
@@ -462,7 +462,7 @@ func toDayAxis(blocksPerHour int, interval int) string {
 	return sb.String()
 }
 
-func renderWeekTimeline(t *core.Track, reporter *core.Reporter, active string, startDate time.Time, blocksPerHour int) (string, error) {
+func renderWeekTimeline(t *core.Track, reporter *core.Reporter, active string, startDate time.Time, blocksPerHour int, space *rune) (string, error) {
 	bph := blocksPerHour
 
 	projects := maps.Keys(reporter.Projects)
@@ -470,7 +470,10 @@ func renderWeekTimeline(t *core.Track, reporter *core.Reporter, active string, s
 	indices := make(map[string]int, len(projects))
 	symbols := make([]rune, len(projects)+1, len(projects)+1)
 	colors := make([]uint8, len(projects)+1, len(projects)+1)
-	symbols[0] = '·'
+	symbols[0] = '.'
+	if space != nil {
+		symbols[0] = *space
+	}
 	colors[0] = 0
 	for i, p := range projects {
 		indices[p] = i + 1
