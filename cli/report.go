@@ -404,6 +404,11 @@ func renderDayTimeline(t *core.Track, reporter *core.Reporter, active string, st
 		interval = 3
 	}
 
+	fmt.Printf("                 |%s : %s/cell\n",
+		startDate.Format(util.DateFormat),
+		time.Duration(1e9*(int(time.Hour)/(bph*1e9))).String(),
+	)
+
 	timelineStr := map[string]string{}
 	for pr, values := range timelines {
 		runes := make([]rune, bph*24, bph*24)
@@ -518,7 +523,11 @@ func renderWeekTimeline(t *core.Track, reporter *core.Reporter, active string, s
 	}
 
 	sb := strings.Builder{}
-	fmt.Fprintf(&sb, "      |Week %s - %s\n", startDate.Format(util.DateFormat), startDate.Add(6*24*time.Hour).Format(util.DateFormat))
+	fmt.Fprintf(&sb, "      |Week %s - %s : %s/cell\n",
+		startDate.Format(util.DateFormat),
+		startDate.Add(6*24*time.Hour).Format(util.DateFormat),
+		time.Duration(1e9*(int(time.Hour)/(bph*1e9))).String(),
+	)
 
 	fmt.Fprint(&sb, "      ")
 	for weekday := 0; weekday < 7; weekday++ {
