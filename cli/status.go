@@ -2,8 +2,11 @@ package cli
 
 import (
 	"fmt"
+	"strings"
 	"time"
+	"unicode/utf8"
 
+	"github.com/gookit/color"
 	"github.com/mlange-42/track/core"
 	"github.com/mlange-42/track/out"
 	"github.com/mlange-42/track/util"
@@ -63,11 +66,28 @@ Columns of the status are:
 				)
 			}
 
+			proj, err := t.LoadProjectByName(info.Project)
+			if err != nil {
+				out.Err("failed to show status: %s", err)
+				return
+			}
+
+			name := info.Project
+			fillLen := 16 - utf8.RuneCountInString(name)
+			pad := ""
+			if fillLen < 0 {
+				nameRunes := []rune(name)
+				name = string(nameRunes[:len(nameRunes)+fillLen-1]) + "."
+			} else {
+				pad = strings.Repeat(" ", fillLen)
+			}
+			name = color.C256(proj.Color, true).Sprint(name)
+
 			out.Print("+------------------+-------+-------+-------+-------+\n")
 			out.Print("|          project |  curr | total | break | today |\n")
 			out.Print(
-				"| %16s | %s | %s | %s | %s |\n",
-				info.Project,
+				"| %s%s | %s | %s | %s | %s |\n",
+				pad, name,
 				util.FormatDuration(info.CurrTime),
 				util.FormatDuration(info.CumTime),
 				util.FormatDuration(info.BreakTime),
