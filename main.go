@@ -9,10 +9,10 @@ import (
 	"github.com/mlange-42/track/out"
 )
 
-const version = "0.1.0"
+const version = "0.2.0-dev"
 
 func main() {
-	if !color.SupportColor() || !isTerminal() {
+	if !color.Support256Color() || !isTerminal() {
 		color.Disable()
 	}
 

@@ -9,6 +9,9 @@
 * Projects are structured in workspaces (#30)
 * Records can be started and stopped with explicit time or offset from now (#31)
 * Shows aggregated and self time of projects in report (#33)
+* Projects have a color (#35)
+* Week report with vertical day columns and projects denoted by color and initial letter: `track report week [DATE]` (#35)
+* Auto-scale day and week report width based on terminal width (#35)
 
 ### Bug fixes
 

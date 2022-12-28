@@ -33,13 +33,16 @@ const (
 var BlockRunes = [9]rune{'·', 9601, 9602, 9603, 9604, 9605, 9606, 9607, 9608}
 
 // FloatToBlock returns utf8 8th blocks for values between 0 and 1
-func FloatToBlock(value float64) rune {
+func FloatToBlock(value float64, space *rune) rune {
 	idx := int(value * float64(len(BlockRunes)))
 	if idx < 0 {
-		return BlockRunes[0]
+		idx = 0
 	}
 	if idx >= len(BlockRunes) {
 		return BlockRunes[len(BlockRunes)-1]
+	}
+	if idx == 0 && space != nil {
+		return *space
 	}
 	return BlockRunes[idx]
 }
