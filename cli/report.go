@@ -40,6 +40,7 @@ func reportCommand(t *core.Track) *cobra.Command {
 
 	report.PersistentFlags().StringSliceVarP(&options.projects, "projects", "p", []string{}, "Projects to include (comma-separated). All projects if not specified")
 	report.PersistentFlags().StringSliceVarP(&options.tags, "tags", "t", []string{}, "Tags to include (comma-separated). Includes records with any of the given tags")
+	report.PersistentFlags().BoolVarP(&options.includeArchived, "archived", "a", false, "Include records from archived projects")
 
 	report.AddCommand(timelineReportCommand(t, &options))
 	report.AddCommand(projectsReportCommand(t, &options))
@@ -59,7 +60,13 @@ func timelineReportCommand(t *core.Track, options *filterOptions) *cobra.Command
 		Run: func(cmd *cobra.Command, args []string) {
 			mode := args[0]
 
-			filters, err := createFilters(options, false)
+			projects, err := t.LoadAllProjects()
+			if err != nil {
+				out.Err("failed to generate report: %s", err)
+				return
+			}
+
+			filters, err := createFilters(options, projects, false)
 			if err != nil {
 				out.Err("failed to generate report: %s", err)
 				return
@@ -71,7 +78,7 @@ func timelineReportCommand(t *core.Track, options *filterOptions) *cobra.Command
 				return
 			}
 
-			reporter, err := core.NewReporter(t, options.projects, filters)
+			reporter, err := core.NewReporter(t, options.projects, filters, options.includeArchived)
 			if err != nil {
 				out.Err("failed to generate report: %s", err)
 				return
@@ -93,12 +100,18 @@ func projectsReportCommand(t *core.Track, options *filterOptions) *cobra.Command
 		Aliases: []string{"p"},
 		Args:    util.WrappedArgs(cobra.NoArgs),
 		Run: func(cmd *cobra.Command, args []string) {
-			filters, err := createFilters(options, false)
+			projects, err := t.LoadAllProjects()
 			if err != nil {
 				out.Err("failed to generate report: %s", err)
 				return
 			}
-			reporter, err := core.NewReporter(t, options.projects, filters)
+
+			filters, err := createFilters(options, projects, false)
+			if err != nil {
+				out.Err("failed to generate report: %s", err)
+				return
+			}
+			reporter, err := core.NewReporter(t, options.projects, filters, options.includeArchived)
 			if err != nil {
 				out.Err("failed to generate report: %s", err)
 				return
@@ -170,17 +183,23 @@ func dayReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 				}
 			}
 
+			projects, err := t.LoadAllProjects()
+			if err != nil {
+				out.Err("failed to generate report: %s", err)
+				return
+			}
+
 			filterStart := start.Add(-time.Hour * 24)
 			filterEnd := start.Add(time.Hour * 24)
 
-			filters, err := createFilters(options, false)
+			filters, err := createFilters(options, projects, false)
 			if err != nil {
 				out.Err("failed to generate report: %s", err)
 				return
 			}
 			filters = append(filters, core.FilterByTime(filterStart, filterEnd))
 
-			reporter, err := core.NewReporter(t, options.projects, filters)
+			reporter, err := core.NewReporter(t, options.projects, filters, options.includeArchived)
 			if err != nil {
 				out.Err("failed to generate report: %s", err)
 				return
@@ -236,17 +255,23 @@ func weekReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 				}
 			}
 
+			projects, err := t.LoadAllProjects()
+			if err != nil {
+				out.Err("failed to generate report: %s", err)
+				return
+			}
+
 			filterStart := start.Add(-time.Hour * 24)
 			filterEnd := start.Add(time.Hour * 24 * 7)
 
-			filters, err := createFilters(options, false)
+			filters, err := createFilters(options, projects, false)
 			if err != nil {
 				out.Err("failed to generate report: %s", err)
 				return
 			}
 			filters = append(filters, core.FilterByTime(filterStart, filterEnd))
 
-			reporter, err := core.NewReporter(t, options.projects, filters)
+			reporter, err := core.NewReporter(t, options.projects, filters, options.includeArchived)
 			if err != nil {
 				out.Err("failed to generate report: %s", err)
 				return

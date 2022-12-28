@@ -36,6 +36,7 @@ Currently, only export of (potentially filtered) records to CSV is supported.`,
 	export.PersistentFlags().StringSliceVarP(&options.tags, "tags", "t", []string{}, "Tags to include (comma-separated). Includes records with any of the given tags")
 	export.PersistentFlags().StringVarP(&options.start, "start", "s", "", "Start date (start at 00:00)")
 	export.PersistentFlags().StringVarP(&options.end, "end", "e", "", "End date (inclusive: end at 24:00)")
+	export.PersistentFlags().BoolVarP(&options.includeArchived, "archived", "a", false, "Include records from archived projects")
 
 	export.AddCommand(exportRecordsCommand(t, &options))
 
@@ -53,9 +54,15 @@ Currently, only export to CSV is supported.`,
 		Aliases: []string{"r"},
 		Args:    util.WrappedArgs(cobra.NoArgs),
 		Run: func(cmd *cobra.Command, args []string) {
-			filters, err := createFilters(options, true)
+			projects, err := t.LoadAllProjects()
 			if err != nil {
-				out.Err("failed to generate report: %s", err)
+				out.Err("failed to export records: %s", err)
+				return
+			}
+
+			filters, err := createFilters(options, projects, true)
+			if err != nil {
+				out.Err("failed to export records: %s", err)
 				return
 			}
 
@@ -71,7 +78,7 @@ Currently, only export to CSV is supported.`,
 
 			for res := range results {
 				if res.Err != nil {
-					out.Err("failed to generate report: %s", res.Err)
+					out.Err("failed to export records: %s", res.Err)
 					return
 				}
 				writer.Write(io, &res.Record)

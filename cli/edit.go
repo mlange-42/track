@@ -56,7 +56,7 @@ func editRecordCommand(t *core.Track) *cobra.Command {
 		Short: "Edit a record",
 		Long: `Edit a record
 
-Opens the record as a temporary YAML file for editing in a text editor.
+Opens the record as a temporary YAML file for editing.
 See file .track/config.yml to configure the editor to be used.`,
 		Aliases: []string{"r"},
 		Args:    util.WrappedArgs(cobra.ExactArgs(2)),
@@ -84,37 +84,72 @@ See file .track/config.yml to configure the editor to be used.`,
 }
 
 func editProjectCommand(t *core.Track) *cobra.Command {
+	var archive bool
+
 	editProject := &cobra.Command{
 		Use:   "project PROJECT",
 		Short: "Edit a project",
 		Long: `Edit a project
 
-Opens the project as a temporary YAML file for editing in a text editor.
+Opens the project as a temporary YAML file for editing if no flags are given.
 See file .track/config.yml to configure the editor to be used.`,
 		Aliases: []string{"p"},
 		Args:    util.WrappedArgs(cobra.ExactArgs(1)),
 		Run: func(cmd *cobra.Command, args []string) {
 			name := args[0]
-			err := editProject(t, name)
+			project, err := t.LoadProjectByName(name)
 			if err != nil {
-				if err == ErrUserAbort {
-					out.Warn("failed to edit project: %s", err)
-					return
-				}
 				out.Err("failed to edit project: %s", err)
 				return
+			}
+
+			changed := false
+			if cmd.Flags().Changed("archive") {
+				if project.Archived == archive {
+					out.Warn("New value for 'archive' equals old value\n")
+				} else {
+					project.Archived = archive
+					if archive {
+						out.Success("Archived project '%s'\n", project.Name)
+					} else {
+						out.Success("Un-archived project '%s'\n", project.Name)
+					}
+				}
+				changed = true
+			}
+
+			if changed {
+				if err := t.SaveProject(project, true); err != nil {
+					out.Err("failed to edit project: %s", err)
+					return
+				}
+			} else {
+				err = editProject(t, project)
+				if err != nil {
+					if err == ErrUserAbort {
+						out.Warn("failed to edit project: %s", err)
+						return
+					}
+					out.Err("failed to edit project: %s", err)
+					return
+				}
 			}
 			out.Success("Saved project '%s'", name)
 		},
 	}
+	editProject.Flags().BoolVarP(&archive, "archive", "a", false, "Archive or un-archive a project. Use like '-a=false'")
 
 	return editProject
 }
 
 func editConfigCommand(t *core.Track) *cobra.Command {
 	editProject := &cobra.Command{
-		Use:     "config",
-		Short:   "Edit track's config",
+		Use:   "config",
+		Short: "Edit track's config",
+		Long: `Edit track's config
+
+Opens the config as a temporary YAML file for editing.
+See file .track/config.yml to configure the editor to be used.`,
 		Aliases: []string{"c"},
 		Args:    util.WrappedArgs(cobra.NoArgs),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -164,27 +199,22 @@ func editRecord(t *core.Track, tm time.Time) error {
 		})
 }
 
-func editProject(t *core.Track, name string) error {
-	project, err := t.LoadProjectByName(name)
-	if err != nil {
-		return err
-	}
-
+func editProject(t *core.Track, project core.Project) error {
 	return edit(t, &project,
 		fmt.Sprintf("# Project %s\n\n", project.Name),
 		func(b []byte) error {
-			if err := yaml.Unmarshal(b, &project); err != nil {
+			var newProject core.Project
+			if err := yaml.Unmarshal(b, &newProject); err != nil {
 				return err
 			}
 
-			if project.Name != name {
+			if newProject.Name != project.Name {
 				return fmt.Errorf("can't change project name")
 			}
-			if err := t.CheckParents(project); err != nil {
+			if err := t.CheckParents(newProject); err != nil {
 				return err
 			}
-
-			if err = t.SaveProject(project, true); err != nil {
+			if err := t.SaveProject(newProject, true); err != nil {
 				return err
 			}
 			return nil

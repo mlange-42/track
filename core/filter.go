@@ -45,6 +45,13 @@ func FilterByTime(start, end time.Time) FilterFunction {
 	}
 }
 
+// FilterByArchived returns a function for filtering by archived/not archived
+func FilterByArchived(archived bool, projects map[string]Project) FilterFunction {
+	return func(r *Record) bool {
+		return projects[r.Project].Archived == archived
+	}
+}
+
 // FilterByTagsAny returns a function for filtering by tags
 func FilterByTagsAny(tags []string) FilterFunction {
 	tg := make(map[string]bool)

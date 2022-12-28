@@ -32,6 +32,8 @@ func listCommand(t *core.Track) *cobra.Command {
 }
 
 func listProjectsCommand(t *core.Track) *cobra.Command {
+	var includeArchived bool
+
 	listProjects := &cobra.Command{
 		Use:     "projects",
 		Short:   "List all projects",
@@ -42,6 +44,15 @@ func listProjectsCommand(t *core.Track) *cobra.Command {
 			if err != nil {
 				out.Err("failed to load projects: %s", err)
 				return
+			}
+			if !includeArchived {
+				pr := make(map[string]core.Project)
+				for n, p := range projects {
+					if !p.Archived {
+						pr[n] = p
+					}
+				}
+				projects = pr
 			}
 
 			var active string
@@ -66,6 +77,7 @@ func listProjectsCommand(t *core.Track) *cobra.Command {
 			fmt.Print(formatter.FormatTree(tree))
 		},
 	}
+	listProjects.Flags().BoolVarP(&includeArchived, "archived", "a", false, "Include records from archived projects")
 
 	return listProjects
 }
@@ -100,6 +112,8 @@ func listWorkspacesCommand(t *core.Track) *cobra.Command {
 }
 
 func listRecordsCommand(t *core.Track) *cobra.Command {
+	var includeArchived bool
+
 	listProjects := &cobra.Command{
 		Use:   "records [DATE]",
 		Short: "List all records for a date",
@@ -132,11 +146,19 @@ or a word like "yesterday" or  "today" (the default).`,
 				return
 			}
 
+			projects, err := t.LoadAllProjects()
+			if err != nil {
+				out.Err("failed to export records: %s", err)
+				return
+			}
 			for _, record := range records {
-				printRecord(record)
+				if includeArchived || !projects[record.Project].Archived {
+					printRecord(record)
+				}
 			}
 		},
 	}
+	listProjects.Flags().BoolVarP(&includeArchived, "archived", "a", false, "Include records from archived projects")
 
 	return listProjects
 }
