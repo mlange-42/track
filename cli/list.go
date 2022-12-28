@@ -2,7 +2,9 @@ package cli
 
 import (
 	"fmt"
+	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/gookit/color"
 	"github.com/mlange-42/track/core"
@@ -153,8 +155,9 @@ or a word like "yesterday" or  "today" (the default).`,
 				return
 			}
 			for _, record := range records {
-				if includeArchived || !projects[record.Project].Archived {
-					printRecord(record)
+				project := projects[record.Project]
+				if includeArchived || !project.Archived {
+					printRecord(record, project)
 				}
 			}
 		},
@@ -178,7 +181,7 @@ func listColorsCommand(t *core.Track) *cobra.Command {
 	return listColors
 }
 
-func printRecord(r core.Record) {
+func printRecord(r core.Record, project core.Project) {
 	date := r.Start.Format(util.DateFormat)
 	start := r.Start.Format(util.TimeFormat)
 
@@ -190,8 +193,20 @@ func printRecord(r core.Record) {
 	}
 	dur := r.Duration()
 
+	fillLen := 16 - utf8.RuneCountInString(r.Project)
+	name := r.Project
+	if fillLen < 0 {
+		nameRunes := []rune(name)
+		name = string(nameRunes[:len(nameRunes)+fillLen-1]) + "."
+	}
+
+	fill := ""
+	if fillLen > 0 {
+		fill = strings.Repeat(" ", fillLen)
+	}
 	out.Print(
-		"%-15s %s %s - %s (%s)  %s\n", r.Project,
+		"%s%s %s %s %s - %s (%s)  %s\n", name, fill,
+		color.C256(project.Color, true).Sprint("  "),
 		date, start, end, util.FormatDuration(dur),
 		r.Note,
 	)
