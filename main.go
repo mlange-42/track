@@ -18,12 +18,12 @@ func main() {
 
 	track, err := core.NewTrack()
 	if err != nil {
-		out.Err("%s", err.Error())
+		out.Err("%s\n", err.Error())
 		os.Exit(1)
 	}
 
 	if err := cli.RootCommand(&track, version).Execute(); err != nil {
-		out.Err("%s", err.Error())
+		out.Err("%s\n", err.Error())
 		os.Exit(1)
 	}
 }
