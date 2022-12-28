@@ -40,27 +40,36 @@ func createFilters(options *filterOptions, projects map[string]core.Project, fil
 	if len(options.tags) > 0 {
 		filters = append(filters, core.FilterByTagsAny(options.tags))
 	}
-	var err error
-	var startTime time.Time
-	var endTime time.Time
-	if len(options.start) > 0 {
-		startTime, err = util.ParseDate(options.start)
-		if err != nil {
-			return nil, err
-		}
-	}
-	if len(options.end) > 0 {
-		endTime, err = util.ParseDate(options.end)
-		if err != nil {
-			return nil, err
-		}
-		endTime = endTime.Add(time.Hour * 24)
+
+	startTime, endTime, err := parseStartEnd(options)
+	if err != nil {
+		return nil, err
 	}
 	if !(startTime.IsZero() && endTime.IsZero()) {
 		filters = append(filters, core.FilterByTime(startTime, endTime))
 	}
 
 	return filters, nil
+}
+
+func parseStartEnd(options *filterOptions) (time.Time, time.Time, error) {
+	var err error
+	var startTime time.Time
+	var endTime time.Time
+	if len(options.start) > 0 {
+		startTime, err = util.ParseDate(options.start)
+		if err != nil {
+			return startTime, endTime, err
+		}
+	}
+	if len(options.end) > 0 {
+		endTime, err = util.ParseDate(options.end)
+		if err != nil {
+			return startTime, endTime, err
+		}
+		endTime = endTime.Add(time.Hour * 24)
+	}
+	return startTime, endTime, nil
 }
 
 func confirmDeleteRecord(rec core.Record) bool {

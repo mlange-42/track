@@ -78,7 +78,15 @@ func timelineReportCommand(t *core.Track, options *filterOptions) *cobra.Command
 				return
 			}
 
-			reporter, err := core.NewReporter(t, options.projects, filters, options.includeArchived)
+			startTime, endTime, err := parseStartEnd(options)
+			if err != nil {
+				out.Err("failed to generate report: %s", err)
+				return
+			}
+			reporter, err := core.NewReporter(
+				t, options.projects, filters,
+				options.includeArchived, startTime, endTime,
+			)
 			if err != nil {
 				out.Err("failed to generate report: %s", err)
 				return
@@ -111,7 +119,16 @@ func projectsReportCommand(t *core.Track, options *filterOptions) *cobra.Command
 				out.Err("failed to generate report: %s", err)
 				return
 			}
-			reporter, err := core.NewReporter(t, options.projects, filters, options.includeArchived)
+
+			startTime, endTime, err := parseStartEnd(options)
+			if err != nil {
+				out.Err("failed to generate report: %s", err)
+				return
+			}
+			reporter, err := core.NewReporter(
+				t, options.projects, filters,
+				options.includeArchived, startTime, endTime,
+			)
 			if err != nil {
 				out.Err("failed to generate report: %s", err)
 				return
@@ -207,7 +224,7 @@ func dayReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 			}
 			filters = append(filters, core.FilterByTime(filterStart, filterEnd))
 
-			reporter, err := core.NewReporter(t, options.projects, filters, options.includeArchived)
+			reporter, err := core.NewReporter(t, options.projects, filters, options.includeArchived, start, filterEnd)
 			if err != nil {
 				out.Err("failed to generate report: %s", err)
 				return
@@ -279,7 +296,7 @@ func weekReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 			}
 			filters = append(filters, core.FilterByTime(filterStart, filterEnd))
 
-			reporter, err := core.NewReporter(t, options.projects, filters, options.includeArchived)
+			reporter, err := core.NewReporter(t, options.projects, filters, options.includeArchived, start, filterEnd)
 			if err != nil {
 				out.Err("failed to generate report: %s", err)
 				return

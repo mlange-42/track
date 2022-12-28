@@ -136,7 +136,7 @@ func getStatus(t *core.Track, proj string, maxBreak time.Duration) (statusInfo, 
 		core.FilterByTime(filterStart, time.Time{}),
 	}
 
-	reporter, err := core.NewReporter(t, []string{project}, filters, false)
+	reporter, err := core.NewReporter(t, []string{project}, filters, false, start, time.Time{})
 	if err != nil {
 		return statusInfo{}, err
 	}

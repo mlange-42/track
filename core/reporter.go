@@ -31,7 +31,12 @@ type Reporter struct {
 }
 
 // NewReporter creates a new Reporter from filters
-func NewReporter(t *Track, proj []string, filters FilterFunctions, includeArchived bool) (*Reporter, error) {
+func NewReporter(
+	t *Track, proj []string,
+	filters FilterFunctions, includeArchived bool,
+	start, end time.Time,
+) (*Reporter, error) {
+
 	allProjects, err := t.LoadAllProjects()
 	if err != nil {
 		return nil, err
@@ -89,9 +94,36 @@ func NewReporter(t *Track, proj []string, filters FilterFunctions, includeArchiv
 		totals[p.Name] = time.Second * 0.0
 	}
 
+	now := time.Now()
 	tRange := TimeRange{}
 	for _, rec := range records {
-		totals[rec.Project] = totals[rec.Project] + rec.Duration()
+		rStart := rec.Start
+		rEnd := rec.End
+		if rEnd.IsZero() {
+			rEnd = now
+		}
+		if !start.IsZero() {
+			if rEnd.Before(start) {
+				continue
+			}
+			if rStart.Before(start) {
+				rStart = start
+			}
+		}
+		if !end.IsZero() {
+			if rStart.After(end) {
+				continue
+			}
+			if rEnd.After(end) {
+				rEnd = end
+			}
+		}
+
+		dur := rEnd.Sub(rStart)
+		if dur > 0 {
+			totals[rec.Project] = totals[rec.Project] + dur
+		}
+
 		if tRange.Start.IsZero() || rec.Start.Before(tRange.Start) {
 			tRange.Start = rec.Start
 		}

@@ -4,6 +4,12 @@
 
 None
 
+## [v0.2.1]
+
+### Bug fixes
+
+* Limit time aggregation in reports to exact requested time range (#45)
+
 ## [v0.2.0]
 
 ### Features
