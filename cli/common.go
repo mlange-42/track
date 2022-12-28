@@ -81,6 +81,22 @@ func confirmDeleteRecord(rec core.Record) bool {
 	return true
 }
 
+func confirmDeleteProject(project core.Project) bool {
+	question := fmt.Sprintf(
+		"Really delete project '%s' and all associated records? (yes!/n): ",
+		project.Name,
+	)
+
+	answer, err := out.Scan(question)
+	if err != nil {
+		return false
+	}
+	if answer != "yes!" {
+		return false
+	}
+	return true
+}
+
 func getStopTime(open *core.Record, ago time.Duration, at string) (time.Time, error) {
 	now := time.Now()
 	stopTime := now

@@ -131,7 +131,34 @@ func (t *Track) LoadAllProjects() (map[string]Project, error) {
 	return projects, nil
 }
 
-// ToProjectTree creates a tree of thegiven projects
+// DeleteProject deletes a project and all associated records
+func (t *Track) DeleteProject(project Project) (int, error) {
+	// TODO: make a backup
+	filters := []func(r *Record) bool{
+		FilterByProjects([]string{project.Name}),
+	}
+	fn, results := t.AllRecordsFiltered(filters)
+
+	go fn()
+
+	counter := 0
+	for res := range results {
+		if res.Err != nil {
+			return counter, res.Err
+		}
+		t.DeleteRecord(res.Record)
+		counter++
+	}
+
+	err := os.Remove(t.ProjectPath(project.Name))
+	if err != nil {
+		return counter, err
+	}
+
+	return counter, nil
+}
+
+// ToProjectTree creates a tree of the given projects
 func (t *Track) ToProjectTree(projects map[string]Project) (*ProjectTree, error) {
 	pTree := NewTree(
 		Project{

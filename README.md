@@ -128,6 +128,7 @@ track
 │ ├─project PROJECT
 │ └─workspace WORKSPACE
 ├─delete
+│ ├─project PROJECT
 │ └─record DATE TIME
 ├─edit
 │ ├─config
