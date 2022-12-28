@@ -30,3 +30,4 @@
 
 * Simplify CLI help usage strings (#26)
 * Date is optional in `track list records` (#27)
+* Records are stored in hierarchical folder structure like `2022/12/31` instead of folders like `2022-12-31` (#44)

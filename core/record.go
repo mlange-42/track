@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -101,7 +102,9 @@ func (t *Track) RecordPath(tm time.Time) string {
 func (t *Track) RecordDir(tm time.Time) string {
 	return filepath.Join(
 		t.RecordsDir(),
-		tm.Format(util.FileDateFormat),
+		fmt.Sprintf("%04d", tm.Year()),
+		fmt.Sprintf("%02d", int(tm.Month())),
+		fmt.Sprintf("%02d", tm.Day()),
 	)
 }
 
@@ -145,7 +148,36 @@ func (t *Track) DeleteRecord(record Record) error {
 	if !fs.FileExists(path) {
 		return fmt.Errorf("record does not exist")
 	}
-	return os.Remove(path)
+	err := os.Remove(path)
+	if err != nil {
+		return err
+	}
+	dayDir := filepath.Dir(path)
+	empty, err := fs.DirIsEmpty(dayDir)
+	if err != nil {
+		return err
+	}
+	if empty {
+		os.Remove(dayDir)
+		monthDir := filepath.Dir(dayDir)
+		empty, err := fs.DirIsEmpty(monthDir)
+		if err != nil {
+			return err
+		}
+		if empty {
+			os.Remove(monthDir)
+			yearDir := filepath.Dir(monthDir)
+			empty, err := fs.DirIsEmpty(yearDir)
+			if err != nil {
+				return err
+			}
+			if empty {
+				os.Remove(yearDir)
+
+			}
+		}
+	}
+	return nil
 }
 
 // LoadRecordByTime loads a record
@@ -179,22 +211,56 @@ func (t *Track) LoadAllRecords() ([]Record, error) {
 func (t *Track) LoadAllRecordsFiltered(filters FilterFunctions) ([]Record, error) {
 	path := t.RecordsDir()
 
-	dirs, err := ioutil.ReadDir(path)
+	var records []Record
+
+	yearDirs, err := ioutil.ReadDir(path)
 	if err != nil {
 		return nil, err
 	}
 
-	var records []Record
-
-	for _, dir := range dirs {
-		if !dir.IsDir() {
+	for _, yearDir := range yearDirs {
+		if !yearDir.IsDir() {
 			continue
 		}
-		recs, err := t.LoadDateRecordsFiltered(dir.Name(), filters)
+		year, err := strconv.Atoi(yearDir.Name())
 		if err != nil {
 			return nil, err
 		}
-		records = append(records, recs...)
+		monthDirs, err := ioutil.ReadDir(filepath.Join(path, yearDir.Name()))
+		if err != nil {
+			return nil, err
+		}
+
+		for _, monthDir := range monthDirs {
+			if !monthDir.IsDir() {
+				continue
+			}
+			month, err := strconv.Atoi(monthDir.Name())
+			if err != nil {
+				return nil, err
+			}
+
+			dayDirs, err := ioutil.ReadDir(filepath.Join(path, yearDir.Name(), monthDir.Name()))
+			if err != nil {
+				return nil, err
+			}
+
+			for _, dayDir := range dayDirs {
+				if !dayDir.IsDir() {
+					continue
+				}
+				day, err := strconv.Atoi(dayDir.Name())
+				if err != nil {
+					return nil, err
+				}
+
+				recs, err := t.LoadDateRecordsFiltered(util.Date(year, time.Month(month), day), filters)
+				if err != nil {
+					return nil, err
+				}
+				records = append(records, recs...)
+			}
+		}
 	}
 
 	return records, nil
@@ -213,85 +279,83 @@ func (t *Track) AllRecordsFiltered(filters FilterFunctions) (func(), chan Filter
 	return func() {
 		path := t.RecordsDir()
 
-		dirs, err := ioutil.ReadDir(path)
+		yearDirs, err := ioutil.ReadDir(path)
 		if err != nil {
 			results <- FilterResult{Record{}, err}
 			return
 		}
 
-		for _, dir := range dirs {
-			if !dir.IsDir() {
+		for _, yearDir := range yearDirs {
+			if !yearDir.IsDir() {
 				continue
 			}
-			recs, err := t.LoadDateRecordsFiltered(dir.Name(), filters)
+			year, err := strconv.Atoi(yearDir.Name())
 			if err != nil {
 				results <- FilterResult{Record{}, err}
 				return
 			}
-			for _, rec := range recs {
-				results <- FilterResult{rec, nil}
+			monthDirs, err := ioutil.ReadDir(filepath.Join(path, yearDir.Name()))
+			if err != nil {
+				results <- FilterResult{Record{}, err}
+				return
+			}
+
+			for _, monthDir := range monthDirs {
+				if !monthDir.IsDir() {
+					continue
+				}
+				month, err := strconv.Atoi(monthDir.Name())
+				if err != nil {
+					results <- FilterResult{Record{}, err}
+					return
+				}
+
+				dayDirs, err := ioutil.ReadDir(filepath.Join(path, yearDir.Name(), monthDir.Name()))
+				if err != nil {
+					results <- FilterResult{Record{}, err}
+					return
+				}
+
+				for _, dayDir := range dayDirs {
+					if !dayDir.IsDir() {
+						continue
+					}
+					day, err := strconv.Atoi(dayDir.Name())
+					if err != nil {
+						results <- FilterResult{Record{}, err}
+						return
+					}
+
+					recs, err := t.LoadDateRecordsFiltered(util.Date(year, time.Month(month), day), filters)
+					if err != nil {
+						results <- FilterResult{Record{}, err}
+						return
+					}
+					for _, rec := range recs {
+						results <- FilterResult{rec, nil}
+					}
+				}
 			}
 		}
 		close(results)
 	}, results
 }
 
-// AllRecordsFiltered is an async version of LoadAllRecordsFiltered
-func (t *Track) allRecordsFiltered(
-	filters FilterFunctions,
-	results chan struct {
-		Record
-		error
-	}) {
-	path := t.RecordsDir()
-
-	dirs, err := ioutil.ReadDir(path)
-	if err != nil {
-		results <- struct {
-			Record
-			error
-		}{Record{}, err}
-		return
-	}
-
-	for _, dir := range dirs {
-		if !dir.IsDir() {
-			continue
-		}
-		recs, err := t.LoadDateRecordsFiltered(dir.Name(), filters)
-		if err != nil {
-			results <- struct {
-				Record
-				error
-			}{Record{}, err}
-			return
-		}
-		for _, rec := range recs {
-			results <- struct {
-				Record
-				error
-			}{rec, nil}
-		}
-	}
-	close(results)
-}
-
 // LoadDateRecords loads all records for the given date string/directory
-func (t *Track) LoadDateRecords(dir string) ([]Record, error) {
-	return t.LoadDateRecordsFiltered(dir, []func(*Record) bool{})
+func (t *Track) LoadDateRecords(date time.Time) ([]Record, error) {
+	return t.LoadDateRecordsFiltered(date, []func(*Record) bool{})
 }
 
 // LoadDateRecordsFiltered loads all records for the given date string/directory
-func (t *Track) LoadDateRecordsFiltered(dir string, filters FilterFunctions) ([]Record, error) {
-	path := t.RecordsDir()
-	subPath := filepath.Join(path, dir)
+func (t *Track) LoadDateRecordsFiltered(date time.Time, filters FilterFunctions) ([]Record, error) {
+	subPath := t.RecordDir(date)
 
 	info, err := os.Stat(subPath)
 	if err != nil {
 		return nil, ErrNoRecords
 	}
 	if !info.IsDir() {
-		return nil, fmt.Errorf("'%s' is not a directory", dir)
+		return nil, fmt.Errorf("'%s' is not a directory", info.Name())
 	}
 
 	var records []Record
@@ -321,11 +385,19 @@ func (t *Track) LoadDateRecordsFiltered(dir string, filters FilterFunctions) ([]
 // LatestRecord loads the latest record
 func (t *Track) LatestRecord() (Record, error) {
 	records := t.RecordsDir()
-	records, err := fs.FindLatests(records, true)
+	year, err := fs.FindLatests(records, true)
 	if err != nil {
 		return Record{}, err
 	}
-	record, err := fs.FindLatests(records, false)
+	month, err := fs.FindLatests(year, true)
+	if err != nil {
+		return Record{}, err
+	}
+	day, err := fs.FindLatests(month, true)
+	if err != nil {
+		return Record{}, err
+	}
+	record, err := fs.FindLatests(day, false)
 	if err != nil {
 		return Record{}, err
 	}

@@ -2,6 +2,7 @@ package fs
 
 import (
 	"errors"
+	"fmt"
 	gofs "io/fs"
 	"io/ioutil"
 	"os"
@@ -68,6 +69,18 @@ func DirExists(path string) bool {
 		return false
 	}
 	return info.IsDir()
+}
+
+// DirIsEmpty checks if a directory is empty
+func DirIsEmpty(path string) (bool, error) {
+	if !DirExists(path) {
+		return false, fmt.Errorf("is not a directory: %s", path)
+	}
+	content, err := ioutil.ReadDir(path)
+	if err != nil {
+		return false, err
+	}
+	return len(content) == 0, nil
 }
 
 // CreateDir creates directories recursively

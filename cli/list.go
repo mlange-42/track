@@ -151,11 +151,10 @@ or a word like "yesterday" or  "today" (the default).`,
 				}
 			}
 
-			dir := date.Format(util.FileDateFormat)
-			records, err := t.LoadDateRecords(dir)
+			records, err := t.LoadDateRecords(date)
 			if err != nil {
 				if err == core.ErrNoRecords {
-					out.Err("no records for date %s", dir)
+					out.Err("no records for date %s", date.Format(util.DateFormat))
 					return
 				}
 				out.Err("failed to load records: %s", err)
