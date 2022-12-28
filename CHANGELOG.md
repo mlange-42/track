@@ -15,6 +15,7 @@
 * Auto-scale day and week report width based on terminal width (#35)
 * Projects can be archived (and un-archived) to exclude them from reports etc. (#39)
 * Project colors and symbols are shown in reports and lists (#40)
+* Weekly sum of project time shown in week report (#41)
 
 ### Bug fixes
 

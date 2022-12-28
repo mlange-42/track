@@ -607,16 +607,30 @@ func renderWeekTimeline(t *core.Track, reporter *core.Reporter, active string, s
 
 	totalWidth := 7 + 7*(bph+1)
 	lineWidth := 0
+
+	line1 := ""
+	line2 := ""
 	for i, p := range projects {
 		col := colors[i+1]
 		width := utf8.RuneCountInString(p)
+		if width < 3 {
+			width = 3
+		}
 		if lineWidth > 0 && lineWidth+width+4 > totalWidth {
 			lineWidth = 0
-			fmt.Fprintln(&sb)
+			fmt.Fprintln(&sb, line1)
+			fmt.Fprintln(&sb, line2)
+			line1 = ""
+			line2 = ""
 		}
 
-		fmt.Fprint(&sb, color.C256(col, true).Sprintf(" %c:%s ", symbols[indices[p]], p))
+		line1 += color.C256(col, true).Sprintf(" %c:%3s ", symbols[indices[p]], p)
+		line2 += color.C256(col, true).Sprintf(" %*s ", width+2, util.FormatDuration(reporter.TotalTime[p]))
 		lineWidth += width + 4
+	}
+	if len(line1) > 0 {
+		fmt.Fprintln(&sb, line1)
+		fmt.Fprintln(&sb, line2)
 	}
 
 	return sb.String(), nil
