@@ -27,8 +27,8 @@ $ track stop
 Show today's records:
 $ track list records today
 
-Show a daily timeline:
-$ track report timeline days
+Show the records of the current week:
+$ track report week
 
 Subcommands
 -----------`,
