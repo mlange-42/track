@@ -136,13 +136,15 @@ track
 ├─export
 │ └─records
 ├─list
+│ ├─colors
 │ ├─projects
 │ ├─records [DATE]
 │ └─workspaces
 ├─report
 │ ├─day [DATE]
 │ ├─projects
-│ └─timeline (days|weeks|months)
+│ ├─timeline (days|weeks|months)
+│ └─week [DATE]
 ├─resume [NOTE...]
 ├─start PROJECT [NOTE...]
 ├─status [PROJECT]

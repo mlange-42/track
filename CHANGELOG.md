@@ -10,8 +10,10 @@
 * Records can be started and stopped with explicit time or offset from now (#31)
 * Shows aggregated and self time of projects in report (#33)
 * Projects have a color (#35)
+* List available colors with `track list colors` (#35)
 * Week report with vertical day columns and projects denoted by color and initial letter: `track report week [DATE]` (#35)
 * Auto-scale day and week report width based on terminal width (#35)
+* Projects can be archived (and un-archived) to exclude them from reports etc. (#39)
 
 ### Bug fixes
 
@@ -19,6 +21,7 @@
 * Use local time zone when parsing dates and times from string (#24)
 * ~~Disable flawed time aggregation over parent projects (#24)~~ (#33)
 * Correct time aggregation from child projects (#33)
+* Check parents to prevent circular relations (#38)
 
 ### Other
 
