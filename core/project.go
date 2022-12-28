@@ -160,3 +160,28 @@ func (t *Track) ToProjectTree(projects map[string]Project) (*ProjectTree, error)
 
 	return pTree, nil
 }
+
+// CheckParents tests if the parent project is valid and that there are no circular relations
+func (t *Track) CheckParents(p Project) error {
+	return t.checkParentsRecursive(p, p)
+}
+
+func (t *Track) checkParentsRecursive(p Project, start Project) error {
+	if p.Parent == "" {
+		return nil
+	}
+	if p.Parent == p.Name {
+		return fmt.Errorf("can't make project '%s' a parent of itself", p.Parent)
+	}
+	if !t.ProjectExists(p.Parent) {
+		return fmt.Errorf("project '%s' does not exist", p.Parent)
+	}
+	parent, err := t.LoadProjectByName(p.Parent)
+	if err != nil {
+		return err
+	}
+	if parent.Name == start.Name {
+		return fmt.Errorf("circular parent relationship")
+	}
+	return t.checkParentsRecursive(parent, start)
+}

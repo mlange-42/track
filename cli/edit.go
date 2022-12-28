@@ -180,6 +180,9 @@ func editProject(t *core.Track, name string) error {
 			if project.Name != name {
 				return fmt.Errorf("can't change project name")
 			}
+			if err := t.CheckParents(project); err != nil {
+				return err
+			}
 
 			if err = t.SaveProject(project, true); err != nil {
 				return err
