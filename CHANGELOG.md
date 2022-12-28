@@ -2,6 +2,10 @@
 
 ## [unpublished]
 
+None
+
+## [v0.2.0]
+
 ### Features
 
 * Day report with horizontal timelines over projects as rows: `track report day [DATE]` (#25)
