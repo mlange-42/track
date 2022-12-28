@@ -557,6 +557,8 @@ func renderWeekTimeline(t *core.Track, reporter *core.Reporter, active string, s
 		}
 	}
 
+	nowIdx := int(now.Sub(startDate).Hours() * float64(bph))
+
 	timeStr := make([]rune, len(timeline), len(timeline))
 	for i, idx := range timeline {
 		timeStr[i] = symbols[idx]
@@ -595,6 +597,9 @@ func renderWeekTimeline(t *core.Track, reporter *core.Reporter, active string, s
 				pr := timeline[i]
 				sym := symbols[pr]
 				col := colors[pr]
+				if i == nowIdx {
+					sym = '@'
+				}
 				if col == 0 {
 					fmt.Fprintf(&sb, "%c", sym)
 				} else {
