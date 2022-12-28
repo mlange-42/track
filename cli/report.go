@@ -129,15 +129,23 @@ func projectsReportCommand(t *core.Track, options *filterOptions) *cobra.Command
 			formatter := util.NewTreeFormatter(
 				func(t *core.ProjectNode, indent int) string {
 					fillLen := 16 - (indent + utf8.RuneCountInString(t.Value.Name))
+					name := t.Value.Name
+					if fillLen < 0 {
+						nameRunes := []rune(name)
+						name = string(nameRunes[:len(nameRunes)+fillLen-1]) + "."
+					}
 					var str string
 					if t.Value.Name == active {
-						str = color.BgBlue.Sprintf("%s", t.Value.Name)
+						str = color.BgBlue.Sprintf("%s", name)
 					} else {
-						str = fmt.Sprintf("%s", t.Value.Name)
+						str = fmt.Sprintf("%s", name)
 					}
 					if fillLen > 0 {
 						str += strings.Repeat(" ", fillLen)
 					}
+					str += " "
+					str += color.C256(t.Value.Color, true).Sprint("  ")
+
 					return fmt.Sprintf(
 						"%s %s (%s)", str,
 						util.FormatDuration(reporter.TotalTime[t.Value.Name]),
@@ -179,7 +187,7 @@ func dayReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 			}
 			if !cmd.Flags().Changed("width") {
 				if w, _, err := util.TerminalSize(); err == nil && w > 0 {
-					blocksPerHour = (w - 26) / 24
+					blocksPerHour = (w - 28) / 24
 				}
 			}
 
@@ -429,7 +437,7 @@ func renderDayTimeline(t *core.Track, reporter *core.Reporter, active string, st
 		interval = 3
 	}
 
-	fmt.Printf("                 |%s : %s/cell\n",
+	fmt.Printf("                   |%s : %s/cell\n",
 		startDate.Format(util.DateFormat),
 		time.Duration(1e9*(int(time.Hour)/(bph*1e9))).String(),
 	)
@@ -447,17 +455,24 @@ func renderDayTimeline(t *core.Track, reporter *core.Reporter, active string, st
 	formatter := util.NewTreeFormatter(
 		func(t *core.ProjectNode, indent int) string {
 			fillLen := 16 - (indent + utf8.RuneCountInString(t.Value.Name))
+			name := t.Value.Name
+			if fillLen < 0 {
+				nameRunes := []rune(name)
+				name = string(nameRunes[:len(nameRunes)+fillLen-1]) + "."
+			}
 			var str string
 			if t.Value.Name == active {
-				str = color.BgBlue.Sprintf("%s", t.Value.Name)
+				str = color.BgBlue.Sprintf("%s", name)
 			} else {
-				str = fmt.Sprintf("%s", t.Value.Name)
+				str = fmt.Sprintf("%s", name)
 			}
 			if fillLen > 0 {
 				str += strings.Repeat(" ", fillLen)
 			}
+			str += " "
+			str += color.C256(t.Value.Color, true).Sprint("  ")
 			text, _ := timelineStr[t.Value.Name]
-			return fmt.Sprintf("%s %s", str, text)
+			return fmt.Sprintf("%s%s", str, text)
 		},
 		2,
 	)
