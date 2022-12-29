@@ -182,6 +182,32 @@ func DeserializeRecord(str string, date time.Time) (Record, error) {
 	}, nil
 }
 
+// Check checks consistency of a record
+func (r *Record) Check() error {
+	if !r.End.IsZero() && r.End.Before(r.Start) {
+		return fmt.Errorf("end time is before start time")
+	}
+	prevStart := time.Time{}
+	prevEnd := time.Time{}
+	for _, p := range r.Pause {
+		if p.Start.Before(r.Start) {
+			return fmt.Errorf("pause starts before record")
+		}
+		if !r.End.IsZero() && p.End.After(r.End) {
+			return fmt.Errorf("pause ends after record")
+		}
+		if prevStart.After(p.Start) {
+			return fmt.Errorf("pause starts not in chronological order")
+		}
+		if prevEnd.After(p.Start) {
+			return fmt.Errorf("pauses overlap")
+		}
+		prevStart = p.Start
+		prevEnd = p.End
+	}
+	return nil
+}
+
 // InsertPause inserts a pause into a record
 func (r *Record) InsertPause(start time.Time, end time.Time, note string) (Pause, error) {
 	if len(r.Pause) == 0 {

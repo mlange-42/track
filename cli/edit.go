@@ -193,8 +193,8 @@ func editRecord(t *core.Track, tm time.Time) error {
 				return fmt.Errorf("can't change start time")
 			}
 
-			if !newRecord.End.IsZero() && newRecord.End.Before(newRecord.Start) {
-				return fmt.Errorf("end time is before start time")
+			if err = newRecord.Check(); err != nil {
+				return err
 			}
 
 			if err = t.SaveRecord(&newRecord, true); err != nil {
