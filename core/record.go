@@ -109,7 +109,7 @@ func (r Record) Serialize() string {
 	if len(r.Note) > 0 {
 		res += fmt.Sprintf("\n\n%s", r.Note)
 	}
-	return res
+	return res + "\n"
 }
 
 // DeserializeRecord converts a serialization string to a record

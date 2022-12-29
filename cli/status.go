@@ -162,23 +162,11 @@ func getStatus(t *core.Track, proj string, maxBreak time.Duration) (statusInfo, 
 	totalTime := time.Second * 0
 
 	for _, rec := range reporter.Records {
-		endTime := rec.End
-		if endTime.IsZero() {
-			endTime = now
-		} else {
-			if endTime.Before(start) {
-				continue
-			}
-		}
-		startTime := rec.Start
-		if startTime.Before(start) {
-			startTime = start
-		}
-
-		worked := endTime.Sub(startTime)
+		worked := rec.Duration(start, now)
+		workedTotal := rec.Duration(time.Time{}, time.Time{})
 
 		if !prevEnd.IsZero() {
-			bt := startTime.Sub(prevEnd)
+			bt := rec.Start.Sub(prevEnd)
 			if bt < maxBreak {
 				breakTime += bt
 			} else {
@@ -187,13 +175,14 @@ func getStatus(t *core.Track, proj string, maxBreak time.Duration) (statusInfo, 
 			}
 		}
 
+		breakTime += rec.PauseDuration(time.Time{}, time.Time{})
 		totalTime += worked
-		cumTime += worked
+		cumTime += workedTotal
 		if rec.End.IsZero() {
-			currTime += endTime.Sub(rec.Start)
+			currTime += workedTotal
 		}
 
-		prevEnd = endTime
+		prevEnd = rec.End
 	}
 
 	return statusInfo{

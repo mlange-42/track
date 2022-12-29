@@ -101,6 +101,7 @@ func NewReporter(
 			totals[rec.Project] = totals[rec.Project] + dur
 		}
 
+		// TODO should be able to get rid of this; only required for timelines
 		if tRange.Start.IsZero() || rec.Start.Before(tRange.Start) {
 			tRange.Start = rec.Start
 		}

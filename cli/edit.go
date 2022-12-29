@@ -276,7 +276,7 @@ func edit[T any](t *core.Track, obj T, prefix string, marshal func(T) ([]byte, e
 	if err != nil {
 		return err
 	}
-	_, err = file.WriteString(fmt.Sprintf("\n%s", editComment))
+	_, err = file.WriteString(editComment)
 	if err != nil {
 		return err
 	}
