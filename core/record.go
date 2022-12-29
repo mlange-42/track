@@ -160,18 +160,23 @@ func DeserializeRecord(str string, date time.Time) (Record, error) {
 	project := strings.TrimSpace(lines[index])
 	index++
 
-	note := ""
+	notes := []string{}
 	tags := []string{}
 	index, ok = skipLines(lines, index, true)
 	if ok {
-		note = strings.TrimSpace(strings.Join(lines[index:], "\n"))
-		tags = ExtractTagsSlice(lines[index:])
+		for ok {
+			notes = append(notes, lines[index])
+			index++
+			index, ok = skipLines(lines, index, false)
+		}
 	}
+	tags = ExtractTagsSlice(notes)
+
 	return Record{
 		Project: project,
 		Start:   start,
 		End:     end,
-		Note:    note,
+		Note:    strings.TrimSpace(strings.Join(notes, "\n")),
 		Tags:    tags,
 		Pause:   pause,
 	}, nil
