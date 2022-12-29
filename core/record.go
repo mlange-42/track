@@ -36,11 +36,17 @@ type Record struct {
 type Pause struct {
 	Start time.Time
 	End   time.Time
+	Note  string
 }
 
 // HasEnded reports whether the record has an end time
 func (r Record) HasEnded() bool {
 	return !r.End.IsZero()
+}
+
+// IsPaused reports whether the record is paused
+func (r Record) IsPaused() bool {
+	return len(r.Pause) > 0 && r.Pause[len(r.Pause)-1].End.IsZero()
 }
 
 // Duration reports the duration of a record
@@ -75,6 +81,9 @@ func (r Record) Serialize() string {
 			endTime = p.End.Sub(p.Start).String()
 		}
 		res += fmt.Sprintf("\n    - %s - %s", p.Start.Format(util.TimeFormat), endTime)
+		if p.Note != "" {
+			res += fmt.Sprintf(" / %s", p.Note)
+		}
 	}
 	res += fmt.Sprintf("\n\n    %s", r.Project)
 
@@ -102,12 +111,24 @@ func DeserializeRecord(str string, date time.Time) (Record, error) {
 	for {
 		ln := strings.TrimSpace(lines[index])
 		if strings.HasPrefix(ln, "- ") {
-			pStart, pEnd, err := util.ParseTimeRange(strings.TrimPrefix(ln, "- "), date)
+			ln := strings.TrimPrefix(ln, "- ")
+			lnParts := strings.SplitN(ln, "/", 2)
+			pStart, pEnd, err := util.ParseTimeRange(lnParts[0], date)
 			index++
 			if err != nil {
 				return Record{}, err
 			}
-			pause = append(pause, Pause{Start: pStart, End: pEnd})
+			note := ""
+			if len(lnParts) > 1 {
+				note = lnParts[1]
+			}
+			pause = append(pause,
+				Pause{
+					Start: pStart,
+					End:   pEnd,
+					Note:  note,
+				},
+			)
 		} else {
 			break
 		}
@@ -135,6 +156,21 @@ func DeserializeRecord(str string, date time.Time) (Record, error) {
 		Tags:    tags,
 		Pause:   pause,
 	}, nil
+}
+
+// InsertPause inserts a pause into a record
+func (r *Record) InsertPause(start time.Time, end time.Time, note string) error {
+	if len(r.Pause) == 0 {
+		if start.Before(r.Start) {
+			return fmt.Errorf("start of pause before start of current record")
+		}
+	} else {
+		if start.Before(r.Pause[len(r.Pause)-1].End) {
+			return fmt.Errorf("start of pause before end of previous pause")
+		}
+	}
+	r.Pause = append(r.Pause, Pause{Start: start, End: end, Note: note})
+	return nil
 }
 
 func skipLines(lines []string, index int, skipEmpty bool) (int, bool) {
@@ -543,6 +579,15 @@ func (t *Track) StopRecord(end time.Time) (*Record, error) {
 	}
 
 	record.End = end
+	for len(record.Pause) > 0 {
+		idx := len(record.Pause) - 1
+		if record.Pause[idx].End.IsZero() || record.Pause[idx].End.After(end) {
+			record.End = record.Pause[idx].Start
+			record.Pause = record.Pause[:idx]
+		} else {
+			break
+		}
+	}
 
 	err = t.SaveRecord(record, true)
 	if err != nil {

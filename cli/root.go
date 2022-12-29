@@ -50,7 +50,7 @@ Subcommands
 	root.AddCommand(stopCommand(t))
 	root.AddCommand(resumeCommand(t))
 	root.AddCommand(switchCommand(t))
-	root.AddCommand(breakCommand(t))
+	root.AddCommand(pauseCommand(t))
 	root.AddCommand(reportCommand(t))
 	root.AddCommand(editCommand(t))
 	root.AddCommand(deleteCommand(t))

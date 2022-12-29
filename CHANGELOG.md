@@ -2,7 +2,11 @@
 
 ## [unpublished]
 
-None
+### Features
+
+### Other
+
+* Removed command `break`
 
 ## [v0.2.1]
 
