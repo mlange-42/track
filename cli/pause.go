@@ -42,7 +42,7 @@ func pauseCommand(t *core.Track) *cobra.Command {
 			}
 			startTime := now.Add(-duration)
 			note := strings.Join(args, " ")
-			err = open.InsertPause(startTime, endTime, note)
+			_, err = open.InsertPause(startTime, endTime, note)
 			if err != nil {
 				out.Err("failed to insert pause: %s", err)
 				return

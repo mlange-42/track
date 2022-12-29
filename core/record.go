@@ -60,9 +60,28 @@ func (r Record) Duration(min, max time.Time) time.Duration {
 func (r Record) PauseDuration(min, max time.Time) time.Duration {
 	dur := time.Second * 0
 	for _, p := range r.Pause {
-		dur += util.DurationClip(p.Start, p.End, min, max)
+		dur += p.Duration(min, max)
 	}
 	return dur
+}
+
+// Duration reports the duration of a pause
+func (p Pause) Duration(min, max time.Time) time.Duration {
+	return util.DurationClip(p.Start, p.End, min, max)
+}
+
+// CurrentPauseDuration reports the duration of an open pause
+func (r Record) CurrentPauseDuration(min, max time.Time) time.Duration {
+	dur := time.Second * 0
+	if len(r.Pause) == 0 {
+		return dur
+	}
+	if !r.IsPaused() {
+		return dur
+	}
+	last := r.Pause[len(r.Pause)-1]
+
+	return last.Duration(min, max)
 }
 
 // Serialize converts a record to a serialization string
@@ -76,11 +95,11 @@ func (r Record) Serialize() string {
 	}
 	res := fmt.Sprintf("%s - %s", r.Start.Format(util.TimeFormat), endTime)
 	for _, p := range r.Pause {
-		endTime := "?"
+		duration := "?"
 		if !p.End.IsZero() {
-			endTime = p.End.Sub(p.Start).String()
+			duration = p.End.Sub(p.Start).Round(time.Second).String()
 		}
-		res += fmt.Sprintf("\n    - %s - %s", p.Start.Format(util.TimeFormat), endTime)
+		res += fmt.Sprintf("\n    - %s - %s", p.Start.Format(util.TimeFormat), duration)
 		if p.Note != "" {
 			res += fmt.Sprintf(" / %s", p.Note)
 		}
@@ -120,7 +139,7 @@ func DeserializeRecord(str string, date time.Time) (Record, error) {
 			}
 			note := ""
 			if len(lnParts) > 1 {
-				note = lnParts[1]
+				note = strings.TrimSpace(lnParts[1])
 			}
 			pause = append(pause,
 				Pause{
@@ -159,18 +178,40 @@ func DeserializeRecord(str string, date time.Time) (Record, error) {
 }
 
 // InsertPause inserts a pause into a record
-func (r *Record) InsertPause(start time.Time, end time.Time, note string) error {
+func (r *Record) InsertPause(start time.Time, end time.Time, note string) (Pause, error) {
 	if len(r.Pause) == 0 {
 		if start.Before(r.Start) {
-			return fmt.Errorf("start of pause before start of current record")
+			return Pause{}, fmt.Errorf("start of pause before start of current record")
 		}
 	} else {
 		if start.Before(r.Pause[len(r.Pause)-1].End) {
-			return fmt.Errorf("start of pause before end of previous pause")
+			return Pause{}, fmt.Errorf("start of pause before end of previous pause")
 		}
 	}
 	r.Pause = append(r.Pause, Pause{Start: start, End: end, Note: note})
-	return nil
+	return r.Pause[len(r.Pause)-1], nil
+}
+
+// PopPause pops the last pause
+func (r *Record) PopPause() (Pause, bool) {
+	if len(r.Pause) == 0 {
+		return Pause{}, false
+	}
+	p := r.Pause[len(r.Pause)-1]
+	r.Pause = r.Pause[:len(r.Pause)-1]
+	return p, true
+}
+
+// EndPause closes the last, open pause
+func (r *Record) EndPause(t time.Time) (Pause, error) {
+	if len(r.Pause) == 0 {
+		return Pause{}, fmt.Errorf("no pause to end")
+	}
+	if !r.Pause[len(r.Pause)-1].End.IsZero() {
+		return Pause{}, fmt.Errorf("last pause is already ended")
+	}
+	r.Pause[len(r.Pause)-1].End = t
+	return r.Pause[len(r.Pause)-1], nil
 }
 
 func skipLines(lines []string, index int, skipEmpty bool) (int, bool) {

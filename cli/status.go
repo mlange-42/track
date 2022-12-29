@@ -16,8 +16,10 @@ import (
 type statusInfo struct {
 	Project   string
 	IsActive  bool
+	IsPaused  bool
 	Stopped   time.Duration
 	CurrTime  time.Duration
+	CurrPause time.Duration
 	CumTime   time.Duration
 	BreakTime time.Duration
 	TotalTime time.Duration
@@ -86,14 +88,17 @@ Columns of the status are:
 			out.Print("+------------------+-------+-------+-------+-------+\n")
 			out.Print("|          project |  curr | total | break | today |\n")
 			out.Print(
-				"| %s%s | %s | %s | %s | %s |\n",
+				"| %s%s | %s | %s | %s | %s |",
 				pad, name,
 				util.FormatDuration(info.CurrTime),
 				util.FormatDuration(info.CumTime),
 				util.FormatDuration(info.BreakTime),
 				util.FormatDuration(info.TotalTime),
 			)
-			out.Print("+------------------+-------+-------+-------+-------+")
+			if info.IsPaused {
+				out.Print(" (paused for %s)", util.FormatDuration(info.CurrPause))
+			}
+			out.Print("\n+------------------+-------+-------+-------+-------+")
 		},
 	}
 	status.Flags().StringVar(
@@ -122,19 +127,20 @@ func getStatus(t *core.Track, proj string, maxBreak time.Duration) (statusInfo, 
 		}
 	} else {
 		if !hasOpenRecord {
-			last, err := t.LatestRecord()
+			open, err := t.LatestRecord()
 			if err != nil {
 				return statusInfo{}, err
 			}
-			if last == nil {
+			if open == nil {
 				return statusInfo{}, fmt.Errorf(("No running record. Start tracking or specify a project."))
 			}
-			stopped = time.Now().Sub(last.End)
-			project = last.Project
-		} else {
-			project = open.Project
+			stopped = time.Now().Sub(open.End)
 		}
 	}
+
+	project = open.Project
+	isPaused := open.IsPaused()
+	currPause := open.CurrentPauseDuration(time.Time{}, time.Time{})
 
 	now := time.Now()
 	start := util.ToDate(now)
@@ -193,8 +199,10 @@ func getStatus(t *core.Track, proj string, maxBreak time.Duration) (statusInfo, 
 	return statusInfo{
 		Project:   project,
 		IsActive:  hasOpenRecord,
+		IsPaused:  isPaused,
 		Stopped:   stopped,
 		CurrTime:  currTime,
+		CurrPause: currPause,
 		CumTime:   cumTime,
 		BreakTime: breakTime,
 		TotalTime: totalTime,
