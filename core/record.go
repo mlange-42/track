@@ -80,6 +80,50 @@ func (r Record) Duration() time.Duration {
 	return t.Sub(r.Start)
 }
 
+// Serialize converts a record to a serialization string
+func (r Record) Serialize() string {
+	endTime := "?"
+	if !r.End.IsZero() {
+		endTime = r.End.Format(util.TimeFormat)
+		if util.ToDate(r.End).After(r.Start) {
+			endTime = "+" + endTime
+		}
+	}
+	res := fmt.Sprintf("%s - %s\n    %s", r.Start.Format(util.TimeFormat), endTime, r.Project)
+	if len(r.Note) > 0 {
+		res += fmt.Sprintf("\n    %s", r.Note)
+	}
+	return res
+}
+
+// Deserialize converts a serialization string to a record
+func (r Record) Deserialize(str string, date time.Time) (Record, error) {
+	str = strings.TrimSpace(str)
+	lines := strings.SplitN(strings.ReplaceAll(str, "\r\n", "\n"), "\n", 3)
+	if len(lines) < 2 {
+		return Record{}, fmt.Errorf("invalid record syntax: at least one line for time and ons for the project are required")
+	}
+	start, end, err := util.ParseTimeRange(lines[0], date)
+	if err != nil {
+		return Record{}, err
+	}
+
+	project := lines[1]
+	note := ""
+	tags := []string{}
+	if len(lines) == 3 {
+		note = lines[2]
+		tags = ExtractTagsSlice(strings.Split(strings.ReplaceAll(lines[2], "\r\n", "\n"), "\n"))
+	}
+	return Record{
+		Project: project,
+		Start:   start,
+		End:     end,
+		Note:    note,
+		Tags:    tags,
+	}, nil
+}
+
 // RecordsDir returns the records storage directory
 func (t *Track) RecordsDir() string {
 	return filepath.Join(fs.RootDir(), t.Workspace(), fs.RecordsDirName())
@@ -454,8 +498,8 @@ func (t *Track) StopRecord(end time.Time) (Record, error) {
 	return record, nil
 }
 
-// ExtractTags extracts elements with the tag prefix
-func (t *Track) ExtractTags(tokens []string) []string {
+// ExtractTagsSlice extracts elements with the tag prefix
+func ExtractTagsSlice(tokens []string) []string {
 	var result []string
 	mapped := make(map[string]bool)
 	for _, token := range tokens {
@@ -466,6 +510,22 @@ func (t *Track) ExtractTags(tokens []string) []string {
 					mapped[subToken] = true
 					result = append(result, strings.TrimPrefix(subToken, TagPrefix))
 				}
+			}
+		}
+	}
+	return result
+}
+
+// ExtractTags extracts elements with the tag prefix
+func ExtractTags(text string) []string {
+	var result []string
+	mapped := make(map[string]bool)
+	subTokens := strings.Split(text, " ")
+	for _, subToken := range subTokens {
+		if strings.HasPrefix(subToken, TagPrefix) {
+			if _, ok := mapped[subToken]; !ok {
+				mapped[subToken] = true
+				result = append(result, strings.TrimPrefix(subToken, TagPrefix))
 			}
 		}
 	}

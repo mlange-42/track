@@ -80,7 +80,7 @@ Notes can contain tags, denoted by the prefix "%s", like "%stag"`, core.TagPrefi
 			}
 
 			note := strings.Join(args[1:], " ")
-			tags := t.ExtractTags(args[1:])
+			tags := core.ExtractTagsSlice(args[1:])
 
 			record, err := t.StartRecord(project, note, tags, time.Now())
 			if err != nil {

@@ -54,7 +54,7 @@ For details on notes and tags, see command 'start'.`,
 			tags := last.Tags
 			if len(args) > 0 {
 				note = strings.Join(args[1:], " ")
-				tags = t.ExtractTags(args[1:])
+				tags = core.ExtractTagsSlice(args[1:])
 			}
 
 			if continueIt {

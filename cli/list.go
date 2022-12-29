@@ -170,6 +170,7 @@ or a word like "yesterday" or  "today" (the default).`,
 				project := projects[record.Project]
 				if includeArchived || !project.Archived {
 					printRecord(record, project)
+					fmt.Println(record.Serialize())
 				}
 			}
 		},
