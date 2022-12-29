@@ -559,6 +559,7 @@ func renderWeekTimeline(t *core.Track, reporter *core.Reporter, active string, s
 	}
 
 	timeline := make([]int, 24*7*blocksPerHour, 24*7*blocksPerHour)
+	paused := make([]bool, 24*7*blocksPerHour, 24*7*blocksPerHour)
 
 	now := time.Now()
 
@@ -576,19 +577,13 @@ func renderWeekTimeline(t *core.Track, reporter *core.Reporter, active string, s
 			if !ok {
 				continue
 			}
-			// TODO: render pause
 			for i := startIdx; i <= endIdx; i++ {
-				timeline[i] = 0
+				paused[i] = true
 			}
 		}
 	}
 
 	nowIdx := int(now.Sub(startDate).Hours() * float64(bph))
-
-	timeStr := make([]rune, len(timeline), len(timeline))
-	for i, idx := range timeline {
-		timeStr[i] = symbols[idx]
-	}
 
 	sb := strings.Builder{}
 	fmt.Fprintf(&sb, "      |Week %s - %s : %s/cell\n",
@@ -614,6 +609,8 @@ func renderWeekTimeline(t *core.Track, reporter *core.Reporter, active string, s
 	}
 	fmt.Fprintln(&sb, "|")
 
+	pauseSym := []rune(t.Config.PauseCell)[0]
+
 	for hour := 0; hour < 24; hour++ {
 		fmt.Fprintf(&sb, "%02d:00 ", hour)
 		for weekday := 0; weekday < 7; weekday++ {
@@ -621,8 +618,12 @@ func renderWeekTimeline(t *core.Track, reporter *core.Reporter, active string, s
 			fmt.Fprint(&sb, "|")
 			for i := s; i < s+bph; i++ {
 				pr := timeline[i]
+				pause := paused[i]
 				sym := symbols[pr]
 				col := colors[pr]
+				if pause {
+					sym = pauseSym
+				}
 				if i == nowIdx {
 					sym = '@'
 				}

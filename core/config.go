@@ -27,6 +27,7 @@ type Config struct {
 	TextEditor       string        `yaml:"textEditor"`
 	MaxBreakDuration time.Duration `yaml:"maxBreakDuration"`
 	EmptyCell        string        `yaml:"emptyCell"`
+	PauseCell        string        `yaml:"pauseCell"`
 }
 
 // LoadConfig loads the track config, or creates and saves default settings
@@ -51,6 +52,7 @@ func LoadConfig() (Config, error) {
 		TextEditor:       editor,
 		MaxBreakDuration: 2 * time.Hour,
 		EmptyCell:        ".",
+		PauseCell:        "-",
 	}
 
 	err = SaveConfig(conf)
@@ -112,6 +114,9 @@ func SaveConfig(conf Config) error {
 func CheckConfig(conf *Config) error {
 	if utf8.RuneCountInString(conf.EmptyCell) != 1 {
 		return fmt.Errorf("config entry EmptyCell must be a string of length 1. Got '%s'", conf.EmptyCell)
+	}
+	if utf8.RuneCountInString(conf.PauseCell) != 1 {
+		return fmt.Errorf("config entry PauseCell must be a string of length 1. Got '%s'", conf.PauseCell)
 	}
 	return nil
 }
