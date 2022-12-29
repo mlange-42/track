@@ -65,23 +65,29 @@ func (r Record) Serialize() string {
 func DeserializeRecord(str string, date time.Time) (Record, error) {
 	str = strings.TrimSpace(str)
 	lines := strings.Split(strings.ReplaceAll(str, "\r\n", "\n"), "\n")
-	for len(lines) > 0 && len(lines[0]) == 0 || strings.HasPrefix(lines[0], "#") {
-		lines = lines[1:]
+	index, ok := skipLines(lines, 0, true)
+	if !ok {
+		return Record{}, fmt.Errorf("invalid record: missing time range (1st line)")
 	}
-	if len(lines) < 2 {
-		return Record{}, fmt.Errorf("invalid record syntax: at least one line for time and ons for the project are required")
-	}
-	start, end, err := util.ParseTimeRange(lines[0], date)
+	start, end, err := util.ParseTimeRange(lines[index], date)
+	index++
 	if err != nil {
 		return Record{}, err
 	}
 
-	project := strings.TrimSpace(lines[1])
+	index, ok = skipLines(lines, index, true)
+	if !ok {
+		return Record{}, fmt.Errorf("invalid record: missing project (2nd line)")
+	}
+	project := strings.TrimSpace(lines[index])
+	index++
+
 	note := ""
 	tags := []string{}
-	if len(lines) > 2 {
-		note = strings.Join(lines[2:], "\n")
-		tags = ExtractTagsSlice(lines[2:])
+	index, ok = skipLines(lines, index, true)
+	if ok {
+		note = strings.TrimSpace(strings.Join(lines[index:], "\n"))
+		tags = ExtractTagsSlice(lines[index:])
 	}
 	return Record{
 		Project: project,
@@ -90,6 +96,19 @@ func DeserializeRecord(str string, date time.Time) (Record, error) {
 		Note:    note,
 		Tags:    tags,
 	}, nil
+}
+
+func skipLines(lines []string, index int, skipEmpty bool) (int, bool) {
+	if index >= len(lines) {
+		return index, false
+	}
+	for (skipEmpty && lines[index] == "") || strings.HasPrefix(lines[index], "#") {
+		index++
+		if index >= len(lines) {
+			return index, false
+		}
+	}
+	return index, true
 }
 
 // RecordsDir returns the records storage directory
