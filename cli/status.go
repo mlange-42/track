@@ -108,7 +108,12 @@ Columns of the status are:
 
 func getStatus(t *core.Track, proj string, maxBreak time.Duration) (statusInfo, error) {
 	var project string
-	open, hasOpenRecord := t.OpenRecord()
+	open, err := t.OpenRecord()
+	if err != nil {
+		return statusInfo{}, err
+	}
+	hasOpenRecord := open != nil
+
 	stopped := 0 * time.Second
 	if proj != "" {
 		project = proj
@@ -119,6 +124,9 @@ func getStatus(t *core.Track, proj string, maxBreak time.Duration) (statusInfo, 
 		if !hasOpenRecord {
 			last, err := t.LatestRecord()
 			if err != nil {
+				return statusInfo{}, err
+			}
+			if last == nil {
 				return statusInfo{}, fmt.Errorf(("No running record. Start tracking or specify a project."))
 			}
 			stopped = time.Now().Sub(last.End)

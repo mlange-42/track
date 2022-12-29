@@ -12,7 +12,6 @@ import (
 
 	"github.com/mlange-42/track/fs"
 	"github.com/mlange-42/track/util"
-	"gopkg.in/yaml.v3"
 )
 
 // TagPrefix denotes tags in record notes
@@ -30,40 +29,6 @@ type Record struct {
 	End     time.Time
 	Note    string
 	Tags    []string
-}
-
-type yamlRecord struct {
-	Project string
-	Start   util.Time
-	End     util.Time
-	Note    string
-	Tags    []string
-}
-
-// MarshalYAML converts a Record to YAML bytes
-func (r *Record) MarshalYAML() (interface{}, error) {
-	return &yamlRecord{
-		Project: r.Project,
-		Note:    r.Note,
-		Tags:    r.Tags,
-		Start:   util.Time(r.Start),
-		End:     util.Time(r.End),
-	}, nil
-}
-
-// UnmarshalYAML converts YAML bytes to a Record
-func (r *Record) UnmarshalYAML(value *yaml.Node) error {
-	rec := yamlRecord{}
-	if err := value.Decode(&rec); err != nil {
-		return err
-	}
-	r.Project = rec.Project
-	r.Note = rec.Note
-	r.Tags = rec.Tags
-	r.Start = time.Time(rec.Start)
-	r.End = time.Time(rec.End)
-
-	return nil
 }
 
 // HasEnded reports whether the record has an end time
@@ -96,10 +61,13 @@ func (r Record) Serialize() string {
 	return res
 }
 
-// Deserialize converts a serialization string to a record
-func (r Record) Deserialize(str string, date time.Time) (Record, error) {
+// DeserializeRecord converts a serialization string to a record
+func DeserializeRecord(str string, date time.Time) (Record, error) {
 	str = strings.TrimSpace(str)
-	lines := strings.SplitN(strings.ReplaceAll(str, "\r\n", "\n"), "\n", 3)
+	lines := strings.Split(strings.ReplaceAll(str, "\r\n", "\n"), "\n")
+	for len(lines) > 0 && len(lines[0]) == 0 || strings.HasPrefix(lines[0], "#") {
+		lines = lines[1:]
+	}
 	if len(lines) < 2 {
 		return Record{}, fmt.Errorf("invalid record syntax: at least one line for time and ons for the project are required")
 	}
@@ -108,12 +76,12 @@ func (r Record) Deserialize(str string, date time.Time) (Record, error) {
 		return Record{}, err
 	}
 
-	project := lines[1]
+	project := strings.TrimSpace(lines[1])
 	note := ""
 	tags := []string{}
-	if len(lines) == 3 {
-		note = lines[2]
-		tags = ExtractTagsSlice(strings.Split(strings.ReplaceAll(lines[2], "\r\n", "\n"), "\n"))
+	if len(lines) > 2 {
+		note = strings.Join(lines[2:], "\n")
+		tags = ExtractTagsSlice(lines[2:])
 	}
 	return Record{
 		Project: project,
@@ -138,7 +106,7 @@ func (t *Track) WorkspaceRecordsDir(ws string) string {
 func (t *Track) RecordPath(tm time.Time) string {
 	return filepath.Join(
 		t.RecordDir(tm),
-		fmt.Sprintf("%s.yml", tm.Format(util.FileTimeFormat)),
+		fmt.Sprintf("%s.trk", tm.Format(util.FileTimeFormat)),
 	)
 }
 
@@ -153,7 +121,7 @@ func (t *Track) RecordDir(tm time.Time) string {
 }
 
 // SaveRecord saves a record to disk
-func (t *Track) SaveRecord(record Record, force bool) error {
+func (t *Track) SaveRecord(record *Record, force bool) error {
 	path := t.RecordPath(record.Start)
 	if !force && fs.FileExists(path) {
 		return fmt.Errorf("record already exists")
@@ -171,23 +139,20 @@ func (t *Track) SaveRecord(record Record, force bool) error {
 		return err
 	}
 
-	bytes, err := yaml.Marshal(&record)
+	bytes := record.Serialize()
+
+	_, err = fmt.Fprintf(file, "# Record %s\n", record.Start.Format(util.DateTimeFormat))
 	if err != nil {
 		return err
 	}
 
-	_, err = fmt.Fprintf(file, "# Record %s\n\n", record.Start.Format(util.DateTimeFormat))
-	if err != nil {
-		return err
-	}
-
-	_, err = file.Write(bytes)
+	_, err = file.WriteString(bytes)
 
 	return err
 }
 
 // DeleteRecord deletes a record
-func (t *Track) DeleteRecord(record Record) error {
+func (t *Track) DeleteRecord(record *Record) error {
 	path := t.RecordPath(record.Start)
 	if !fs.FileExists(path) {
 		return fmt.Errorf("record does not exist")
@@ -224,22 +189,16 @@ func (t *Track) DeleteRecord(record Record) error {
 	return nil
 }
 
-// LoadRecordByTime loads a record
-func (t *Track) LoadRecordByTime(tm time.Time) (Record, error) {
-	path := t.RecordPath(tm)
-	return t.LoadRecord(path)
-}
-
 // LoadRecord loads a record
-func (t *Track) LoadRecord(path string) (Record, error) {
+func (t *Track) LoadRecord(tm time.Time) (Record, error) {
+	path := t.RecordPath(tm)
 	file, err := os.ReadFile(path)
 	if err != nil {
 		return Record{}, err
 	}
 
-	var record Record
-
-	if err := yaml.Unmarshal(file, &record); err != nil {
+	record, err := DeserializeRecord(string(file), tm)
+	if err != nil {
 		return Record{}, err
 	}
 
@@ -414,7 +373,8 @@ func (t *Track) LoadDateRecordsFiltered(date time.Time, filters FilterFunctions)
 			continue
 		}
 
-		record, err := t.LoadRecord(filepath.Join(subPath, file.Name()))
+		tm, err := fileToTime(date, file.Name())
+		record, err := t.LoadRecord(tm)
 		if err != nil {
 			return nil, err
 		}
@@ -426,47 +386,79 @@ func (t *Track) LoadDateRecordsFiltered(date time.Time, filters FilterFunctions)
 	return records, nil
 }
 
-// LatestRecord loads the latest record
-func (t *Track) LatestRecord() (Record, error) {
+// LatestRecord loads the latest record. Returns a nil reference if no record is found.
+func (t *Track) LatestRecord() (*Record, error) {
 	records := t.RecordsDir()
-	year, err := fs.FindLatests(records, true)
+	yearPath, year, err := fs.FindLatests(records, true)
 	if err != nil {
-		return Record{}, err
+		if errors.Is(err, fs.ErrNoFiles) {
+			return nil, nil
+		}
+		return nil, err
 	}
-	month, err := fs.FindLatests(year, true)
+	monthPath, month, err := fs.FindLatests(yearPath, true)
 	if err != nil {
-		return Record{}, err
+		if errors.Is(err, fs.ErrNoFiles) {
+			return nil, nil
+		}
+		return nil, err
 	}
-	day, err := fs.FindLatests(month, true)
+	dayPath, day, err := fs.FindLatests(monthPath, true)
 	if err != nil {
-		return Record{}, err
+		if errors.Is(err, fs.ErrNoFiles) {
+			return nil, nil
+		}
+		return nil, err
 	}
-	record, err := fs.FindLatests(day, false)
+	_, record, err := fs.FindLatests(dayPath, false)
 	if err != nil {
-		return Record{}, err
+		if errors.Is(err, fs.ErrNoFiles) {
+			return nil, nil
+		}
+		return nil, err
 	}
 
-	rec, err := t.LoadRecord(record)
+	tm, err := pathToTime(year, month, day, record)
 	if err != nil {
-		return Record{}, err
+		return nil, err
+	}
+	rec, err := t.LoadRecord(tm)
+	if err != nil {
+		return nil, err
 	}
 
-	return rec, nil
+	return &rec, nil
 }
 
-// OpenRecord returns the open record if any
-func (t *Track) OpenRecord() (rec Record, ok bool) {
+func pathToTime(y, m, d, file string) (time.Time, error) {
+	return time.ParseInLocation(
+		util.FileDateTimeFormat,
+		fmt.Sprintf("%s-%s-%s %s", y, m, d, strings.Split(file, ".")[0]),
+		time.Local,
+	)
+}
+
+func fileToTime(date time.Time, file string) (time.Time, error) {
+	t, err := time.ParseInLocation(util.FileTimeFormat, strings.Split(file, ".")[0], time.Local)
+	if err != nil {
+		return time.Time{}, err
+	}
+	return util.DateAndTime(date, t), nil
+}
+
+// OpenRecord returns the open record if any. Returns a nil reference if no open record is found.
+func (t *Track) OpenRecord() (*Record, error) {
 	latest, err := t.LatestRecord()
 	if err != nil {
 		if err == fs.ErrNoFiles {
-			return Record{}, false
+			return nil, nil
 		}
-		return Record{}, false
+		return nil, err
 	}
 	if latest.HasEnded() {
-		return Record{}, false
+		return nil, nil
 	}
-	return latest, true
+	return latest, nil
 }
 
 // StartRecord starts and saves a record
@@ -479,19 +471,22 @@ func (t *Track) StartRecord(project, note string, tags []string, start time.Time
 		End:     time.Time{},
 	}
 
-	return record, t.SaveRecord(record, false)
+	return record, t.SaveRecord(&record, false)
 }
 
 // StopRecord stops and saves the current record
-func (t *Track) StopRecord(end time.Time) (Record, error) {
-	record, ok := t.OpenRecord()
-	if !ok {
+func (t *Track) StopRecord(end time.Time) (*Record, error) {
+	record, err := t.OpenRecord()
+	if err != nil {
+		return record, err
+	}
+	if record == nil {
 		return record, fmt.Errorf("no running record")
 	}
 
 	record.End = end
 
-	err := t.SaveRecord(record, true)
+	err = t.SaveRecord(record, true)
 	if err != nil {
 		return record, err
 	}

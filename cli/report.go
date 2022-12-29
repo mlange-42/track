@@ -140,7 +140,12 @@ func projectsReportCommand(t *core.Track, options *filterOptions) *cobra.Command
 				return
 			}
 			var active string
-			if rec, ok := t.OpenRecord(); ok {
+			rec, err := t.OpenRecord()
+			if err != nil {
+				out.Err("failed to generate report: %s", err)
+				return
+			}
+			if rec != nil {
 				active = rec.Project
 			}
 			formatter := util.NewTreeFormatter(
@@ -230,7 +235,12 @@ func dayReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 				return
 			}
 			var active string
-			if rec, ok := t.OpenRecord(); ok {
+			rec, err := t.OpenRecord()
+			if err != nil {
+				out.Err("failed to generate report: %s", err)
+				return
+			}
+			if rec != nil {
 				active = rec.Project
 			}
 
@@ -302,7 +312,12 @@ func weekReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 				return
 			}
 			var active string
-			if rec, ok := t.OpenRecord(); ok {
+			rec, err := t.OpenRecord()
+			if err != nil {
+				out.Err("failed to generate report: %s", err)
+				return
+			}
+			if rec != nil {
 				active = rec.Project
 			}
 

@@ -72,7 +72,7 @@ func parseStartEnd(options *filterOptions) (time.Time, time.Time, error) {
 	return startTime, endTime, nil
 }
 
-func confirmDeleteRecord(rec core.Record) bool {
+func confirmDeleteRecord(rec *core.Record) bool {
 	question := fmt.Sprintf(
 		"Really delete record %s (%s) from project '%s' (y/n): ",
 		rec.Start.Format(util.DateTimeFormat),

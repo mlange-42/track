@@ -17,9 +17,12 @@ func breakCommand(t *core.Track) *cobra.Command {
 		Aliases: []string{"b"},
 		Args:    util.WrappedArgs(cobra.ExactArgs(1)),
 		Run: func(cmd *cobra.Command, args []string) {
-			open, ok := t.OpenRecord()
-
-			if !ok {
+			open, err := t.OpenRecord()
+			if err != nil {
+				out.Err("failed to insert break: %s", err)
+				return
+			}
+			if open == nil {
 				out.Warn("failed to insert break: no running record")
 				return
 			}

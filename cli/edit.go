@@ -171,7 +171,7 @@ See file .track/config.yml to configure the editor to be used.`,
 }
 
 func editRecord(t *core.Track, tm time.Time) error {
-	record, err := t.LoadRecordByTime(tm)
+	record, err := t.LoadRecord(tm)
 	if err != nil {
 		return err
 	}
@@ -179,8 +179,8 @@ func editRecord(t *core.Track, tm time.Time) error {
 	return edit(t, &record,
 		fmt.Sprintf("# Record %s\n\n", record.Start.Format(util.DateTimeFormat)),
 		func(b []byte) error {
-			var newRecord core.Record
-			if err := yaml.Unmarshal(b, &newRecord); err != nil {
+			newRecord, err := core.DeserializeRecord(string(b), record.Start)
+			if err != nil {
 				return err
 			}
 
@@ -193,7 +193,7 @@ func editRecord(t *core.Track, tm time.Time) error {
 				return fmt.Errorf("end time is before start time")
 			}
 
-			if err = t.SaveRecord(newRecord, true); err != nil {
+			if err = t.SaveRecord(&newRecord, true); err != nil {
 				return err
 			}
 			return nil

@@ -43,18 +43,18 @@ func deleteRecordCommand(t *core.Track) *cobra.Command {
 				out.Err("failed to delete record: %s", err)
 				return
 			}
-			record, err := t.LoadRecordByTime(tm)
+			record, err := t.LoadRecord(tm)
 			if err != nil {
 				out.Err("failed to delete record: %s", err)
 				return
 			}
 
-			if !force && !confirmDeleteRecord(record) {
+			if !force && !confirmDeleteRecord(&record) {
 				out.Err("failed to delete record: aborted by user")
 				return
 			}
 
-			err = t.DeleteRecord(record)
+			err = t.DeleteRecord(&record)
 			if err != nil {
 				out.Err("failed to delete record: %s", err)
 				return

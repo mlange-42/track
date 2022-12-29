@@ -26,7 +26,11 @@ For details on notes and tags, see command 'start'.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			last, err := t.LatestRecord()
 			if err != nil {
-				out.Err("failed to resume: %s", err)
+				out.Err("failed to resume: %s", err.Error())
+				return
+			}
+			if last == nil {
+				out.Err("failed to resume: no record found")
 				return
 			}
 			if !last.HasEnded() {

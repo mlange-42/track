@@ -58,7 +58,12 @@ func listProjectsCommand(t *core.Track) *cobra.Command {
 			}
 
 			var active string
-			if rec, ok := t.OpenRecord(); ok {
+			rec, err := t.OpenRecord()
+			if err != nil {
+				out.Err("failed to load projects: %s", err)
+				return
+			}
+			if rec != nil {
 				active = rec.Project
 			}
 

@@ -20,8 +20,12 @@ func stopCommand(t *core.Track) *cobra.Command {
 		Aliases: []string{"x"},
 		Args:    util.WrappedArgs(cobra.NoArgs),
 		Run: func(cmd *cobra.Command, args []string) {
-			open, ok := t.OpenRecord()
-			if !ok {
+			open, err := t.OpenRecord()
+			if err != nil {
+				out.Err("failed to stop record: %s", err)
+				return
+			}
+			if open == nil {
 				out.Err("failed to stop record: no record running")
 				return
 			}
@@ -31,7 +35,7 @@ func stopCommand(t *core.Track) *cobra.Command {
 				return
 			}
 
-			stopTime, err := getStopTime(&open, ago, atTime)
+			stopTime, err := getStopTime(open, ago, atTime)
 			if err != nil {
 				out.Err("failed to stop record: %s", err)
 				return

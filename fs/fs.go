@@ -98,10 +98,10 @@ func CreateDir(path string) error {
 }
 
 // FindLatests finds the "latest" file or directory in a file, by name
-func FindLatests(path string, isDir bool) (string, error) {
+func FindLatests(path string, isDir bool) (string, string, error) {
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	var dir gofs.FileInfo = nil
@@ -113,8 +113,8 @@ func FindLatests(path string, isDir bool) (string, error) {
 	}
 
 	if dir == nil {
-		return "", ErrNoFiles
+		return "", "", ErrNoFiles
 	}
 
-	return filepath.Join(path, dir.Name()), nil
+	return filepath.Join(path, dir.Name()), dir.Name(), nil
 }

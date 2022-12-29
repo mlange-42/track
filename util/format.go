@@ -19,6 +19,8 @@ const (
 	TimeFormat = "15:04"
 	// FileTimeFormat for file name time formatting
 	FileTimeFormat = "15-04"
+	// FileDateTimeFormat for date and time from paths
+	FileDateTimeFormat = "2006-01-02 15-04"
 	// DateTimeFormat for date and time formatting
 	DateTimeFormat = "2006-01-02 15:04"
 	// YAMLTimeFormat for YAML date and time formatting
