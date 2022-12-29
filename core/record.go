@@ -29,6 +29,13 @@ type Record struct {
 	End     time.Time
 	Note    string
 	Tags    []string
+	Pause   []Pause
+}
+
+// Pause holds information about a pause in a record
+type Pause struct {
+	Start time.Time
+	End   time.Time
 }
 
 // HasEnded reports whether the record has an end time
@@ -37,12 +44,19 @@ func (r Record) HasEnded() bool {
 }
 
 // Duration reports the duration of a record
-func (r Record) Duration() time.Duration {
-	t := r.End
-	if t.IsZero() {
-		t = time.Now()
+func (r Record) Duration(min, max time.Time) time.Duration {
+	dur := util.DurationClip(r.Start, r.End, min, max)
+	dur -= r.PauseDuration(min, max)
+	return dur
+}
+
+// PauseDuration reports the duration of all pauses of the record
+func (r Record) PauseDuration(min, max time.Time) time.Duration {
+	dur := time.Second * 0
+	for _, p := range r.Pause {
+		dur += util.DurationClip(p.Start, p.End, min, max)
 	}
-	return t.Sub(r.Start)
+	return dur
 }
 
 // Serialize converts a record to a serialization string
@@ -54,9 +68,18 @@ func (r Record) Serialize() string {
 			endTime = "+" + endTime
 		}
 	}
-	res := fmt.Sprintf("%s - %s\n    %s", r.Start.Format(util.TimeFormat), endTime, r.Project)
+	res := fmt.Sprintf("%s - %s", r.Start.Format(util.TimeFormat), endTime)
+	for _, p := range r.Pause {
+		endTime := "?"
+		if !p.End.IsZero() {
+			endTime = p.End.Sub(p.Start).String()
+		}
+		res += fmt.Sprintf("\n    - %s - %s", p.Start.Format(util.TimeFormat), endTime)
+	}
+	res += fmt.Sprintf("\n\n    %s", r.Project)
+
 	if len(r.Note) > 0 {
-		res += fmt.Sprintf("\n    %s", r.Note)
+		res += fmt.Sprintf("\n\n%s", r.Note)
 	}
 	return res
 }
@@ -73,6 +96,21 @@ func DeserializeRecord(str string, date time.Time) (Record, error) {
 	index++
 	if err != nil {
 		return Record{}, err
+	}
+
+	pause := []Pause{}
+	for {
+		ln := strings.TrimSpace(lines[index])
+		if strings.HasPrefix(ln, "- ") {
+			pStart, pEnd, err := util.ParseTimeRange(strings.TrimPrefix(ln, "- "), date)
+			index++
+			if err != nil {
+				return Record{}, err
+			}
+			pause = append(pause, Pause{Start: pStart, End: pEnd})
+		} else {
+			break
+		}
 	}
 
 	index, ok = skipLines(lines, index, true)
@@ -95,6 +133,7 @@ func DeserializeRecord(str string, date time.Time) (Record, error) {
 		End:     end,
 		Note:    note,
 		Tags:    tags,
+		Pause:   pause,
 	}, nil
 }
 
@@ -102,7 +141,7 @@ func skipLines(lines []string, index int, skipEmpty bool) (int, bool) {
 	if index >= len(lines) {
 		return index, false
 	}
-	for (skipEmpty && lines[index] == "") || strings.HasPrefix(lines[index], "#") {
+	for (skipEmpty && strings.TrimSpace(lines[index]) == "") || strings.HasPrefix(lines[index], "#") {
 		index++
 		if index >= len(lines) {
 			return index, false

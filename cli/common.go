@@ -76,7 +76,7 @@ func confirmDeleteRecord(rec *core.Record) bool {
 	question := fmt.Sprintf(
 		"Really delete record %s (%s) from project '%s' (y/n): ",
 		rec.Start.Format(util.DateTimeFormat),
-		util.FormatDuration(rec.Duration()),
+		util.FormatDuration(rec.Duration(time.Time{}, time.Time{})),
 		rec.Project,
 	)
 
