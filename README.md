@@ -132,7 +132,7 @@ track
 ├─edit
 │ ├─config
 │ ├─project PROJECT
-│ └─record DATE TIME
+│ └─record [[DATE] TIME]
 ├─export
 │ └─records
 ├─list

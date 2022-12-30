@@ -53,21 +53,45 @@ See file .track/config.yml to configure the editor to be used.`,
 
 func editRecordCommand(t *core.Track) *cobra.Command {
 	editProject := &cobra.Command{
-		Use:   "record DATE TIME",
+		Use:   "record [[DATE] TIME]",
 		Short: "Edit a record",
 		Long: `Edit a record
 
 Opens the record as a temporary file for editing.
-See file .track/config.yml to configure the editor to be used.`,
+See file .track/config.yml to configure the editor to be used.
+
+Edits the last or open record if no date and time are given.
+
+Uses the current date if only a time is given.`,
 		Aliases: []string{"r"},
-		Args:    util.WrappedArgs(cobra.ExactArgs(2)),
+		Args:    util.WrappedArgs(cobra.MaximumNArgs(2)),
 		Run: func(cmd *cobra.Command, args []string) {
-			timeString := strings.Join(args, " ")
-			tm, err := util.ParseDateTime(timeString)
-			if err != nil {
-				out.Err("failed to edit record: %s", err)
-				return
+			var err error
+			tm := time.Time{}
+			switch len(args) {
+			case 0:
+				last, err := t.LatestRecord()
+				if err != nil {
+					out.Err("failed to edit record: %s", err)
+					return
+				}
+				tm = last.Start
+			case 1:
+				tm, err = time.ParseInLocation(util.TimeFormat, args[0], time.Local)
+				if err != nil {
+					out.Err("failed to edit record: %s", err)
+					return
+				}
+				tm = util.DateAndTime(time.Now(), tm)
+			case 2:
+				timeString := strings.Join(args, " ")
+				tm, err = util.ParseDateTime(timeString)
+				if err != nil {
+					out.Err("failed to edit record: %s", err)
+					return
+				}
 			}
+
 			err = editRecord(t, tm)
 			if err != nil {
 				if err == ErrUserAbort {
