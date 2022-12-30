@@ -13,6 +13,7 @@
 * The `start` command has a flag `--copy` to copy note and tags from the previous record in the same project (#58)
 * The command `track edit record` can be used without arguments, or with only time as argument (#59)
 * Command `track list tags` to list all tags, with number of occurrences (#60)
+* Command `track edit day` to edit all records of a day in a single file (#61)
 
 ### Other
 

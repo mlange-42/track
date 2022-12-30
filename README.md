@@ -131,6 +131,7 @@ track
 │ └─record DATE TIME
 ├─edit
 │ ├─config
+│ ├─day [DATE]
 │ ├─project PROJECT
 │ └─record [[DATE] TIME]
 ├─export
@@ -139,6 +140,7 @@ track
 │ ├─colors
 │ ├─projects
 │ ├─records [DATE]
+│ ├─tags
 │ └─workspaces
 ├─pause [NOTE...]
 ├─report
