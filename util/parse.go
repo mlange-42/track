@@ -53,12 +53,21 @@ func ParseTimeRange(text string, date time.Time) (start, end time.Time, err erro
 		parts[i] = strings.TrimSpace(parts[i])
 	}
 
+	nextDay := false
+	if strings.HasPrefix(parts[0], "+") {
+		parts[0] = strings.TrimPrefix(parts[0], "+")
+		nextDay = true
+	}
 	start, err = time.ParseInLocation(TimeFormat, parts[0], time.Local)
 	if err != nil {
 		return
 	}
 	start = DateAndTime(date, start)
-	nextDay := false
+	if nextDay {
+		start = start.Add(24 * time.Hour)
+	}
+
+	nextDay = false
 	if strings.HasPrefix(parts[1], "+") {
 		parts[1] = strings.TrimPrefix(parts[1], "+")
 		nextDay = true

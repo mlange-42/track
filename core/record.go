@@ -99,7 +99,11 @@ func (r Record) Serialize() string {
 		if !p.End.IsZero() {
 			duration = p.End.Sub(p.Start).Round(time.Second).String()
 		}
-		res += fmt.Sprintf("\n    - %s - %s", p.Start.Format(util.TimeFormat), duration)
+		prefix := ""
+		if util.ToDate(p.Start).After(r.Start) {
+			prefix = "+"
+		}
+		res += fmt.Sprintf("\n    - %s%s - %s", prefix, p.Start.Format(util.TimeFormat), duration)
 		if p.Note != "" {
 			res += fmt.Sprintf(" / %s", p.Note)
 		}
