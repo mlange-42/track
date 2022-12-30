@@ -72,7 +72,7 @@ Currently, only export to CSV is supported.`,
 			}
 			writer.WriteHeader(io)
 
-			fn, results := t.AllRecordsFiltered(filters)
+			fn, results, _ := t.AllRecordsFiltered(filters, false)
 
 			go fn()
 

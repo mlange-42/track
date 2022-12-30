@@ -460,16 +460,22 @@ type FilterResult struct {
 }
 
 // AllRecordsFiltered is an async version of LoadAllRecordsFiltered
-func (t *Track) AllRecordsFiltered(filters FilterFunctions) (func(), chan FilterResult) {
+func (t *Track) AllRecordsFiltered(filters FilterFunctions, reversed bool) (func(), chan FilterResult, chan struct{}) {
 	results := make(chan FilterResult, 32)
+	stop := make(chan struct{})
 
 	return func() {
+		defer close(results)
+
 		path := t.RecordsDir()
 
 		yearDirs, err := ioutil.ReadDir(path)
 		if err != nil {
 			results <- FilterResult{Record{}, err}
 			return
+		}
+		if reversed {
+			util.Reverse(yearDirs)
 		}
 
 		for _, yearDir := range yearDirs {
@@ -482,6 +488,10 @@ func (t *Track) AllRecordsFiltered(filters FilterFunctions) (func(), chan Filter
 				return
 			}
 			monthDirs, err := ioutil.ReadDir(filepath.Join(path, yearDir.Name()))
+
+			if reversed {
+				util.Reverse(monthDirs)
+			}
 			if err != nil {
 				results <- FilterResult{Record{}, err}
 				return
@@ -503,6 +513,9 @@ func (t *Track) AllRecordsFiltered(filters FilterFunctions) (func(), chan Filter
 					return
 				}
 
+				if reversed {
+					util.Reverse(dayDirs)
+				}
 				for _, dayDir := range dayDirs {
 					if !dayDir.IsDir() {
 						continue
@@ -518,14 +531,21 @@ func (t *Track) AllRecordsFiltered(filters FilterFunctions) (func(), chan Filter
 						results <- FilterResult{Record{}, err}
 						return
 					}
+
+					if reversed {
+						util.Reverse(recs)
+					}
 					for _, rec := range recs {
-						results <- FilterResult{rec, nil}
+						select {
+						case <-stop:
+							return
+						case results <- FilterResult{rec, nil}:
+						}
 					}
 				}
 			}
 		}
-		close(results)
-	}, results
+	}, results, stop
 }
 
 // LoadDateRecords loads all records for the given date string/directory
