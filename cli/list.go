@@ -222,11 +222,19 @@ func printRecord(r core.Record, project core.Project) {
 	if fillLen > 0 {
 		fill = strings.Repeat(" ", fillLen)
 	}
+	note := ""
+	if r.Note != "" {
+		parts := strings.SplitN(strings.ReplaceAll(r.Note, "\r\n", "\n"), "\n", 2)
+		note = parts[0]
+		if len(parts) > 1 {
+			note += " ..."
+		}
+	}
 	out.Print(
 		"%s%s %s %s %s - %s (%s + %s)  %s\n", name, fill,
 		project.Render.Sprintf(" %s ", project.Symbol),
 		date, start, end, util.FormatDuration(dur), util.FormatDuration(pause),
-		r.Note,
+		note,
 	)
 }
 
