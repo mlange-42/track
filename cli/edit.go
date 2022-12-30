@@ -251,7 +251,7 @@ func editRecord(t *core.Track, tm time.Time) error {
 
 			// TODO could change, but requires deleting original file
 			if newRecord.Start != record.Start {
-				return fmt.Errorf("can't change start time")
+				return fmt.Errorf("can't change start time. Try command 'track edit day' instead")
 			}
 
 			if err = newRecord.Check(); err != nil {
