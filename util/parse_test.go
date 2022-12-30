@@ -45,9 +45,16 @@ func TestParseTimeRange(t *testing.T) {
 		},
 		{
 			title:    "End time next day",
-			text:     "12:30 - +0:30",
+			text:     "12:30 - 0:30>",
 			expStart: date.Add(time.Duration(time.Minute * (12*60 + 30))),
 			expEnd:   date.Add(time.Duration(time.Minute * (24*60 + 30))),
+			expErr:   false,
+		},
+		{
+			title:    "Start time previous day",
+			text:     "<23:30 - 2:30",
+			expStart: date.Add(time.Duration(time.Minute * (-30))),
+			expEnd:   date.Add(time.Duration(time.Minute * (2*60 + 30))),
 			expErr:   false,
 		},
 		{
