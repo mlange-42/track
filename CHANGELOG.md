@@ -10,10 +10,13 @@
 * The tag prefix is now `#` instead of `+` (record file comments are `//`) (#53)
 * Projects have a foreground color, in addition to the background color (#54)
 * The `resume` command has flags `--at` and `--ago` to correct times (#55)
+* The `start` command has a flag `--copy` to copy note and tags from the previous record in the same project (#58)
+* The command `track edit record` can be used without arguments, or with only time as argument (#59)
 
 ### Other
 
 * Removed command `break` (#52)
+* Print only the first line of notes in the records list (#57)
 
 ## [v0.2.1]
 
