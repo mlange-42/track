@@ -15,10 +15,10 @@ import (
 )
 
 // TagPrefix denotes tags in record notes
-const TagPrefix = "#"
+const TagPrefix = "+"
 
 // CommentPrefix denotes comments in record files
-const CommentPrefix = "//"
+const CommentPrefix = "#"
 
 // YamlCommentPrefix denotes comments in YAML files
 const YamlCommentPrefix = "#"
