@@ -123,7 +123,6 @@ track report timeline days
 
 ```text
 track
-├─break DURATION
 ├─create
 │ ├─project PROJECT
 │ └─workspace WORKSPACE
@@ -141,6 +140,7 @@ track
 │ ├─projects
 │ ├─records [DATE]
 │ └─workspaces
+├─pause [NOTE...]
 ├─report
 │ ├─day [DATE]
 │ ├─projects
