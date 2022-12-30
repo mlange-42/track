@@ -99,25 +99,22 @@ func (r Record) CurrentPauseDuration(min, max time.Time) time.Duration {
 }
 
 // Serialize converts a record to a serialization string
-func (r Record) Serialize() string {
-	endTime := "?"
-	if !r.End.IsZero() {
-		endTime = r.End.Format(util.TimeFormat)
-		if util.ToDate(r.End).After(r.Start) {
-			endTime = "+" + endTime
-		}
+func (r Record) Serialize(date time.Time) string {
+	reference := date
+	if reference.IsZero() {
+		reference = r.Start
 	}
-	res := fmt.Sprintf("%s - %s", r.Start.Format(util.TimeFormat), endTime)
+	startDate := util.FormatTimeWithOffset(r.Start, reference)
+	endTime := util.FormatTimeWithOffset(r.End, reference)
+
+	res := fmt.Sprintf("%s - %s", startDate, endTime)
 	for _, p := range r.Pause {
 		duration := "?"
 		if !p.End.IsZero() {
 			duration = p.End.Sub(p.Start).Round(time.Second).String()
 		}
-		prefix := ""
-		if util.ToDate(p.Start).After(r.Start) {
-			prefix = "+"
-		}
-		res += fmt.Sprintf("\n    - %s%s - %s", prefix, p.Start.Format(util.TimeFormat), duration)
+		startTime := util.FormatTimeWithOffset(p.Start, reference)
+		res += fmt.Sprintf("\n    - %s - %s", startTime, duration)
 		if p.Note != "" {
 			res += fmt.Sprintf(" / %s", p.Note)
 		}
@@ -323,7 +320,7 @@ func (t *Track) SaveRecord(record *Record, force bool) error {
 		return err
 	}
 
-	bytes := record.Serialize()
+	bytes := record.Serialize(time.Time{})
 
 	_, err = fmt.Fprintf(file, "%s Record %s\n", CommentPrefix, record.Start.Format(util.DateTimeFormat))
 	if err != nil {

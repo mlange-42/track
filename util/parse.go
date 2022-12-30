@@ -53,34 +53,14 @@ func ParseTimeRange(text string, date time.Time) (start, end time.Time, err erro
 		parts[i] = strings.TrimSpace(parts[i])
 	}
 
-	nextDay := false
-	if strings.HasPrefix(parts[0], "+") {
-		parts[0] = strings.TrimPrefix(parts[0], "+")
-		nextDay = true
-	}
-	start, err = time.ParseInLocation(TimeFormat, parts[0], time.Local)
+	start, err = ParseTimeWithOffset(parts[0], date)
 	if err != nil {
 		return
 	}
-	start = DateAndTime(date, start)
-	if nextDay {
-		start = start.Add(24 * time.Hour)
-	}
-
-	nextDay = false
-	if strings.HasPrefix(parts[1], "+") {
-		parts[1] = strings.TrimPrefix(parts[1], "+")
-		nextDay = true
-	}
 
 	if parts[1] != "?" {
-		end, err = time.ParseInLocation(TimeFormat, parts[1], time.Local)
-		if err == nil {
-			end = DateAndTime(date, end)
-			if nextDay {
-				end = end.Add(24 * time.Hour)
-			}
-		} else {
+		end, err = ParseTimeWithOffset(parts[1], date)
+		if err != nil {
 			var dur time.Duration
 			dur, err = time.ParseDuration(parts[1])
 			if err != nil {
@@ -96,6 +76,28 @@ func ParseTimeRange(text string, date time.Time) (start, end time.Time, err erro
 	}
 
 	return start, end, nil
+}
+
+// ParseTimeWithOffset parses a time with offset markers
+func ParseTimeWithOffset(text string, date time.Time) (time.Time, error) {
+	dayOffset := 0
+	if strings.HasPrefix(text, PrevDayPrefix) {
+		text = strings.TrimPrefix(text, PrevDayPrefix)
+		dayOffset--
+	}
+	if strings.HasSuffix(text, NextDaySuffix) {
+		text = strings.TrimSuffix(text, NextDaySuffix)
+		dayOffset++
+	}
+	t, err := time.ParseInLocation(TimeFormat, text, time.Local)
+	if err != nil {
+		return time.Time{}, err
+	}
+	t = DateAndTime(date, t)
+	if dayOffset != 0 {
+		t = t.Add(time.Duration(int64(dayOffset*24) * int64(time.Hour)))
+	}
+	return t, nil
 }
 
 // DateAndTime combines a date with a time

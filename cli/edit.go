@@ -45,6 +45,7 @@ See file .track/config.yml to configure the editor to be used.`,
 
 	edit.AddCommand(editProjectCommand(t))
 	edit.AddCommand(editRecordCommand(t))
+	edit.AddCommand(editDayCommand(t))
 	edit.AddCommand(editConfigCommand(t))
 
 	edit.Long += "\n\n" + formatCmdTree(edit)
@@ -194,6 +195,41 @@ See file .track/config.yml to configure the editor to be used.`,
 	return editProject
 }
 
+func editDayCommand(t *core.Track) *cobra.Command {
+	editProject := &cobra.Command{
+		Use:   "day [DATE]",
+		Short: "Edit all records of one day",
+		Long: `Edit all records of one day
+
+Opens the records in a single temporary file for editing.
+See file .track/config.yml to configure the editor to be used.`,
+		Aliases: []string{"d"},
+		Args:    util.WrappedArgs(cobra.MaximumNArgs(2)),
+		Run: func(cmd *cobra.Command, args []string) {
+			var err error
+			date := util.ToDate(time.Now())
+			if len(args) > 0 {
+				date, err = util.ParseDate(args[0])
+				if err != nil {
+					out.Err("failed to edit day: %s", err)
+					return
+				}
+			}
+			err = editDay(t, date)
+			if err != nil {
+				if err == ErrUserAbort {
+					out.Warn("failed to edit config: %s", err)
+					return
+				}
+				out.Err("failed to edit config: %s", err)
+				return
+			}
+			out.Success("Saved day records")
+		},
+	}
+
+	return editProject
+}
 func editRecord(t *core.Track, tm time.Time) error {
 	record, err := t.LoadRecord(tm)
 	if err != nil {
@@ -204,7 +240,7 @@ func editRecord(t *core.Track, tm time.Time) error {
 		fmt.Sprintf("%s Record %s\n\n", core.CommentPrefix, record.Start.Format(util.DateTimeFormat)),
 		core.CommentPrefix,
 		func(r *core.Record) ([]byte, error) {
-			str := r.Serialize()
+			str := r.Serialize(time.Time{})
 			return []byte(str), nil
 		},
 		func(b []byte) error {
@@ -281,6 +317,10 @@ func editConfig(t *core.Track) error {
 			}
 			return nil
 		})
+}
+
+func editDay(t *core.Track, date time.Time) error {
+	return nil
 }
 
 func edit[T any](t *core.Track, obj T, comment string, commentPrefix string, marshal func(T) ([]byte, error), unmarshal func(b []byte) error) error {
