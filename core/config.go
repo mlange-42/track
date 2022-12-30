@@ -100,7 +100,7 @@ func SaveConfig(conf Config) error {
 		return err
 	}
 
-	_, err = fmt.Fprintf(file, "# Track config\n\n")
+	_, err = fmt.Fprintf(file, "%s Track config\n\n", YamlCommentPrefix)
 	if err != nil {
 		return err
 	}

@@ -15,7 +15,13 @@ import (
 )
 
 // TagPrefix denotes tags in record notes
-const TagPrefix = "+"
+const TagPrefix = "#"
+
+// CommentPrefix denotes comments in record files
+const CommentPrefix = "//"
+
+// YamlCommentPrefix denotes comments in YAML files
+const YamlCommentPrefix = "#"
 
 var (
 	// ErrNoRecords is an error for no records found for a date
@@ -253,7 +259,7 @@ func skipLines(lines []string, index int, skipEmpty bool) (int, bool) {
 	if index >= len(lines) {
 		return index, false
 	}
-	for (skipEmpty && strings.TrimSpace(lines[index]) == "") || strings.HasPrefix(lines[index], "#") {
+	for (skipEmpty && strings.TrimSpace(lines[index]) == "") || strings.HasPrefix(lines[index], CommentPrefix) {
 		index++
 		if index >= len(lines) {
 			return index, false
@@ -311,7 +317,7 @@ func (t *Track) SaveRecord(record *Record, force bool) error {
 
 	bytes := record.Serialize()
 
-	_, err = fmt.Fprintf(file, "# Record %s\n", record.Start.Format(util.DateTimeFormat))
+	_, err = fmt.Fprintf(file, "%s Record %s\n", CommentPrefix, record.Start.Format(util.DateTimeFormat))
 	if err != nil {
 		return err
 	}

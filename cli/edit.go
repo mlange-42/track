@@ -23,10 +23,10 @@ var (
 )
 
 const editComment string = `
-# Edit the above definition.
-# Then, save the file and close the editor.
-# 
-# If you remove everything, the operation will be aborted.
+%[1]s Edit the above definition.
+%[1]s Then, save the file and close the editor.
+%[1]s 
+%[1]s If you remove everything, the operation will be aborted.
 `
 
 func editCommand(t *core.Track) *cobra.Command {
@@ -177,7 +177,8 @@ func editRecord(t *core.Track, tm time.Time) error {
 	}
 
 	return edit(t, &record,
-		fmt.Sprintf("# Record %s\n\n", record.Start.Format(util.DateTimeFormat)),
+		fmt.Sprintf("%s Record %s\n\n", core.CommentPrefix, record.Start.Format(util.DateTimeFormat)),
+		core.CommentPrefix,
 		func(r *core.Record) ([]byte, error) {
 			str := r.Serialize()
 			return []byte(str), nil
@@ -206,7 +207,8 @@ func editRecord(t *core.Track, tm time.Time) error {
 
 func editProject(t *core.Track, project core.Project) error {
 	return edit(t, &project,
-		fmt.Sprintf("# Project %s\n\n", project.Name),
+		fmt.Sprintf("%s Project %s\n\n", core.YamlCommentPrefix, project.Name),
+		core.YamlCommentPrefix,
 		func(r *core.Project) ([]byte, error) {
 			return yaml.Marshal(r)
 		},
@@ -239,7 +241,8 @@ func editConfig(t *core.Track) error {
 	}
 
 	return edit(t, &conf,
-		fmt.Sprintf("# Track config\n\n"),
+		fmt.Sprintf("%s Track config\n\n", core.YamlCommentPrefix),
+		core.YamlCommentPrefix,
 		func(r *core.Config) ([]byte, error) {
 			return yaml.Marshal(r)
 		},
@@ -256,7 +259,7 @@ func editConfig(t *core.Track) error {
 		})
 }
 
-func edit[T any](t *core.Track, obj T, prefix string, marshal func(T) ([]byte, error), unmarshal func(b []byte) error) error {
+func edit[T any](t *core.Track, obj T, comment string, commentPrefix string, marshal func(T) ([]byte, error), unmarshal func(b []byte) error) error {
 	file, err := os.CreateTemp("", "track-*.yml")
 	if err != nil {
 		return err
@@ -268,7 +271,7 @@ func edit[T any](t *core.Track, obj T, prefix string, marshal func(T) ([]byte, e
 		return err
 	}
 
-	_, err = file.WriteString(prefix)
+	_, err = file.WriteString(comment)
 	if err != nil {
 		return err
 	}
@@ -276,7 +279,7 @@ func edit[T any](t *core.Track, obj T, prefix string, marshal func(T) ([]byte, e
 	if err != nil {
 		return err
 	}
-	_, err = file.WriteString(editComment)
+	_, err = file.WriteString(fmt.Sprintf(editComment, commentPrefix))
 	if err != nil {
 		return err
 	}

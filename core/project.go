@@ -75,7 +75,7 @@ func (t *Track) SaveProject(project Project, force bool) error {
 		return err
 	}
 
-	_, err = fmt.Fprintf(file, "# Project %s\n\n", project.Name)
+	_, err = fmt.Fprintf(file, "%s Project %s\n\n", YamlCommentPrefix, project.Name)
 	if err != nil {
 		return err
 	}
