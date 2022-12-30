@@ -90,7 +90,7 @@ func listProjectsCommand(t *core.Track) *cobra.Command {
 						str += strings.Repeat(" ", fillLen)
 					}
 					str += " "
-					str += color.C256(t.Value.Color, true).Sprintf(" %s ", t.Value.Symbol)
+					str += t.Value.Render.Sprintf(" %s ", t.Value.Symbol)
 					return str
 				},
 				2,
@@ -224,7 +224,7 @@ func printRecord(r core.Record, project core.Project) {
 	}
 	out.Print(
 		"%s%s %s %s %s - %s (%s + %s)  %s\n", name, fill,
-		color.C256(project.Color, true).Sprintf(" %s ", project.Symbol),
+		project.Render.Sprintf(" %s ", project.Symbol),
 		date, start, end, util.FormatDuration(dur), util.FormatDuration(pause),
 		r.Note,
 	)

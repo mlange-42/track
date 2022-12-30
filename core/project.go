@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/gookit/color"
 	"github.com/mlange-42/track/fs"
 	"github.com/mlange-42/track/tree"
 	"gopkg.in/yaml.v3"
@@ -33,8 +34,57 @@ type Project struct {
 	Name     string
 	Parent   string
 	Color    uint8
+	FgColor  uint8          `yaml:"fgColor"`
+	Render   color.Style256 `yaml:"-"`
 	Symbol   string
 	Archived bool
+}
+
+type tempProject struct {
+	Name     string
+	Parent   string
+	Color    uint8
+	FgColor  uint8 `yaml:"fgColor"`
+	Symbol   string
+	Archived bool
+}
+
+// NewProject creates a new project
+func NewProject(name string, parent string, symbol string, fgColor, color uint8) Project {
+	p := Project{
+		Name:     name,
+		Parent:   parent,
+		Symbol:   symbol,
+		Color:    color,
+		FgColor:  fgColor,
+		Archived: false,
+	}
+	p.SetColors(fgColor, color)
+	return p
+}
+
+// UnmarshalYAML un-marshals a project
+func (p *Project) UnmarshalYAML(value *yaml.Node) error {
+	var tmp tempProject
+	err := value.Decode(&tmp)
+	if err != nil {
+		return err
+	}
+	p.Name = tmp.Name
+	p.Parent = tmp.Parent
+	p.Symbol = tmp.Symbol
+	p.Archived = tmp.Archived
+
+	p.SetColors(tmp.FgColor, tmp.Color)
+
+	return nil
+}
+
+// SetColors sets project colors
+func (p *Project) SetColors(fgCol, col uint8) {
+	p.Color = col
+	p.FgColor = fgCol
+	p.Render = *color.S256(fgCol, col)
 }
 
 // ProjectsDir returns the projects storage directory

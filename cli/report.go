@@ -166,7 +166,7 @@ func projectsReportCommand(t *core.Track, options *filterOptions) *cobra.Command
 						str += strings.Repeat(" ", fillLen)
 					}
 					str += " "
-					str += color.C256(t.Value.Color, true).Sprintf(" %s ", t.Value.Symbol)
+					str += t.Value.Render.Sprintf(" %s ", t.Value.Symbol)
 
 					return fmt.Sprintf(
 						"%s %s (%s)", str,
@@ -502,7 +502,7 @@ func renderDayTimeline(t *core.Track, reporter *core.Reporter, active string, st
 				str += strings.Repeat(" ", fillLen)
 			}
 			str += " "
-			str += color.C256(t.Value.Color, true).Sprintf(" %s ", t.Value.Symbol)
+			str += t.Value.Render.Sprintf(" %s ", t.Value.Symbol)
 			text, _ := timelineStr[t.Value.Name]
 			return fmt.Sprintf("%s%s", str, text)
 		},
@@ -546,16 +546,16 @@ func renderWeekTimeline(t *core.Track, reporter *core.Reporter, active string, s
 	sort.Strings(projects)
 	indices := make(map[string]int, len(projects))
 	symbols := make([]rune, len(projects)+1, len(projects)+1)
-	colors := make([]uint8, len(projects)+1, len(projects)+1)
+	colors := make([]color.Style256, len(projects)+1, len(projects)+1)
 	symbols[0] = '.'
 	if space != nil {
 		symbols[0] = *space
 	}
-	colors[0] = 0
+	colors[0] = *color.S256(15, 0)
 	for i, p := range projects {
 		indices[p] = i + 1
 		symbols[i+1] = []rune(reporter.Projects[p].Symbol)[0]
-		colors[i+1] = reporter.Projects[p].Color
+		colors[i+1] = reporter.Projects[p].Render
 	}
 
 	timeline := make([]int, 24*7*blocksPerHour, 24*7*blocksPerHour)
@@ -627,11 +627,7 @@ func renderWeekTimeline(t *core.Track, reporter *core.Reporter, active string, s
 				if i == nowIdx {
 					sym = '@'
 				}
-				if col == 0 {
-					fmt.Fprintf(&sb, "%c", sym)
-				} else {
-					fmt.Fprint(&sb, color.C256(col, true).Sprintf("%c", sym))
-				}
+				fmt.Fprint(&sb, col.Sprintf("%c", sym))
 			}
 		}
 		fmt.Fprintln(&sb, "|")
@@ -656,8 +652,8 @@ func renderWeekTimeline(t *core.Track, reporter *core.Reporter, active string, s
 			line2 = ""
 		}
 
-		line1 += color.C256(col, true).Sprintf(" %c:%3s ", symbols[indices[p]], p)
-		line2 += color.C256(col, true).Sprintf(" %*s ", width+2, util.FormatDuration(reporter.TotalTime[p]))
+		line1 += col.Sprintf(" %c:%3s ", symbols[indices[p]], p)
+		line2 += col.Sprintf(" %*s ", width+2, util.FormatDuration(reporter.TotalTime[p]))
 		lineWidth += width + 4
 	}
 	if len(line1) > 0 {

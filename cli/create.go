@@ -29,6 +29,7 @@ func createCommand(t *core.Track) *cobra.Command {
 func createProjectCommand(t *core.Track) *cobra.Command {
 	var parent string
 	var color uint8
+	var fgColor uint8
 	var symbol string
 
 	createProject := &cobra.Command{
@@ -47,12 +48,7 @@ func createProjectCommand(t *core.Track) *cobra.Command {
 				return
 			}
 
-			project := core.Project{
-				Name:   name,
-				Parent: parent,
-				Color:  color,
-				Symbol: symbol,
-			}
+			project := core.NewProject(name, parent, symbol, fgColor, color)
 
 			if err := t.CheckParents(project); err != nil {
 				out.Err("failed to create project: %s", err)
@@ -70,6 +66,7 @@ func createProjectCommand(t *core.Track) *cobra.Command {
 
 	createProject.Flags().StringVarP(&parent, "parent", "p", "", "Parent project of this project")
 	createProject.Flags().Uint8VarP(&color, "color", "c", 0, "Background color for the project, as color index 0..256.\nSee: $ track list colors")
+	createProject.Flags().Uint8VarP(&fgColor, "fg-color", "f", 15, "Foreground color for the project, as color index 0..256.\nSee: $ track list colors")
 	createProject.Flags().StringVarP(&symbol, "symbol", "s", "", "Symbol for the project. Defaults to the first letter of the name")
 
 	return createProject

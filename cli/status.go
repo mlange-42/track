@@ -6,7 +6,6 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gookit/color"
 	"github.com/mlange-42/track/core"
 	"github.com/mlange-42/track/out"
 	"github.com/mlange-42/track/util"
@@ -83,7 +82,7 @@ Columns of the status are:
 			} else {
 				pad = strings.Repeat(" ", fillLen)
 			}
-			name = color.C256(proj.Color, true).Sprint(name)
+			name = proj.Render.Sprint(name)
 
 			if info.Start.IsZero() {
 				out.Warn("No records\n")
