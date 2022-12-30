@@ -45,6 +45,7 @@ See file .track/config.yml to configure the editor to be used.`,
 
 	edit.AddCommand(editProjectCommand(t))
 	edit.AddCommand(editRecordCommand(t))
+	edit.AddCommand(editDayCommand(t))
 	edit.AddCommand(editConfigCommand(t))
 
 	edit.Long += "\n\n" + formatCmdTree(edit)
@@ -194,6 +195,48 @@ See file .track/config.yml to configure the editor to be used.`,
 	return editProject
 }
 
+func editDayCommand(t *core.Track) *cobra.Command {
+	var dryRun bool
+
+	editDay := &cobra.Command{
+		Use:   "day [DATE]",
+		Short: "Edit all records of one day",
+		Long: `Edit all records of one day
+
+Opens the records in a single temporary file for editing.
+See file .track/config.yml to configure the editor to be used.`,
+		Aliases: []string{"d"},
+		Args:    util.WrappedArgs(cobra.MaximumNArgs(2)),
+		Run: func(cmd *cobra.Command, args []string) {
+			var err error
+			date := util.ToDate(time.Now())
+			if len(args) > 0 {
+				date, err = util.ParseDate(args[0])
+				if err != nil {
+					out.Err("failed to edit day: %s", err)
+					return
+				}
+			}
+			err = editDay(t, date, dryRun)
+			if err != nil {
+				if err == ErrUserAbort {
+					out.Warn("failed to edit day: %s", err)
+					return
+				}
+				out.Err("failed to edit day: %s", err)
+				return
+			}
+			if dryRun {
+				out.Success("Saved day records - dry-run")
+			} else {
+				out.Success("Saved day records")
+			}
+		},
+	}
+	editDay.Flags().BoolVar(&dryRun, "dry", false, "Dry run: do not actually change any files")
+
+	return editDay
+}
 func editRecord(t *core.Track, tm time.Time) error {
 	record, err := t.LoadRecord(tm)
 	if err != nil {
@@ -204,7 +247,7 @@ func editRecord(t *core.Track, tm time.Time) error {
 		fmt.Sprintf("%s Record %s\n\n", core.CommentPrefix, record.Start.Format(util.DateTimeFormat)),
 		core.CommentPrefix,
 		func(r *core.Record) ([]byte, error) {
-			str := r.Serialize()
+			str := r.Serialize(time.Time{})
 			return []byte(str), nil
 		},
 		func(b []byte) error {
@@ -213,9 +256,8 @@ func editRecord(t *core.Track, tm time.Time) error {
 				return err
 			}
 
-			// TODO could change, but requires deleting original file
 			if newRecord.Start != record.Start {
-				return fmt.Errorf("can't change start time")
+				return fmt.Errorf("can't change start time. Try command 'track edit day' instead")
 			}
 
 			if err = newRecord.Check(); err != nil {
@@ -225,6 +267,131 @@ func editRecord(t *core.Track, tm time.Time) error {
 			if err = t.SaveRecord(&newRecord, true); err != nil {
 				return err
 			}
+			return nil
+		})
+}
+
+func editDay(t *core.Track, date time.Time, dryRun bool) error {
+	date = util.ToDate(date)
+	dateBefore := date.Add(-24 * time.Hour)
+	dateAfter := date.Add(24 * time.Hour)
+
+	filters := core.FilterFunctions{
+		core.FilterByTime(date, dateAfter),
+	}
+
+	records, err := t.LoadDateRecordsFiltered(dateBefore, filters)
+	if err != nil && !errors.Is(err, core.ErrNoRecords) {
+		return err
+	}
+	records2, err := t.LoadDateRecordsFiltered(date, filters)
+	if err != nil && !errors.Is(err, core.ErrNoRecords) {
+		return err
+	}
+	records = append(records, records2...)
+
+	if len(records) == 0 {
+		return fmt.Errorf("no records for %s", date.Format(util.DateFormat))
+	}
+
+	return edit(t, records,
+		fmt.Sprintf("%[1]s Records for %s\n%[1]s Clear file to abort\n\n", core.CommentPrefix, date.Format(util.DateFormat)),
+		core.CommentPrefix,
+		func(records []core.Record) ([]byte, error) {
+			str := ""
+			for i, rec := range records {
+				str += rec.Serialize(date)
+				if i < len(records)-1 {
+					str += "\n--------------------\n\n"
+				}
+			}
+			return []byte(str), nil
+		},
+		func(b []byte) error {
+			lines := strings.Split(strings.ReplaceAll(string(b), "\r\n", "\n"), "\n")
+			prevIdx := 0
+
+			newRecords := []core.Record{}
+
+			for i, line := range lines {
+				if strings.HasPrefix(line, "----") || i == len(lines)-1 {
+					endIdx := i
+					if i == len(lines)-1 {
+						endIdx = len(lines)
+					}
+					str := strings.Join(lines[prevIdx:endIdx], "\n")
+					rec, err := core.DeserializeRecord(str, date)
+					if err != nil {
+						return err
+					}
+					newRecords = append(newRecords, rec)
+					prevIdx = i + 1
+				}
+			}
+
+			now := time.Now()
+			today := util.ToDate(now)
+
+			if len(newRecords) > 0 {
+				oldFirst, newFirst := records[0], newRecords[0]
+				if oldFirst.Start.Before(date) {
+					if newFirst.Start.Before(oldFirst.Start) {
+						return fmt.Errorf(
+							"can't extend a start time on the day before. try 'track edit day %s'",
+							dateBefore.Format(util.DateFormat),
+						)
+					}
+				} else {
+					if newFirst.Start.Before(date) {
+						return fmt.Errorf(
+							"can't move a start time to the day before. try 'track edit day %s'",
+							dateBefore.Format(util.DateFormat),
+						)
+					}
+				}
+				oldLast, newLast := records[len(records)-1], newRecords[len(newRecords)-1]
+				if newLast.Start.After(now) || newLast.End.After(now) {
+					return fmt.Errorf("can't date into the future")
+				}
+				if oldLast.End.After(dateAfter) {
+					if !newLast.End.IsZero() && newLast.End.After(oldLast.End) {
+						return fmt.Errorf(
+							"can't extend an end time on the day after. try 'track edit day %s'",
+							dateAfter.Format(util.DateFormat),
+						)
+					}
+				}
+			}
+
+			prevStart := time.Time{}
+			prevEnd := time.Time{}
+
+			for i, rec := range newRecords {
+				if rec.Start.Before(prevStart) {
+					return fmt.Errorf("records are not in chronological order")
+				}
+				if rec.Start.Before(prevEnd) {
+					return fmt.Errorf("records overlap (%s / %s)", prevStart.Format(util.TimeFormat), rec.Start.Format(util.TimeFormat))
+				}
+				if rec.End.IsZero() {
+					if date != today || i != len(newRecords)-1 {
+						return fmt.Errorf("only the last record can have an open end time")
+					}
+				}
+				prevStart = rec.Start
+				prevEnd = rec.End
+			}
+
+			if !dryRun {
+				for _, rec := range records {
+					t.DeleteRecord(&rec)
+				}
+
+				for _, rec := range newRecords {
+					t.SaveRecord(&rec, false)
+				}
+			}
+
 			return nil
 		})
 }

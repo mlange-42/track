@@ -31,6 +31,13 @@ const (
 	NoDateTime = "      ---       "
 )
 
+const (
+	// PrevDayPrefix is a prefix for a time on the previous day
+	PrevDayPrefix = "<"
+	// NextDaySuffix is a suffix for a time on the next day
+	NextDaySuffix = ">"
+)
+
 // BlockRunes are utf8 8th blocks from empty to full
 var BlockRunes = [9]rune{'·', 9601, 9602, 9603, 9604, 9605, 9606, 9607, 9608}
 
@@ -52,6 +59,23 @@ func FloatToBlock(value float64, space *rune) rune {
 // FormatDuration formats a duration
 func FormatDuration(d time.Duration) string {
 	return fmt.Sprintf("%02d:%02d", int(d.Hours()), int(d.Minutes())%60)
+}
+
+// FormatTimeWithOffset formats a time with day offset indicators
+func FormatTimeWithOffset(t time.Time, reference time.Time) string {
+	if t.IsZero() {
+		return "?"
+	}
+	timeStr := t.Format(TimeFormat)
+	if ToDate(t).After(reference) {
+		timeStr = timeStr + NextDaySuffix
+		return timeStr
+	}
+	if ToDate(reference).After(t) {
+		timeStr = PrevDayPrefix + timeStr
+		return timeStr
+	}
+	return timeStr
 }
 
 // Format formats a string with named placeholders.
