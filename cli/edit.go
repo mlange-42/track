@@ -361,25 +361,30 @@ func editDay(t *core.Track, date time.Time, dryRun bool) error {
 						)
 					}
 				}
-			}
 
-			prevStart := time.Time{}
-			prevEnd := time.Time{}
+				prevStart := time.Time{}
+				prevEnd := time.Time{}
 
-			for i, rec := range newRecords {
-				if rec.Start.Before(prevStart) {
-					return fmt.Errorf("records are not in chronological order")
-				}
-				if rec.Start.Before(prevEnd) {
-					return fmt.Errorf("records overlap (%s / %s)", prevStart.Format(util.TimeFormat), rec.Start.Format(util.TimeFormat))
-				}
-				if rec.End.IsZero() {
-					if date != today || i != len(newRecords)-1 {
-						return fmt.Errorf("only the last record can have an open end time")
+				for i, rec := range newRecords {
+					if rec.Start.Before(prevStart) {
+						return fmt.Errorf("records are not in chronological order")
 					}
+					if rec.Start.Before(prevEnd) {
+						return fmt.Errorf("records overlap (%s / %s)", prevStart.Format(util.TimeFormat), rec.Start.Format(util.TimeFormat))
+					}
+					if rec.End.IsZero() {
+						if i != len(newRecords)-1 {
+							return fmt.Errorf("only the last record can have an open end time")
+						}
+						if !oldLast.End.IsZero() && date != today {
+							return fmt.Errorf(
+								"can't set open end for record starting on another day. Try 'track edit day today'",
+							)
+						}
+					}
+					prevStart = rec.Start
+					prevEnd = rec.End
 				}
-				prevStart = rec.Start
-				prevEnd = rec.End
 			}
 
 			if !dryRun {
