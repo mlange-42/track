@@ -12,6 +12,7 @@ import (
 )
 
 func startCommand(t *core.Track) *cobra.Command {
+	var copy bool
 	var atTime string
 	var ago time.Duration
 
@@ -29,6 +30,11 @@ Notes can contain tags, denoted by the prefix "%s", like "%stag"`, core.TagPrefi
 
 			if !t.ProjectExists(project) {
 				out.Err("failed to start record: project '%s' does not exist", project)
+				return
+			}
+
+			if copy && len(args) > 1 {
+				out.Err("failed to start record: can't use note arguments with flag --copy")
 				return
 			}
 
@@ -73,8 +79,36 @@ Notes can contain tags, denoted by the prefix "%s", like "%stag"`, core.TagPrefi
 				}
 			}
 
-			note := strings.Join(args[1:], " ")
-			tags := core.ExtractTagsSlice(args[1:])
+			note := ""
+			tags := []string{}
+
+			if copy {
+				fn, results, stop := t.AllRecordsFiltered(
+					core.FilterFunctions{core.FilterByProjects([]string{project})},
+					true, // reversed order to find latest record of project
+				)
+				go fn()
+
+				anyFound := false
+				for res := range results {
+					if res.Err != nil {
+						out.Err("failed to start record with copy: %s", err.Error())
+						return
+					}
+					note = res.Record.Note
+					tags = res.Record.Tags
+					anyFound = true
+					close(stop)
+					break
+				}
+				if !anyFound {
+					out.Err("failed to create record with copy: no previous record in '%s'", project)
+					return
+				}
+			} else {
+				note = strings.Join(args[1:], " ")
+				tags = core.ExtractTagsSlice(args[1:])
+			}
 
 			record, err := t.StartRecord(project, note, tags, startTime)
 			if err != nil {
@@ -85,6 +119,8 @@ Notes can contain tags, denoted by the prefix "%s", like "%stag"`, core.TagPrefi
 			out.Success("Started record in '%s' at %02d:%02d", project, record.Start.Hour(), record.Start.Minute())
 		},
 	}
+
+	start.Flags().BoolVarP(&copy, "copy", "c", false, "Copy note and tags from the last record of the project.")
 
 	start.Flags().StringVar(&atTime, "at", "", "Stop the record at a different time than now.")
 	start.Flags().DurationVar(&ago, "ago", 0*time.Second, "Stop the record at a different time than now, given as a duration.")
