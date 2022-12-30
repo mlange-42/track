@@ -218,10 +218,10 @@ See file .track/config.yml to configure the editor to be used.`,
 			err = editDay(t, date)
 			if err != nil {
 				if err == ErrUserAbort {
-					out.Warn("failed to edit config: %s", err)
+					out.Warn("failed to edit day: %s", err)
 					return
 				}
-				out.Err("failed to edit config: %s", err)
+				out.Err("failed to edit day: %s", err)
 				return
 			}
 			out.Success("Saved day records")
@@ -261,6 +261,89 @@ func editRecord(t *core.Track, tm time.Time) error {
 			if err = t.SaveRecord(&newRecord, true); err != nil {
 				return err
 			}
+			return nil
+		})
+}
+
+func editDay(t *core.Track, date time.Time) error {
+	date = util.ToDate(date)
+	dateBefore := date.Add(-24 * time.Hour)
+
+	filters := core.FilterFunctions{
+		core.FilterByTime(date, date.Add(24*time.Hour)),
+	}
+
+	records, err := t.LoadDateRecordsFiltered(dateBefore, filters)
+	if err != nil && !errors.Is(err, core.ErrNoRecords) {
+		return err
+	}
+	records2, err := t.LoadDateRecordsFiltered(date, filters)
+	if err != nil && !errors.Is(err, core.ErrNoRecords) {
+		return err
+	}
+	records = append(records, records2...)
+
+	if len(records) == 0 {
+		return fmt.Errorf("no records for %s", date.Format(util.DateFormat))
+	}
+
+	return edit(t, records,
+		fmt.Sprintf("%[1]s Records for %s\n%[1]s Clear file to abort\n\n", core.CommentPrefix, date.Format(util.DateFormat)),
+		core.CommentPrefix,
+		func(records []core.Record) ([]byte, error) {
+			str := ""
+			for i, rec := range records {
+				str += rec.Serialize(date)
+				if i < len(records)-1 {
+					str += "\n--------------------\n\n"
+				}
+			}
+			return []byte(str), nil
+		},
+		func(b []byte) error {
+			lines := strings.Split(strings.ReplaceAll(string(b), "\r\n", "\n"), "\n")
+			prevIdx := 0
+
+			newRecords := []core.Record{}
+
+			for i, line := range lines {
+				if strings.HasPrefix(line, "----") || i == len(lines)-1 {
+					endIdx := i
+					if i == len(lines)-1 {
+						endIdx = len(lines)
+					}
+					str := strings.Join(lines[prevIdx:endIdx], "\n")
+					rec, err := core.DeserializeRecord(str, date)
+					if err != nil {
+						return err
+					}
+					newRecords = append(newRecords, rec)
+					prevIdx = i + 1
+				}
+			}
+
+			prevStart := time.Time{}
+			prevEnd := time.Time{}
+
+			for _, rec := range newRecords {
+				if rec.Start.Before(prevStart) {
+					return fmt.Errorf("records are not in chronological order")
+				}
+				if rec.Start.Before(prevEnd) {
+					return fmt.Errorf("records overlap (%s / %s)", prevStart.Format(util.TimeFormat), rec.Start.Format(util.TimeFormat))
+				}
+				prevStart = rec.Start
+				prevEnd = rec.End
+			}
+
+			for _, rec := range records {
+				t.DeleteRecord(&rec)
+			}
+
+			for _, rec := range newRecords {
+				t.SaveRecord(&rec, false)
+			}
+
 			return nil
 		})
 }
@@ -317,10 +400,6 @@ func editConfig(t *core.Track) error {
 			}
 			return nil
 		})
-}
-
-func editDay(t *core.Track, date time.Time) error {
-	return nil
 }
 
 func edit[T any](t *core.Track, obj T, comment string, commentPrefix string, marshal func(T) ([]byte, error), unmarshal func(b []byte) error) error {

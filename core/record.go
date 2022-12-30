@@ -119,7 +119,7 @@ func (r Record) Serialize(date time.Time) string {
 			res += fmt.Sprintf(" / %s", p.Note)
 		}
 	}
-	res += fmt.Sprintf("\n\n    %s", r.Project)
+	res += fmt.Sprintf("\n    %s", r.Project)
 
 	if len(r.Note) > 0 {
 		res += fmt.Sprintf("\n\n%s", r.Note)
@@ -187,14 +187,21 @@ func DeserializeRecord(str string, date time.Time) (Record, error) {
 	}
 	tags = ExtractTagsSlice(notes)
 
-	return Record{
+	record := Record{
 		Project: project,
 		Start:   start,
 		End:     end,
 		Note:    strings.TrimSpace(strings.Join(notes, "\n")),
 		Tags:    tags,
 		Pause:   pause,
-	}, nil
+	}
+
+	err = record.Check()
+	if err != nil {
+		return record, err
+	}
+
+	return record, nil
 }
 
 // Check checks consistency of a record
