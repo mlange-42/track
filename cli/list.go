@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -11,6 +12,7 @@ import (
 	"github.com/mlange-42/track/out"
 	"github.com/mlange-42/track/util"
 	"github.com/spf13/cobra"
+	"golang.org/x/exp/maps"
 )
 
 func listCommand(t *core.Track) *cobra.Command {
@@ -28,6 +30,7 @@ func listCommand(t *core.Track) *cobra.Command {
 	list.AddCommand(listProjectsCommand(t))
 	list.AddCommand(listRecordsCommand(t))
 	list.AddCommand(listColorsCommand(t))
+	list.AddCommand(listTagsCommand(t))
 
 	list.Long += "\n\n" + formatCmdTree(list)
 	return list
@@ -198,6 +201,26 @@ func listColorsCommand(t *core.Track) *cobra.Command {
 	return listColors
 }
 
+func listTagsCommand(t *core.Track) *cobra.Command {
+	var includeArchived bool
+
+	listTags := &cobra.Command{
+		Use:     "tags",
+		Short:   "Lists all tags",
+		Aliases: []string{"t"},
+		Args:    util.WrappedArgs(cobra.NoArgs),
+		Run: func(cmd *cobra.Command, args []string) {
+			err := printTags(t, includeArchived)
+			if err != nil {
+				out.Err("failed to list tags: %s", err.Error())
+			}
+		},
+	}
+	listTags.Flags().BoolVarP(&includeArchived, "archived", "a", false, "Include records from archived projects")
+
+	return listTags
+}
+
 func printRecord(r core.Record, project core.Project) {
 	date := r.Start.Format(util.DateFormat)
 	start := r.Start.Format(util.TimeFormat)
@@ -280,4 +303,43 @@ func printColorChart() {
 		color.S256(0, uint8(i)).Printf("%3d", i)
 		fmt.Print(" ")
 	}
+}
+
+func printTags(t *core.Track, includeArchived bool) error {
+	projects, err := t.LoadAllProjects()
+	if err != nil {
+		return err
+	}
+
+	tags := map[string]int{}
+
+	filters := core.FilterFunctions{}
+	if !includeArchived {
+		filters = append(filters, core.FilterByArchived(false, projects))
+	}
+
+	fn, results, _ := t.AllRecordsFiltered(filters, false)
+
+	go fn()
+	for res := range results {
+		if res.Err != nil {
+			return res.Err
+		}
+		for _, tag := range res.Record.Tags {
+			if v, ok := tags[tag]; ok {
+				tags[tag] = v + 1
+			} else {
+				tags[tag] = 1
+			}
+		}
+	}
+
+	keys := maps.Keys(tags)
+	sort.Strings(keys)
+
+	for _, tag := range keys {
+		out.Print("%16s %4d\n", tag, tags[tag])
+	}
+
+	return nil
 }

@@ -12,6 +12,7 @@
 * The `resume` command has flags `--at` and `--ago` to correct times (#55)
 * The `start` command has a flag `--copy` to copy note and tags from the previous record in the same project (#58)
 * The command `track edit record` can be used without arguments, or with only time as argument (#59)
+* Command `track list tags` to list all tags, with number of occurrences (#60)
 
 ### Other
 
