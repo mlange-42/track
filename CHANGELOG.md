@@ -4,9 +4,16 @@
 
 ### Features
 
+* Switched to storing records in plain-text files with simple custom format (#52)
+* Pause times can now be stored inside records instead of stop/start for a pause (#52)
+* New command `pause` to pause a record, or insert a finished pause (#52)
+* The tag prefix is now `#` instead of `+` (record file comments are `//`) (#53)
+* Projects have a foreground color, in addition to the background color (#54)
+* The `resume` command has flags `--at` and `--ago` to correct times (#55)
+
 ### Other
 
-* Removed command `break`
+* Removed command `break` (#52)
 
 ## [v0.2.1]
 
