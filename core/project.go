@@ -187,7 +187,7 @@ func (t *Track) DeleteProject(project Project) (int, error) {
 	filters := []func(r *Record) bool{
 		FilterByProjects([]string{project.Name}),
 	}
-	fn, results := t.AllRecordsFiltered(filters)
+	fn, results, _ := t.AllRecordsFiltered(filters, false)
 
 	go fn()
 
