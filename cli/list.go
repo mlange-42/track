@@ -202,20 +202,23 @@ func listColorsCommand(t *core.Track) *cobra.Command {
 }
 
 func listTagsCommand(t *core.Track) *cobra.Command {
-	listColors := &cobra.Command{
-		Use:     "lags",
+	var includeArchived bool
+
+	listTags := &cobra.Command{
+		Use:     "tags",
 		Short:   "Lists all tags",
 		Aliases: []string{"t"},
 		Args:    util.WrappedArgs(cobra.NoArgs),
 		Run: func(cmd *cobra.Command, args []string) {
-			err := printTags(t)
+			err := printTags(t, includeArchived)
 			if err != nil {
 				out.Err("failed to list tags: %s", err.Error())
 			}
 		},
 	}
+	listTags.Flags().BoolVarP(&includeArchived, "archived", "a", false, "Include records from archived projects")
 
-	return listColors
+	return listTags
 }
 
 func printRecord(r core.Record, project core.Project) {
@@ -302,7 +305,7 @@ func printColorChart() {
 	}
 }
 
-func printTags(t *core.Track) error {
+func printTags(t *core.Track, includeArchived bool) error {
 	projects, err := t.LoadAllProjects()
 	if err != nil {
 		return err
@@ -310,7 +313,12 @@ func printTags(t *core.Track) error {
 
 	tags := map[string]int{}
 
-	fn, results, _ := t.AllRecordsFiltered(core.FilterFunctions{core.FilterByArchived(false, projects)}, false)
+	filters := core.FilterFunctions{}
+	if !includeArchived {
+		filters = append(filters, core.FilterByArchived(false, projects))
+	}
+
+	fn, results, _ := t.AllRecordsFiltered(filters, false)
 
 	go fn()
 	for res := range results {
