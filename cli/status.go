@@ -16,8 +16,11 @@ import (
 type statusInfo struct {
 	Project   string
 	IsActive  bool
+	IsPaused  bool
+	Start     time.Time
 	Stopped   time.Duration
 	CurrTime  time.Duration
+	CurrPause time.Duration
 	CumTime   time.Duration
 	BreakTime time.Duration
 	TotalTime time.Duration
@@ -58,7 +61,6 @@ Columns of the status are:
 			}
 
 			if project == "" && !info.IsActive {
-				out.Warn("No running record. Start tracking or specify a project.\n")
 				out.Warn(
 					"Stopped project '%s' %s ago\n",
 					info.Project,
@@ -83,17 +85,25 @@ Columns of the status are:
 			}
 			name = color.C256(proj.Color, true).Sprint(name)
 
+			if info.Start.IsZero() {
+				out.Warn("No records\n")
+			} else {
+				out.Success("Record %s\n", info.Start.Format(util.DateTimeFormat))
+			}
 			out.Print("+------------------+-------+-------+-------+-------+\n")
 			out.Print("|          project |  curr | total | break | today |\n")
 			out.Print(
-				"| %s%s | %s | %s | %s | %s |\n",
+				"| %s%s | %s | %s | %s | %s |",
 				pad, name,
 				util.FormatDuration(info.CurrTime),
 				util.FormatDuration(info.CumTime),
 				util.FormatDuration(info.BreakTime),
 				util.FormatDuration(info.TotalTime),
 			)
-			out.Print("+------------------+-------+-------+-------+-------+")
+			if info.IsPaused {
+				out.Print(" (paused for %s)", util.FormatDuration(info.CurrPause))
+			}
+			out.Print("\n+------------------+-------+-------+-------+-------+")
 		},
 	}
 	status.Flags().StringVar(
@@ -108,7 +118,16 @@ Columns of the status are:
 
 func getStatus(t *core.Track, proj string, maxBreak time.Duration) (statusInfo, error) {
 	var project string
-	open, hasOpenRecord := t.OpenRecord()
+	var isPaused bool
+	var currPause time.Duration
+	var recordStart time.Time
+
+	open, err := t.OpenRecord()
+	if err != nil {
+		return statusInfo{}, err
+	}
+	hasOpenRecord := open != nil
+
 	stopped := 0 * time.Second
 	if proj != "" {
 		project = proj
@@ -117,15 +136,18 @@ func getStatus(t *core.Track, proj string, maxBreak time.Duration) (statusInfo, 
 		}
 	} else {
 		if !hasOpenRecord {
-			last, err := t.LatestRecord()
+			open, err = t.LatestRecord()
 			if err != nil {
+				return statusInfo{}, err
+			}
+			if open == nil {
 				return statusInfo{}, fmt.Errorf(("No running record. Start tracking or specify a project."))
 			}
-			stopped = time.Now().Sub(last.End)
-			project = last.Project
-		} else {
-			project = open.Project
+			stopped = time.Now().Sub(open.End)
 		}
+		project = open.Project
+		isPaused = open.IsPaused()
+		currPause = open.CurrentPauseDuration(time.Time{}, time.Time{})
 	}
 
 	now := time.Now()
@@ -148,23 +170,11 @@ func getStatus(t *core.Track, proj string, maxBreak time.Duration) (statusInfo, 
 	totalTime := time.Second * 0
 
 	for _, rec := range reporter.Records {
-		endTime := rec.End
-		if endTime.IsZero() {
-			endTime = now
-		} else {
-			if endTime.Before(start) {
-				continue
-			}
-		}
-		startTime := rec.Start
-		if startTime.Before(start) {
-			startTime = start
-		}
-
-		worked := endTime.Sub(startTime)
+		worked := rec.Duration(start, now)
+		workedTotal := rec.Duration(time.Time{}, time.Time{})
 
 		if !prevEnd.IsZero() {
-			bt := startTime.Sub(prevEnd)
+			bt := rec.Start.Sub(prevEnd)
 			if bt < maxBreak {
 				breakTime += bt
 			} else {
@@ -173,20 +183,25 @@ func getStatus(t *core.Track, proj string, maxBreak time.Duration) (statusInfo, 
 			}
 		}
 
+		breakTime += rec.PauseDuration(time.Time{}, time.Time{})
 		totalTime += worked
-		cumTime += worked
+		cumTime += workedTotal
 		if rec.End.IsZero() {
-			currTime += endTime.Sub(rec.Start)
+			currTime += workedTotal
 		}
 
-		prevEnd = endTime
+		prevEnd = rec.End
+		recordStart = rec.Start
 	}
 
 	return statusInfo{
 		Project:   project,
 		IsActive:  hasOpenRecord,
+		IsPaused:  isPaused,
+		Start:     recordStart,
 		Stopped:   stopped,
 		CurrTime:  currTime,
+		CurrPause: currPause,
 		CumTime:   cumTime,
 		BreakTime: breakTime,
 		TotalTime: totalTime,

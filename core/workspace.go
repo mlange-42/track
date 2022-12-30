@@ -22,7 +22,11 @@ func (t *Track) SwitchWorkspace(name string) error {
 	if !fs.DirExists(t.WorkspaceDir(name)) {
 		return fmt.Errorf("workspace '%s' does not exist", name)
 	}
-	if _, ok := t.OpenRecord(); ok {
+	open, err := t.OpenRecord()
+	if err != nil {
+		return err
+	}
+	if open != nil {
 		return fmt.Errorf("running record in workspace '%s'", t.Workspace())
 	}
 	t.createWorkspaceDirs(name)

@@ -42,28 +42,39 @@ Notes can contain tags, denoted by the prefix "%s", like "%stag"`, core.TagPrefi
 				return
 			}
 
-			if rec, ok := t.OpenRecord(); ok {
+			rec, err := t.OpenRecord()
+			if err != nil {
+				out.Err("failed to start record: %s", err)
+				return
+			}
+			if rec != nil {
 				out.Err("failed to start record: record in '%s' still running", rec.Project)
 				return
 			}
 
 			var startTime time.Time
-			if latest, err := t.LatestRecord(); err == nil {
-				startTime, err = getStartTime(&latest, ago, atTime)
+
+			latest, err := t.LatestRecord()
+			if err != nil {
+				out.Err("failed to start record: %s", err.Error())
+				return
+			}
+			if latest != nil {
+				startTime, err = getStartTime(latest, ago, atTime)
 				if err != nil {
-					out.Err("failed to create record: %s", err.Error())
+					out.Err("failed to start record: %s", err.Error())
 					return
 				}
 			} else {
 				startTime, err = getStartTime(nil, ago, atTime)
 				if err != nil {
-					out.Err("failed to create record: %s", err.Error())
+					out.Err("failed to start record: %s", err.Error())
 					return
 				}
 			}
 
 			note := strings.Join(args[1:], " ")
-			tags := t.ExtractTags(args[1:])
+			tags := core.ExtractTagsSlice(args[1:])
 
 			record, err := t.StartRecord(project, note, tags, startTime)
 			if err != nil {

@@ -146,7 +146,7 @@ func (t *Track) DeleteProject(project Project) (int, error) {
 		if res.Err != nil {
 			return counter, res.Err
 		}
-		t.DeleteRecord(res.Record)
+		t.DeleteRecord(&res.Record)
 		counter++
 	}
 

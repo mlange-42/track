@@ -94,36 +94,14 @@ func NewReporter(
 		totals[p.Name] = time.Second * 0.0
 	}
 
-	now := time.Now()
 	tRange := TimeRange{}
 	for _, rec := range records {
-		rStart := rec.Start
-		rEnd := rec.End
-		if rEnd.IsZero() {
-			rEnd = now
-		}
-		if !start.IsZero() {
-			if rEnd.Before(start) {
-				continue
-			}
-			if rStart.Before(start) {
-				rStart = start
-			}
-		}
-		if !end.IsZero() {
-			if rStart.After(end) {
-				continue
-			}
-			if rEnd.After(end) {
-				rEnd = end
-			}
-		}
-
-		dur := rEnd.Sub(rStart)
+		dur := rec.Duration(start, end)
 		if dur > 0 {
 			totals[rec.Project] = totals[rec.Project] + dur
 		}
 
+		// TODO should be able to get rid of this; only required for timelines
 		if tRange.Start.IsZero() || rec.Start.Before(tRange.Start) {
 			tRange.Start = rec.Start
 		}

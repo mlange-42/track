@@ -58,7 +58,12 @@ func listProjectsCommand(t *core.Track) *cobra.Command {
 			}
 
 			var active string
-			if rec, ok := t.OpenRecord(); ok {
+			rec, err := t.OpenRecord()
+			if err != nil {
+				out.Err("failed to load projects: %s", err)
+				return
+			}
+			if rec != nil {
 				active = rec.Project
 			}
 
@@ -203,7 +208,8 @@ func printRecord(r core.Record, project core.Project) {
 	} else {
 		end = util.NoTime
 	}
-	dur := r.Duration()
+	dur := r.Duration(time.Time{}, time.Time{})
+	pause := r.PauseDuration(time.Time{}, time.Time{})
 
 	fillLen := 16 - utf8.RuneCountInString(r.Project)
 	name := r.Project
@@ -217,9 +223,9 @@ func printRecord(r core.Record, project core.Project) {
 		fill = strings.Repeat(" ", fillLen)
 	}
 	out.Print(
-		"%s%s %s %s %s - %s (%s)  %s\n", name, fill,
+		"%s%s %s %s %s - %s (%s + %s)  %s\n", name, fill,
 		color.C256(project.Color, true).Sprintf(" %s ", project.Symbol),
-		date, start, end, util.FormatDuration(dur),
+		date, start, end, util.FormatDuration(dur), util.FormatDuration(pause),
 		r.Note,
 	)
 }

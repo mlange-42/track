@@ -23,7 +23,7 @@ var (
 )
 
 const editComment string = `
-# Edit the above YAML definition.
+# Edit the above definition.
 # Then, save the file and close the editor.
 # 
 # If you remove everything, the operation will be aborted.
@@ -171,16 +171,20 @@ See file .track/config.yml to configure the editor to be used.`,
 }
 
 func editRecord(t *core.Track, tm time.Time) error {
-	record, err := t.LoadRecordByTime(tm)
+	record, err := t.LoadRecord(tm)
 	if err != nil {
 		return err
 	}
 
 	return edit(t, &record,
 		fmt.Sprintf("# Record %s\n\n", record.Start.Format(util.DateTimeFormat)),
+		func(r *core.Record) ([]byte, error) {
+			str := r.Serialize()
+			return []byte(str), nil
+		},
 		func(b []byte) error {
-			var newRecord core.Record
-			if err := yaml.Unmarshal(b, &newRecord); err != nil {
+			newRecord, err := core.DeserializeRecord(string(b), record.Start)
+			if err != nil {
 				return err
 			}
 
@@ -189,11 +193,11 @@ func editRecord(t *core.Track, tm time.Time) error {
 				return fmt.Errorf("can't change start time")
 			}
 
-			if !newRecord.End.IsZero() && newRecord.End.Before(newRecord.Start) {
-				return fmt.Errorf("end time is before start time")
+			if err = newRecord.Check(); err != nil {
+				return err
 			}
 
-			if err = t.SaveRecord(newRecord, true); err != nil {
+			if err = t.SaveRecord(&newRecord, true); err != nil {
 				return err
 			}
 			return nil
@@ -203,6 +207,9 @@ func editRecord(t *core.Track, tm time.Time) error {
 func editProject(t *core.Track, project core.Project) error {
 	return edit(t, &project,
 		fmt.Sprintf("# Project %s\n\n", project.Name),
+		func(r *core.Project) ([]byte, error) {
+			return yaml.Marshal(r)
+		},
 		func(b []byte) error {
 			var newProject core.Project
 			if err := yaml.Unmarshal(b, &newProject); err != nil {
@@ -233,6 +240,9 @@ func editConfig(t *core.Track) error {
 
 	return edit(t, &conf,
 		fmt.Sprintf("# Track config\n\n"),
+		func(r *core.Config) ([]byte, error) {
+			return yaml.Marshal(r)
+		},
 		func(b []byte) error {
 			var newConfig core.Config
 			if err := yaml.Unmarshal(b, &newConfig); err != nil {
@@ -246,14 +256,14 @@ func editConfig(t *core.Track) error {
 		})
 }
 
-func edit(t *core.Track, obj any, prefix string, fn func(b []byte) error) error {
+func edit[T any](t *core.Track, obj T, prefix string, marshal func(T) ([]byte, error), unmarshal func(b []byte) error) error {
 	file, err := os.CreateTemp("", "track-*.yml")
 	if err != nil {
 		return err
 	}
 	defer os.Remove(file.Name())
 
-	bytes, err := yaml.Marshal(obj)
+	bytes, err := marshal(obj)
 	if err != nil {
 		return err
 	}
@@ -287,7 +297,7 @@ func edit(t *core.Track, obj any, prefix string, fn func(b []byte) error) error 
 		return ErrUserAbort
 	}
 
-	if err := fn(content); err != nil {
+	if err := unmarshal(content); err != nil {
 		return err
 	}
 

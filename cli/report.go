@@ -140,7 +140,12 @@ func projectsReportCommand(t *core.Track, options *filterOptions) *cobra.Command
 				return
 			}
 			var active string
-			if rec, ok := t.OpenRecord(); ok {
+			rec, err := t.OpenRecord()
+			if err != nil {
+				out.Err("failed to generate report: %s", err)
+				return
+			}
+			if rec != nil {
 				active = rec.Project
 			}
 			formatter := util.NewTreeFormatter(
@@ -230,7 +235,12 @@ func dayReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 				return
 			}
 			var active string
-			if rec, ok := t.OpenRecord(); ok {
+			rec, err := t.OpenRecord()
+			if err != nil {
+				out.Err("failed to generate report: %s", err)
+				return
+			}
+			if rec != nil {
 				active = rec.Project
 			}
 
@@ -302,7 +312,12 @@ func weekReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 				return
 			}
 			var active string
-			if rec, ok := t.OpenRecord(); ok {
+			rec, err := t.OpenRecord()
+			if err != nil {
+				out.Err("failed to generate report: %s", err)
+				return
+			}
+			if rec != nil {
 				active = rec.Project
 			}
 
@@ -352,7 +367,7 @@ func timelineMonths(r *core.Reporter) string {
 	for _, rec := range r.Records {
 		y2, m2, _ := rec.Start.Date()
 		d := (y2-y1)*12 + int(m2) - int(m1)
-		values[d] = values[d] + rec.Duration().Hours()
+		values[d] = values[d] + rec.Duration(r.TimeRange.Start, r.TimeRange.End).Hours()
 	}
 
 	return renderTimeline(dates, values, 8)
@@ -373,7 +388,7 @@ func timeline(r *core.Reporter, startDate time.Time, delta time.Duration, unit t
 	for _, rec := range r.Records {
 		// TODO: split if over increment
 		d := int(rec.Start.Sub(minDate).Hours() / delta.Hours())
-		values[d] = values[d] + rec.Duration().Hours()
+		values[d] = values[d] + rec.Duration(r.TimeRange.Start, r.TimeRange.End).Hours()
 	}
 
 	return renderTimeline(dates, values, unit.Hours())
@@ -544,42 +559,31 @@ func renderWeekTimeline(t *core.Track, reporter *core.Reporter, active string, s
 	}
 
 	timeline := make([]int, 24*7*blocksPerHour, 24*7*blocksPerHour)
+	paused := make([]bool, 24*7*blocksPerHour, 24*7*blocksPerHour)
 
 	now := time.Now()
 
 	for _, rec := range reporter.Records {
-		endTime := rec.End
-		if rec.End.IsZero() {
-			endTime = now
-		}
-		if endTime.Before(startDate) {
+		startIdx, endIdx, ok := toIndexRange(rec.Start, rec.End, startDate, bph)
+		if !ok {
 			continue
 		}
-		start := rec.Start.Sub(startDate).Hours() * float64(bph)
-		end := endTime.Sub(startDate).Hours() * float64(bph)
-
-		startIdx := int(start)
-		endIdx := int(end)
-		if startIdx < 0 {
-			startIdx = 0
-		}
-		if endIdx >= bph*24*7 {
-			endIdx = bph*24*7 - 1
-		}
-
 		index := indices[rec.Project]
-
 		for i := startIdx; i <= endIdx; i++ {
 			timeline[i] = index
+		}
+		for _, p := range rec.Pause {
+			startIdx, endIdx, ok := toIndexRange(p.Start, p.End, startDate, bph)
+			if !ok {
+				continue
+			}
+			for i := startIdx; i <= endIdx; i++ {
+				paused[i] = true
+			}
 		}
 	}
 
 	nowIdx := int(now.Sub(startDate).Hours() * float64(bph))
-
-	timeStr := make([]rune, len(timeline), len(timeline))
-	for i, idx := range timeline {
-		timeStr[i] = symbols[idx]
-	}
 
 	sb := strings.Builder{}
 	fmt.Fprintf(&sb, "      |Week %s - %s : %s/cell\n",
@@ -605,6 +609,8 @@ func renderWeekTimeline(t *core.Track, reporter *core.Reporter, active string, s
 	}
 	fmt.Fprintln(&sb, "|")
 
+	pauseSym := []rune(t.Config.PauseCell)[0]
+
 	for hour := 0; hour < 24; hour++ {
 		fmt.Fprintf(&sb, "%02d:00 ", hour)
 		for weekday := 0; weekday < 7; weekday++ {
@@ -612,8 +618,12 @@ func renderWeekTimeline(t *core.Track, reporter *core.Reporter, active string, s
 			fmt.Fprint(&sb, "|")
 			for i := s; i < s+bph; i++ {
 				pr := timeline[i]
+				pause := paused[i]
 				sym := symbols[pr]
 				col := colors[pr]
+				if pause {
+					sym = pauseSym
+				}
 				if i == nowIdx {
 					sym = '@'
 				}
@@ -656,4 +666,23 @@ func renderWeekTimeline(t *core.Track, reporter *core.Reporter, active string, s
 	}
 
 	return sb.String(), nil
+}
+
+func toIndexRange(start, end, startDate time.Time, bph int) (int, int, bool) {
+	if end.IsZero() {
+		end = time.Now()
+	}
+	if end.Before(startDate) {
+		return -1, -1, false
+	}
+
+	startIdx := int(start.Sub(startDate).Hours() * float64(bph))
+	endIdx := int(end.Sub(startDate).Hours() * float64(bph))
+	if startIdx < 0 {
+		startIdx = 0
+	}
+	if endIdx >= bph*24*7 {
+		endIdx = bph*24*7 - 1
+	}
+	return startIdx, endIdx, true
 }

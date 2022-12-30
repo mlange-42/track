@@ -43,9 +43,14 @@ Notes can contain tags, denoted by the prefix "%s", like "%stag"`, core.TagPrefi
 			}
 
 			var startStopTime time.Time
-			if open, ok := t.OpenRecord(); ok {
+			open, err := t.OpenRecord()
+			if err != nil {
+				out.Err("failed to start record: %s", err)
+				return
+			}
+			if open != nil {
 				var err error
-				startStopTime, err = getStopTime(&open, ago, atTime)
+				startStopTime, err = getStopTime(open, ago, atTime)
 				if err != nil {
 					out.Err("failed to stop record: %s", err)
 					return
@@ -64,8 +69,13 @@ Notes can contain tags, denoted by the prefix "%s", like "%stag"`, core.TagPrefi
 
 				out.Success("Stopped record in '%s' at %s\n", record.Project, record.End.Format(util.TimeFormat))
 			} else {
-				if latest, err := t.LatestRecord(); err == nil {
-					startStopTime, err = getStartTime(&latest, ago, atTime)
+				latest, err := t.LatestRecord()
+				if err != nil {
+					out.Err("failed to create record: %s", err.Error())
+					return
+				}
+				if latest != nil {
+					startStopTime, err = getStartTime(latest, ago, atTime)
 					if err != nil {
 						out.Err("failed to create record: %s", err.Error())
 						return
@@ -80,7 +90,7 @@ Notes can contain tags, denoted by the prefix "%s", like "%stag"`, core.TagPrefi
 			}
 
 			note := strings.Join(args[1:], " ")
-			tags := t.ExtractTags(args[1:])
+			tags := core.ExtractTagsSlice(args[1:])
 
 			record, err := t.StartRecord(project, note, tags, time.Now())
 			if err != nil {
