@@ -57,7 +57,7 @@ func editRecordCommand(t *core.Track) *cobra.Command {
 		Short: "Edit a record",
 		Long: `Edit a record
 
-Opens the record as a temporary YAML file for editing.
+Opens the record as a temporary file for editing.
 See file .track/config.yml to configure the editor to be used.`,
 		Aliases: []string{"r"},
 		Args:    util.WrappedArgs(cobra.ExactArgs(2)),

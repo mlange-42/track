@@ -14,7 +14,7 @@ func pauseCommand(t *core.Track) *cobra.Command {
 	var duration time.Duration
 
 	pauseCom := &cobra.Command{
-		Use:     "pause [NOTE]",
+		Use:     "pause [NOTE...]",
 		Short:   "Pauses or inserts a pause into the running recording",
 		Long:    `Pauses or inserts a pause into the running recording`,
 		Aliases: []string{"p"},
