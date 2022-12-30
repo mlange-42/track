@@ -14,6 +14,8 @@ import (
 func resumeCommand(t *core.Track) *cobra.Command {
 	var useLast bool
 	var skip bool
+	var atTime string
+	var ago time.Duration
 
 	resume := &cobra.Command{
 		Use:   "resume [NOTE...]",
@@ -39,7 +41,7 @@ The note argument provides a note for the pause when resuming a stopped record`,
 					return
 				}
 
-				pause, err := resumeOpenRecord(t, open, skip)
+				pause, err := resumeOpenRecord(t, open, atTime, ago, skip)
 				if err != nil {
 					out.Err("failed to resume: %s", err.Error())
 					return
@@ -66,7 +68,7 @@ The note argument provides a note for the pause when resuming a stopped record`,
 				return
 			}
 
-			pause, err := resumeLastRecord(t, last, args, skip)
+			pause, err := resumeLastRecord(t, last, args, atTime, ago, skip)
 			if err != nil {
 				out.Err("failed to resume: %s", err.Error())
 				return
@@ -82,11 +84,17 @@ The note argument provides a note for the pause when resuming a stopped record`,
 	resume.Flags().BoolVarP(&useLast, "last", "l", false, "Continue the last record instead of a running one")
 	resume.Flags().BoolVarP(&skip, "skip", "s", false, "Resume, and delete the running pause/gap")
 
+	resume.Flags().StringVar(&atTime, "at", "", "Resume at a different time than now.")
+	resume.Flags().DurationVar(&ago, "ago", 0*time.Second, "Resume at a different time than now, given as a duration.")
+
+	resume.MarkFlagsMutuallyExclusive("at", "ago")
+
 	return resume
 }
 
-func resumeOpenRecord(t *core.Track, open *core.Record, skip bool) (time.Duration, error) {
-	if !open.IsPaused() {
+func resumeOpenRecord(t *core.Track, open *core.Record, atTime string, ago time.Duration, skip bool) (time.Duration, error) {
+	pause, isPaused := open.CurrentPause()
+	if !isPaused {
 		return 0, fmt.Errorf("record is not paused")
 	}
 	var duration time.Duration
@@ -94,7 +102,11 @@ func resumeOpenRecord(t *core.Track, open *core.Record, skip bool) (time.Duratio
 		pause, _ := open.PopPause()
 		duration = pause.Duration(time.Time{}, time.Time{})
 	} else {
-		_, err := open.EndPause(time.Now())
+		tm, err := getStartTime(pause.Start, ago, atTime)
+		if err != nil {
+			return 0, err
+		}
+		_, err = open.EndPause(tm)
 		if err != nil {
 			return 0, err
 		}
@@ -102,7 +114,7 @@ func resumeOpenRecord(t *core.Track, open *core.Record, skip bool) (time.Duratio
 	return duration, t.SaveRecord(open, true)
 }
 
-func resumeLastRecord(t *core.Track, last *core.Record, args []string, skip bool) (time.Duration, error) {
+func resumeLastRecord(t *core.Track, last *core.Record, args []string, atTime string, ago time.Duration, skip bool) (time.Duration, error) {
 	project := last.Project
 
 	if !t.ProjectExists(project) {
@@ -125,7 +137,11 @@ func resumeLastRecord(t *core.Track, last *core.Record, args []string, skip bool
 	if skip {
 		duration = now.Sub(oldEnd)
 	} else {
-		pause, err := last.InsertPause(oldEnd, now, strings.Join(args, " "))
+		tm, err := getStartTime(oldEnd, ago, atTime)
+		if err != nil {
+			return 0, err
+		}
+		pause, err := last.InsertPause(oldEnd, tm, strings.Join(args, " "))
 		if err != nil {
 			return 0, err
 		}

@@ -75,13 +75,13 @@ Notes can contain tags, denoted by the prefix "%s", like "%stag"`, core.TagPrefi
 					return
 				}
 				if latest != nil {
-					startStopTime, err = getStartTime(latest, ago, atTime)
+					startStopTime, err = getStartTime(latest.End, ago, atTime)
 					if err != nil {
 						out.Err("failed to create record: %s", err.Error())
 						return
 					}
 				} else {
-					startStopTime, err = getStartTime(nil, ago, atTime)
+					startStopTime, err = getStartTime(time.Time{}, ago, atTime)
 					if err != nil {
 						out.Err("failed to create record: %s", err.Error())
 						return

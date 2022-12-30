@@ -134,7 +134,7 @@ func getStopTime(open *core.Record, ago time.Duration, at string) (time.Time, er
 	return stopTime, nil
 }
 
-func getStartTime(latest *core.Record, ago time.Duration, at string) (time.Time, error) {
+func getStartTime(lastEnd time.Time, ago time.Duration, at string) (time.Time, error) {
 	now := time.Now()
 	startTime := now
 	if ago != 0 {
@@ -146,9 +146,9 @@ func getStartTime(latest *core.Record, ago time.Duration, at string) (time.Time,
 		if err != nil {
 			return time.Time{}, err
 		}
-		if latest != nil && startTime.After(now) {
+		if !lastEnd.IsZero() && startTime.After(now) {
 			altTime := startTime.Add(-24 * time.Hour)
-			if altTime.Before(now) && altTime.After(latest.End) {
+			if altTime.Before(now) && altTime.After(lastEnd) {
 				startTime = altTime
 			}
 		}
@@ -156,8 +156,8 @@ func getStartTime(latest *core.Record, ago time.Duration, at string) (time.Time,
 	if startTime.After(now) {
 		return startTime, fmt.Errorf("can't start at a time in the future")
 	}
-	if latest != nil && startTime.Before(latest.End) {
-		return startTime, fmt.Errorf("can't stop at a time before the end of the last record")
+	if !lastEnd.IsZero() && startTime.Before(lastEnd) {
+		return startTime, fmt.Errorf("can't start at a time before the last stop/pause")
 	}
 	return startTime, nil
 }
