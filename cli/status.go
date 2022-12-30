@@ -113,6 +113,9 @@ Columns of the status are:
 
 func getStatus(t *core.Track, proj string, maxBreak time.Duration) (statusInfo, error) {
 	var project string
+	var isPaused bool
+	var currPause time.Duration
+
 	open, err := t.OpenRecord()
 	if err != nil {
 		return statusInfo{}, err
@@ -127,7 +130,7 @@ func getStatus(t *core.Track, proj string, maxBreak time.Duration) (statusInfo, 
 		}
 	} else {
 		if !hasOpenRecord {
-			open, err := t.LatestRecord()
+			open, err = t.LatestRecord()
 			if err != nil {
 				return statusInfo{}, err
 			}
@@ -136,11 +139,10 @@ func getStatus(t *core.Track, proj string, maxBreak time.Duration) (statusInfo, 
 			}
 			stopped = time.Now().Sub(open.End)
 		}
+		project = open.Project
+		isPaused = open.IsPaused()
+		currPause = open.CurrentPauseDuration(time.Time{}, time.Time{})
 	}
-
-	project = open.Project
-	isPaused := open.IsPaused()
-	currPause := open.CurrentPauseDuration(time.Time{}, time.Time{})
 
 	now := time.Now()
 	start := util.ToDate(now)
