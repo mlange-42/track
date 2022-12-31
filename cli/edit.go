@@ -284,6 +284,11 @@ func editDay(t *core.Track, date time.Time, dryRun bool) error {
 		return err
 	}
 
+	projects, err := t.LoadAllProjects()
+	if err != nil {
+		return err
+	}
+
 	return edit(t, records,
 		fmt.Sprintf("%[1]s Records for %s\n%[1]s Clear file to abort\n\n", core.CommentPrefix, date.Format(util.DateFormat)),
 		core.CommentPrefix,
@@ -356,6 +361,9 @@ func editDay(t *core.Track, date time.Time, dryRun bool) error {
 				prevEnd := time.Time{}
 
 				for i, rec := range newRecords {
+					if _, ok := projects[rec.Project]; !ok {
+						return fmt.Errorf("project '%s' does not exist", rec.Project)
+					}
 					if rec.Start.Before(prevStart) {
 						return fmt.Errorf("records are not in chronological order")
 					}
@@ -446,48 +454,68 @@ func editConfig(t *core.Track) error {
 }
 
 func edit[T any](t *core.Track, obj T, comment string, commentPrefix string, marshal func(T) ([]byte, error), unmarshal func(b []byte) error) error {
-	file, err := os.CreateTemp("", "track-*.yml")
-	if err != nil {
-		return err
-	}
-	defer os.Remove(file.Name())
-
-	bytes, err := marshal(obj)
+	content, err := marshal(obj)
 	if err != nil {
 		return err
 	}
 
-	_, err = file.WriteString(comment)
-	if err != nil {
-		return err
-	}
-	_, err = file.Write(bytes)
-	if err != nil {
-		return err
-	}
-	_, err = file.WriteString(fmt.Sprintf(editComment, commentPrefix))
-	if err != nil {
-		return err
-	}
+	firstTrial := true
+	errorComment := ""
+	for {
+		file, err := os.CreateTemp("", "track-*.yml")
+		if err != nil {
+			return err
+		}
+		defer os.Remove(file.Name())
 
-	file.Close()
+		if firstTrial {
+			_, err = file.WriteString(comment)
+			if err != nil {
+				return err
+			}
+		} else {
+			_, err = file.WriteString(fmt.Sprintf("%s ERROR: %s\n", commentPrefix, errorComment))
+			if err != nil {
+				return err
+			}
+		}
 
-	err = fs.EditFile(file.Name(), t.Config.TextEditor)
-	if err != nil {
-		return err
-	}
+		_, err = file.Write(content)
+		if err != nil {
+			return err
+		}
 
-	content, err := ioutil.ReadFile(file.Name())
-	if err != nil {
-		return err
-	}
+		if firstTrial {
+			_, err = file.WriteString(fmt.Sprintf(editComment, commentPrefix))
+			if err != nil {
+				return err
+			}
+		}
 
-	if len(content) == 0 {
-		return ErrUserAbort
-	}
+		file.Close()
 
-	if err := unmarshal(content); err != nil {
-		return err
+		err = fs.EditFile(file.Name(), t.Config.TextEditor)
+		if err != nil {
+			return err
+		}
+
+		content, err = ioutil.ReadFile(file.Name())
+		if err != nil {
+			return err
+		}
+
+		if len(content) == 0 {
+			return ErrUserAbort
+		}
+
+		firstTrial = false
+		if err := unmarshal(content); err != nil {
+			out.Err("%s\n", err.Error())
+			errorComment = err.Error()
+			continue
+		}
+
+		break
 	}
 
 	return nil
