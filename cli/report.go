@@ -328,7 +328,7 @@ func dayReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 			}
 			if !cmd.Flags().Changed("width") {
 				if w, _, err := util.TerminalSize(); err == nil && w > 0 {
-					blocksPerHour = (w - 14)
+					blocksPerHour = (w - 8)
 				}
 			}
 
@@ -621,10 +621,11 @@ func renderWeekSchedule(t *core.Track, reporter *core.Reporter, active string, s
 
 	timeline := make([]int, 24*numDays*blocksPerHour, 24*numDays*blocksPerHour)
 	paused := make([]bool, 24*numDays*blocksPerHour, 24*numDays*blocksPerHour)
+	record := make([]int, 24*numDays*blocksPerHour, 24*numDays*blocksPerHour)
 
 	now := time.Now()
 
-	for _, rec := range reporter.Records {
+	for recIdx, rec := range reporter.Records {
 		startIdx, endIdx, ok := toIndexRange(rec.Start, rec.End, startDate, bph, numDays)
 		if !ok {
 			continue
@@ -632,6 +633,7 @@ func renderWeekSchedule(t *core.Track, reporter *core.Reporter, active string, s
 		index := indices[rec.Project]
 		for i := startIdx; i <= endIdx; i++ {
 			timeline[i] = index
+			record[i] = recIdx
 		}
 		for _, p := range rec.Pause {
 			startIdx, endIdx, ok := toIndexRange(p.Start, p.End, startDate, bph, numDays)
@@ -669,18 +671,59 @@ func renderWeekSchedule(t *core.Track, reporter *core.Reporter, active string, s
 	}
 	fmt.Fprintln(&sb, "|")
 
+	lastRecord := -1
+	idxRecord := 0
+	currNote := []rune{}
+	currName := []rune{}
 	for hour := 0; hour < 24; hour++ {
 		fmt.Fprintf(&sb, "%02d:00 ", hour)
 		for weekday := 0; weekday < numDays; weekday++ {
 			s := (weekday*24 + hour) * bph
 			fmt.Fprint(&sb, "|")
 			for i := s; i < s+bph; i++ {
+				rec := record[i]
 				pr := timeline[i]
 				pause := paused[i]
+				if rec != lastRecord {
+					lastRecord = rec
+					idxRecord = 0
+					if pr == 0 {
+						currNote = []rune{}
+						currName = []rune{}
+					} else {
+						currNote = []rune(reporter.Records[rec].Note)
+						currName = []rune(reporter.Records[rec].Project)
+					}
+				} else {
+					if !pause {
+						idxRecord++
+					}
+				}
+
 				sym := symbols[pr]
 				col := colors[pr]
 				if pause {
 					sym = pauseSym
+				}
+				if !week && !pause && pr > 0 {
+					nameLen := len(currName)
+					noteLen := len(currNote)
+					if idxRecord == 0 {
+						sym = ' '
+					} else if idxRecord-1 < nameLen {
+						sym = currName[idxRecord-1]
+					} else if idxRecord-1 == nameLen {
+						sym = ':'
+					} else if idxRecord-1 == nameLen+1 {
+						sym = ' '
+					} else if idxRecord-3-nameLen < noteLen {
+						sym = currNote[idxRecord-3-nameLen]
+						if sym == '\n' || sym == '\r' {
+							sym = ' '
+						}
+					} else {
+						sym = ' '
+					}
 				}
 				if i == nowIdx {
 					sym = '@'
