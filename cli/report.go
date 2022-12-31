@@ -44,7 +44,7 @@ func reportCommand(t *core.Track) *cobra.Command {
 
 	report.AddCommand(timelineReportCommand(t, &options))
 	report.AddCommand(projectsReportCommand(t, &options))
-	report.AddCommand(dayReportCommand(t, &options))
+	report.AddCommand(chartReportCommand(t, &options))
 	report.AddCommand(weekReportCommand(t, &options))
 
 	report.Long += "\n\n" + formatCmdTree(report)
@@ -185,13 +185,13 @@ func projectsReportCommand(t *core.Track, options *filterOptions) *cobra.Command
 	return projects
 }
 
-func dayReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
+func chartReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 	var blocksPerHour int
 
 	day := &cobra.Command{
-		Use:     "day [DATE]",
-		Short:   "Report of activities over the day",
-		Aliases: []string{"d"},
+		Use:     "chart [DATE]",
+		Short:   "Report of activities over the day as a bar chart per project",
+		Aliases: []string{"c"},
 		Args:    util.WrappedArgs(cobra.MaximumNArgs(1)),
 		Run: func(cmd *cobra.Command, args []string) {
 			start := util.ToDate(time.Now())
@@ -244,7 +244,7 @@ func dayReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 				active = rec.Project
 			}
 
-			str, err := renderDayTimeline(t, reporter, active, start, blocksPerHour, &[]rune(t.Config.EmptyCell)[0])
+			str, err := renderDayChart(t, reporter, active, start, blocksPerHour, &[]rune(t.Config.EmptyCell)[0])
 			if err != nil {
 				out.Err("failed to generate report: %s", err)
 				return
@@ -263,7 +263,7 @@ func weekReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 
 	day := &cobra.Command{
 		Use:     "week [DATE]",
-		Short:   "Report of activities over a week",
+		Short:   "Report of activities over a week in the form of a schedule",
 		Aliases: []string{"w"},
 		Args:    util.WrappedArgs(cobra.MaximumNArgs(1)),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -321,7 +321,7 @@ func weekReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 				active = rec.Project
 			}
 
-			str, err := renderWeekTimeline(t, reporter, active, start, blocksPerHour, &[]rune(t.Config.EmptyCell)[0])
+			str, err := renderWeekSchedule(t, reporter, active, start, blocksPerHour, &[]rune(t.Config.EmptyCell)[0])
 			if err != nil {
 				out.Err("failed to generate report: %s", err)
 				return
@@ -412,7 +412,7 @@ func renderTimeline(dates []time.Time, values []float64, unit float64) string {
 	return sb.String()
 }
 
-func renderDayTimeline(t *core.Track, reporter *core.Reporter, active string, startDate time.Time, blocksPerHour int, space *rune) (string, error) {
+func renderDayChart(t *core.Track, reporter *core.Reporter, active string, startDate time.Time, blocksPerHour int, space *rune) (string, error) {
 	bph := blocksPerHour
 
 	tree, err := t.ToProjectTree(reporter.Projects)
@@ -480,9 +480,9 @@ func renderDayTimeline(t *core.Track, reporter *core.Reporter, active string, st
 		for i, v := range values {
 			runes[i] = util.FloatToBlock(v, space)
 		}
-		timelineStr[pr] = toDayTimeline(runes, interval*bph)
+		timelineStr[pr] = toDayChart(runes, interval*bph)
 	}
-	timelineStr[t.WorkspaceLabel()] = toDayAxis(bph, interval*bph)
+	timelineStr[t.WorkspaceLabel()] = toDayChartAxis(bph, interval*bph)
 
 	formatter := util.NewTreeFormatter(
 		func(t *core.ProjectNode, indent int) string {
@@ -511,7 +511,7 @@ func renderDayTimeline(t *core.Track, reporter *core.Reporter, active string, st
 	return formatter.FormatTree(tree), nil
 }
 
-func toDayTimeline(runes []rune, interval int) string {
+func toDayChart(runes []rune, interval int) string {
 	sb := strings.Builder{}
 
 	for i, r := range runes {
@@ -526,7 +526,7 @@ func toDayTimeline(runes []rune, interval int) string {
 	return sb.String()
 }
 
-func toDayAxis(blocksPerHour int, interval int) string {
+func toDayChartAxis(blocksPerHour int, interval int) string {
 	fill := strings.Repeat(" ", interval-5)
 
 	sb := strings.Builder{}
@@ -539,7 +539,7 @@ func toDayAxis(blocksPerHour int, interval int) string {
 	return sb.String()
 }
 
-func renderWeekTimeline(t *core.Track, reporter *core.Reporter, active string, startDate time.Time, blocksPerHour int, space *rune) (string, error) {
+func renderWeekSchedule(t *core.Track, reporter *core.Reporter, active string, startDate time.Time, blocksPerHour int, space *rune) (string, error) {
 	bph := blocksPerHour
 
 	projects := maps.Keys(reporter.Projects)
