@@ -4,11 +4,27 @@
 
 [[_TOC_]]
 
-## Start and stop
+## Projects
+
+Each record is associated with a project. Before any tracking, a project needs to be created:
+
+```shell
+track create project MyProject
+```
+
+For more details on projects, see chapter [Projects](./projects.md).
+
+## Start
+
+## Note and tags
 
 ## Status
 
-## Pause and resume
+## Stop
+
+## Pause
+
+## Resume
 
 ## Switch
 
