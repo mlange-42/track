@@ -351,26 +351,30 @@ func editDay(t *core.Track, date time.Time, dryRun bool) error {
 				if oldFirst.Start.Before(date) {
 					if newFirst.Start.Before(oldFirst.Start) {
 						return fmt.Errorf(
-							"can't extend a start time on the day before. try 'track edit day %s'",
+							"can't extend a start time on the day before (%s / %s). Try 'track edit day %s'",
+							newFirst.Start.Format(util.TimeFormat),
+							oldFirst.Start.Format(util.TimeFormat),
 							dateBefore.Format(util.DateFormat),
 						)
 					}
 				} else {
 					if newFirst.Start.Before(date) {
 						return fmt.Errorf(
-							"can't move a start time to the day before. try 'track edit day %s'",
+							"can't move a start time to the day before (%s). Try 'track edit day %s'",
+							newFirst.Start.Format(util.TimeFormat),
 							dateBefore.Format(util.DateFormat),
 						)
 					}
 				}
 				oldLast, newLast := records[len(records)-1], newRecords[len(newRecords)-1]
 				if newLast.Start.After(now) || newLast.End.After(now) {
-					return fmt.Errorf("can't date into the future")
+					return fmt.Errorf("can't date into the future (%s)", newLast.Start.Format(util.TimeFormat))
 				}
 				if oldLast.End.After(dateAfter) {
 					if !newLast.End.IsZero() && newLast.End.After(oldLast.End) {
 						return fmt.Errorf(
-							"can't extend an end time on the day after. try 'track edit day %s'",
+							"can't extend an end time on the day after (%s). Try 'track edit day %s'",
+							newLast.Start.Format(util.TimeFormat),
 							dateAfter.Format(util.DateFormat),
 						)
 					}
@@ -381,21 +385,26 @@ func editDay(t *core.Track, date time.Time, dryRun bool) error {
 
 				for i, rec := range newRecords {
 					if _, ok := projects[rec.Project]; !ok {
-						return fmt.Errorf("project '%s' does not exist", rec.Project)
+						return fmt.Errorf("project '%s' does not exist (%s)", rec.Project, rec.Start.Format(util.TimeFormat))
 					}
 					if rec.Start.Before(prevStart) {
-						return fmt.Errorf("records are not in chronological order")
+						return fmt.Errorf(
+							"records are not in chronological order (%s / %s)",
+							prevStart.Format(util.TimeFormat),
+							rec.Start.Format(util.TimeFormat),
+						)
 					}
 					if rec.Start.Before(prevEnd) {
 						return fmt.Errorf("records overlap (%s / %s)", prevStart.Format(util.TimeFormat), rec.Start.Format(util.TimeFormat))
 					}
 					if rec.End.IsZero() {
 						if i != len(newRecords)-1 {
-							return fmt.Errorf("only the last record can have an open end time")
+							return fmt.Errorf("only the last record can have an open end time (%s)", rec.Start.Format(util.TimeFormat))
 						}
 						if !oldLast.End.IsZero() && date != today {
 							return fmt.Errorf(
-								"can't set open end for record starting on another day. Try 'track edit day today'",
+								"can't set open end for record starting on another day (%s). Try 'track edit day today'",
+								rec.Start.Format(util.TimeFormat),
 							)
 						}
 					}
