@@ -46,6 +46,7 @@ func reportCommand(t *core.Track) *cobra.Command {
 	report.AddCommand(projectsReportCommand(t, &options))
 	report.AddCommand(chartReportCommand(t, &options))
 	report.AddCommand(weekReportCommand(t, &options))
+	report.AddCommand(dayReportCommand(t, &options))
 
 	report.Long += "\n\n" + formatCmdTree(report)
 	return report
@@ -277,8 +278,6 @@ func weekReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 					return
 				}
 			}
-			weekDay := (int(start.Weekday()) + 6) % 7
-			start = start.Add(time.Duration(-weekDay * 24 * int(time.Hour)))
 
 			if blocksPerHour <= 0 {
 				out.Err("failed to generate report: argument --width must be > 0")
@@ -290,49 +289,106 @@ func weekReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 				}
 			}
 
-			projects, err := t.LoadAllProjects()
+			err = schedule(t, start, options, true, blocksPerHour)
 			if err != nil {
 				out.Err("failed to generate report: %s", err)
 				return
 			}
-
-			filterStart := start.Add(-time.Hour * 24)
-			filterEnd := start.Add(time.Hour * 24 * 7)
-
-			filters, err := createFilters(options, projects, false)
-			if err != nil {
-				out.Err("failed to generate report: %s", err)
-				return
-			}
-			filters = append(filters, core.FilterByTime(filterStart, filterEnd))
-
-			reporter, err := core.NewReporter(t, options.projects, filters, options.includeArchived, start, filterEnd)
-			if err != nil {
-				out.Err("failed to generate report: %s", err)
-				return
-			}
-			var active string
-			rec, err := t.OpenRecord()
-			if err != nil {
-				out.Err("failed to generate report: %s", err)
-				return
-			}
-			if rec != nil {
-				active = rec.Project
-			}
-
-			str, err := renderWeekSchedule(t, reporter, active, start, blocksPerHour, &[]rune(t.Config.EmptyCell)[0])
-			if err != nil {
-				out.Err("failed to generate report: %s", err)
-				return
-			}
-			fmt.Print(str)
 		},
 	}
 
 	day.Flags().IntVarP(&blocksPerHour, "width", "w", 12, "Width of the graph, in characters per hour. Auto-scale if not specified")
 
 	return day
+}
+
+func dayReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
+	var blocksPerHour int
+
+	day := &cobra.Command{
+		Use:     "day [DATE]",
+		Short:   "Report of activities over a day in the form of a schedule",
+		Aliases: []string{"d"},
+		Args:    util.WrappedArgs(cobra.MaximumNArgs(1)),
+		Run: func(cmd *cobra.Command, args []string) {
+			start := util.ToDate(time.Now())
+
+			var err error
+			if len(args) > 0 {
+				start, err = util.ParseDate(args[0])
+				if err != nil {
+					out.Err("failed to generate report: %s", err)
+					return
+				}
+			}
+
+			if blocksPerHour <= 0 {
+				out.Err("failed to generate report: argument --width must be > 0")
+				return
+			}
+			if !cmd.Flags().Changed("width") {
+				if w, _, err := util.TerminalSize(); err == nil && w > 0 {
+					blocksPerHour = (w - 14)
+				}
+			}
+
+			err = schedule(t, start, options, false, blocksPerHour)
+			if err != nil {
+				out.Err("failed to generate report: %s", err)
+				return
+			}
+		},
+	}
+
+	day.Flags().IntVarP(&blocksPerHour, "width", "w", 60, "Width of the graph, in characters per hour. Auto-scale if not specified")
+
+	return day
+}
+
+func schedule(t *core.Track, start time.Time, options *filterOptions, week bool, bph int) error {
+	var filterStart, filterEnd time.Time
+
+	if week {
+		weekDay := (int(start.Weekday()) + 6) % 7
+		start = start.Add(time.Duration(-weekDay * 24 * int(time.Hour)))
+
+		filterStart = start.Add(-time.Hour * 24)
+		filterEnd = start.Add(time.Hour * 24 * 7)
+	} else {
+		filterStart = start.Add(-time.Hour * 24)
+		filterEnd = start.Add(time.Hour * 24)
+	}
+
+	projects, err := t.LoadAllProjects()
+	if err != nil {
+		return err
+	}
+
+	filters, err := createFilters(options, projects, false)
+	if err != nil {
+		return err
+	}
+	filters = append(filters, core.FilterByTime(filterStart, filterEnd))
+
+	reporter, err := core.NewReporter(t, options.projects, filters, options.includeArchived, start, filterEnd)
+	if err != nil {
+		return err
+	}
+	var active string
+	rec, err := t.OpenRecord()
+	if err != nil {
+		return err
+	}
+	if rec != nil {
+		active = rec.Project
+	}
+
+	str, err := renderWeekSchedule(t, reporter, active, start, week, bph)
+	if err != nil {
+		return err
+	}
+	fmt.Print(str)
+	return nil
 }
 
 func timelineDays(r *core.Reporter) string {
@@ -539,18 +595,18 @@ func toDayChartAxis(blocksPerHour int, interval int) string {
 	return sb.String()
 }
 
-func renderWeekSchedule(t *core.Track, reporter *core.Reporter, active string, startDate time.Time, blocksPerHour int, space *rune) (string, error) {
+func renderWeekSchedule(t *core.Track, reporter *core.Reporter, active string, startDate time.Time, week bool, blocksPerHour int) (string, error) {
 	bph := blocksPerHour
+
+	spaceSym := []rune(t.Config.EmptyCell)[0]
+	pauseSym := []rune(t.Config.PauseCell)[0]
 
 	projects := maps.Keys(reporter.Projects)
 	sort.Strings(projects)
 	indices := make(map[string]int, len(projects))
 	symbols := make([]rune, len(projects)+1, len(projects)+1)
 	colors := make([]color.Style256, len(projects)+1, len(projects)+1)
-	symbols[0] = '.'
-	if space != nil {
-		symbols[0] = *space
-	}
+	symbols[0] = spaceSym
 	colors[0] = *color.S256(15, 0)
 	for i, p := range projects {
 		indices[p] = i + 1
@@ -558,13 +614,18 @@ func renderWeekSchedule(t *core.Track, reporter *core.Reporter, active string, s
 		colors[i+1] = reporter.Projects[p].Render
 	}
 
-	timeline := make([]int, 24*7*blocksPerHour, 24*7*blocksPerHour)
-	paused := make([]bool, 24*7*blocksPerHour, 24*7*blocksPerHour)
+	numDays := 1
+	if week {
+		numDays = 7
+	}
+
+	timeline := make([]int, 24*numDays*blocksPerHour, 24*numDays*blocksPerHour)
+	paused := make([]bool, 24*numDays*blocksPerHour, 24*numDays*blocksPerHour)
 
 	now := time.Now()
 
 	for _, rec := range reporter.Records {
-		startIdx, endIdx, ok := toIndexRange(rec.Start, rec.End, startDate, bph)
+		startIdx, endIdx, ok := toIndexRange(rec.Start, rec.End, startDate, bph, numDays)
 		if !ok {
 			continue
 		}
@@ -573,7 +634,7 @@ func renderWeekSchedule(t *core.Track, reporter *core.Reporter, active string, s
 			timeline[i] = index
 		}
 		for _, p := range rec.Pause {
-			startIdx, endIdx, ok := toIndexRange(p.Start, p.End, startDate, bph)
+			startIdx, endIdx, ok := toIndexRange(p.Start, p.End, startDate, bph, numDays)
 			if !ok {
 				continue
 			}
@@ -586,18 +647,17 @@ func renderWeekSchedule(t *core.Track, reporter *core.Reporter, active string, s
 	nowIdx := int(now.Sub(startDate).Hours() * float64(bph))
 
 	sb := strings.Builder{}
-	fmt.Fprintf(&sb, "      |Week %s - %s : %s/cell\n",
+	fmt.Fprintf(&sb, "      |Day %s : %s/cell\n",
 		startDate.Format(util.DateFormat),
-		startDate.Add(6*24*time.Hour).Format(util.DateFormat),
 		time.Duration(1e9*(int(time.Hour)/(bph*1e9))).String(),
 	)
 
 	fmt.Fprint(&sb, "      ")
-	for weekday := 0; weekday < 7; weekday++ {
+	for weekday := 0; weekday < numDays; weekday++ {
 		date := startDate.Add(time.Duration(weekday * 24 * int(time.Hour)))
 		str := fmt.Sprintf(
 			"%s %02d %s",
-			time.Weekday((weekday + 1) % 7).String()[:2],
+			date.Weekday().String()[:2],
 			date.Day(),
 			date.Month().String()[:3],
 		)
@@ -609,11 +669,9 @@ func renderWeekSchedule(t *core.Track, reporter *core.Reporter, active string, s
 	}
 	fmt.Fprintln(&sb, "|")
 
-	pauseSym := []rune(t.Config.PauseCell)[0]
-
 	for hour := 0; hour < 24; hour++ {
 		fmt.Fprintf(&sb, "%02d:00 ", hour)
-		for weekday := 0; weekday < 7; weekday++ {
+		for weekday := 0; weekday < numDays; weekday++ {
 			s := (weekday*24 + hour) * bph
 			fmt.Fprint(&sb, "|")
 			for i := s; i < s+bph; i++ {
@@ -633,7 +691,7 @@ func renderWeekSchedule(t *core.Track, reporter *core.Reporter, active string, s
 		fmt.Fprintln(&sb, "|")
 	}
 
-	totalWidth := 7 + 7*(bph+1)
+	totalWidth := 7 + numDays*(bph+1)
 	lineWidth := 0
 
 	line1 := ""
@@ -664,7 +722,7 @@ func renderWeekSchedule(t *core.Track, reporter *core.Reporter, active string, s
 	return sb.String(), nil
 }
 
-func toIndexRange(start, end, startDate time.Time, bph int) (int, int, bool) {
+func toIndexRange(start, end, startDate time.Time, bph int, days int) (int, int, bool) {
 	if end.IsZero() {
 		end = time.Now()
 	}
@@ -677,8 +735,8 @@ func toIndexRange(start, end, startDate time.Time, bph int) (int, int, bool) {
 	if startIdx < 0 {
 		startIdx = 0
 	}
-	if endIdx >= bph*24*7 {
-		endIdx = bph*24*7 - 1
+	if endIdx >= bph*24*days {
+		endIdx = bph*24*days - 1
 	}
 	return startIdx, endIdx, true
 }
