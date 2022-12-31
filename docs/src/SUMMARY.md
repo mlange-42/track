@@ -2,5 +2,16 @@
 
 [Track -- Introduction](./introduction.md)
 
+# User guide
+
 - [Installation](./installation.md)
 - [Getting started](./getting-started.md)
+- [Time tracking](./tracking.md)
+- [Lists](./lists.md)
+- [Reports](./reports.md)
+- [Manipulating data](./manipulating.md)
+
+# Appendix
+
+- [Command tree](./command-tree.md)
+- [File formats](./file-formats.md)
