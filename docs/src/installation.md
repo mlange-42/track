@@ -4,7 +4,7 @@ There are multiple ways to install *Track*:
 
 [[_TOC_]]
 
-## Binaries
+## Precompiled binaries
 
 1. Download the [latest binaries](https://github.com/mlange-42/track/releases) for your platform  
    (Binaries are available for Linux, Windows and macOS)
@@ -13,7 +13,7 @@ There are multiple ways to install *Track*:
 
 ## From GitHub using Go
 
-In case you have [Go](https://go.dev/) installed, you can install with `go install`:
+In case you have [Go](https://go.dev/) installed, you can install *Track* with `go install`:
 
 ```
 go install github.com/mlange-42/track@latest
@@ -21,7 +21,7 @@ go install github.com/mlange-42/track@latest
 
 ## Clone and build
 
-To build *Track* locally, e.g. to contribute to the project, you will have to clone the repository on your local machine:
+To build *Track* locally, e.g. to contribute to the project, you need to clone the repository on your local machine:
 
 ```
 git clone https://github.com/mlange-42/track
@@ -33,4 +33,4 @@ git clone https://github.com/mlange-42/track
 go build
 ```
 
-The resulting binary can be found in the `track` directory under the name `track` or `track.exe`.
+The resulting binaries can be found in the `track` root directory under the name `track` or `track.exe`.
