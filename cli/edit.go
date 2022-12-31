@@ -276,22 +276,12 @@ func editDay(t *core.Track, date time.Time, dryRun bool) error {
 	dateBefore := date.Add(-24 * time.Hour)
 	dateAfter := date.Add(24 * time.Hour)
 
-	filters := core.FilterFunctions{
-		core.FilterByTime(date, dateAfter),
-	}
-
-	records, err := t.LoadDateRecordsFiltered(dateBefore, filters)
-	if err != nil && !errors.Is(err, core.ErrNoRecords) {
+	records, err := t.LoadDateRecordsExact(date)
+	if err != nil {
+		if errors.Is(err, core.ErrNoRecords) {
+			return fmt.Errorf("no records for %s", date.Format(util.DateFormat))
+		}
 		return err
-	}
-	records2, err := t.LoadDateRecordsFiltered(date, filters)
-	if err != nil && !errors.Is(err, core.ErrNoRecords) {
-		return err
-	}
-	records = append(records, records2...)
-
-	if len(records) == 0 {
-		return fmt.Errorf("no records for %s", date.Format(util.DateFormat))
 	}
 
 	return edit(t, records,
