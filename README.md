@@ -19,8 +19,8 @@ Download binaries for your OS from the [Releases](https://github.com/mlange-42/t
 * Track your working time from the command line
 * Natural language-like syntax
 * Supports hierarchical project structure
-* Everything stored as YAML for human readability
-* Different types of text-based and graphical reports (in progress)
+* Records stored as plain-text files for human readability and editing
+* Different types of text-based and graphical reports
 
 ## Usage
 
@@ -71,15 +71,15 @@ track status
 Prints something like:
 
 ```text
-+------------------+-------+-------+-------+
-|          project |  curr | today | break |
-|        MyProject | 00:30 | 01:45 | 00:13 |
-+------------------+-------+-------+-------+
++------------------+-------+-------+-------+-------+
+|          project |  curr | total | break | today |
+|        MyProject | 01:05 | 01:05 | 00:10 | 01:53 |
++------------------+-------+-------+-------+-------+
 ```
 
 #### `list`
 
-The `list` commands lists projects or records.
+The `list` commands lists projects or records:
 
 ```shell
 track list projects
@@ -159,4 +159,4 @@ track
 
 ## References
 
-* Heavily inspired by [`github.com/dominikbraun/timetrace`](https://github.com/dominikbraun/timetrace)
+* Heavily inspired by [`timetrace`](https://github.com/dominikbraun/timetrace) and [`klog`](https://github.com/jotaen/klog)
