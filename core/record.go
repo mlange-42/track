@@ -552,9 +552,35 @@ func (t *Track) AllRecordsFiltered(filters FilterFunctions, reversed bool) (func
 	}, results, stop
 }
 
-// LoadDateRecords loads all records for the given date string/directory
+// LoadDateRecords loads all records for the given date
 func (t *Track) LoadDateRecords(date time.Time) ([]Record, error) {
 	return t.LoadDateRecordsFiltered(date, []func(*Record) bool{})
+}
+
+// LoadDateRecordsExact loads all records for the given date, including those starting the das before
+func (t *Track) LoadDateRecordsExact(date time.Time) ([]Record, error) {
+	date = util.ToDate(date)
+	dateBefore := date.Add(-24 * time.Hour)
+	dateAfter := date.Add(24 * time.Hour)
+
+	filters := FilterFunctions{
+		FilterByTime(date, dateAfter),
+	}
+
+	records, err := t.LoadDateRecordsFiltered(dateBefore, filters)
+	if err != nil && !errors.Is(err, ErrNoRecords) {
+		return nil, err
+	}
+	records2, err := t.LoadDateRecordsFiltered(date, filters)
+	if err != nil && !errors.Is(err, ErrNoRecords) {
+		return nil, err
+	}
+	records = append(records, records2...)
+
+	if len(records) == 0 {
+		return nil, ErrNoRecords
+	}
+	return records, nil
 }
 
 // LoadDateRecordsFiltered loads all records for the given date string/directory

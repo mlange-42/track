@@ -37,11 +37,13 @@ func FilterByProjects(projects []string) FilterFunction {
 //
 // For records with a zero end, only the start time is compared
 func FilterByTime(start, end time.Time) FilterFunction {
+	now := time.Now()
 	return func(r *Record) bool {
-		if r.End.IsZero() {
-			return (start.IsZero() || r.Start.After(start)) && (end.IsZero() || r.Start.Before(end))
+		endTime := r.End
+		if endTime.IsZero() {
+			endTime = now
 		}
-		return (start.IsZero() || r.End.After(start)) && (end.IsZero() || r.Start.Before(end))
+		return (start.IsZero() || endTime.After(start)) && (end.IsZero() || r.Start.Before(end))
 	}
 }
 
