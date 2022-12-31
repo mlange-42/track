@@ -30,6 +30,8 @@ const editComment string = `
 `
 
 func editCommand(t *core.Track) *cobra.Command {
+	var dryRun bool
+
 	edit := &cobra.Command{
 		Use:   "edit",
 		Short: "Edit a resource",
@@ -43,17 +45,20 @@ See file .track/config.yml to configure the editor to be used.`,
 		},
 	}
 
-	edit.AddCommand(editProjectCommand(t))
-	edit.AddCommand(editRecordCommand(t))
-	edit.AddCommand(editDayCommand(t))
-	edit.AddCommand(editConfigCommand(t))
+	edit.PersistentFlags().BoolVar(&dryRun, "dry", false, "Dry run: do not actually change any files")
+
+	edit.AddCommand(editProjectCommand(t, &dryRun))
+	edit.AddCommand(editRecordCommand(t, &dryRun))
+	edit.AddCommand(editDayCommand(t, &dryRun))
+	edit.AddCommand(editConfigCommand(t, &dryRun))
 
 	edit.Long += "\n\n" + formatCmdTree(edit)
 	return edit
 }
 
-func editRecordCommand(t *core.Track) *cobra.Command {
-	editProject := &cobra.Command{
+func editRecordCommand(t *core.Track, dryRun *bool) *cobra.Command {
+
+	editRecord := &cobra.Command{
 		Use:   "record [[DATE] TIME]",
 		Short: "Edit a record",
 		Long: `Edit a record
@@ -93,7 +98,7 @@ Uses the current date if only a time is given.`,
 				}
 			}
 
-			err = editRecord(t, tm)
+			err = editRecord(t, tm, *dryRun)
 			if err != nil {
 				if err == ErrUserAbort {
 					out.Warn("failed to edit record: %s", err)
@@ -102,14 +107,18 @@ Uses the current date if only a time is given.`,
 				out.Err("failed to edit record: %s", err)
 				return
 			}
-			out.Success("Saved record '%s'", tm.Format(util.DateTimeFormat))
+			if *dryRun {
+				out.Success("Saved record %s - dry-run", tm.Format(util.DateTimeFormat))
+			} else {
+				out.Success("Saved record %s", tm.Format(util.DateTimeFormat))
+			}
 		},
 	}
 
-	return editProject
+	return editRecord
 }
 
-func editProjectCommand(t *core.Track) *cobra.Command {
+func editProjectCommand(t *core.Track, dryRun *bool) *cobra.Command {
 	var archive bool
 
 	editProject := &cobra.Command{
@@ -150,7 +159,7 @@ See file .track/config.yml to configure the editor to be used.`,
 					return
 				}
 			} else {
-				err = editProject(t, project)
+				err = editProject(t, project, *dryRun)
 				if err != nil {
 					if err == ErrUserAbort {
 						out.Warn("failed to edit project: %s", err)
@@ -160,7 +169,11 @@ See file .track/config.yml to configure the editor to be used.`,
 					return
 				}
 			}
-			out.Success("Saved project '%s'", name)
+			if *dryRun {
+				out.Success("Saved project %s - dry-run", name)
+			} else {
+				out.Success("Saved project %s", name)
+			}
 		},
 	}
 	editProject.Flags().BoolVarP(&archive, "archive", "a", false, "Archive or un-archive a project. Use like '-a=false'")
@@ -168,8 +181,9 @@ See file .track/config.yml to configure the editor to be used.`,
 	return editProject
 }
 
-func editConfigCommand(t *core.Track) *cobra.Command {
-	editProject := &cobra.Command{
+func editConfigCommand(t *core.Track, dryRun *bool) *cobra.Command {
+
+	editConfig := &cobra.Command{
 		Use:   "config",
 		Short: "Edit track's config",
 		Long: `Edit track's config
@@ -179,7 +193,7 @@ See file .track/config.yml to configure the editor to be used.`,
 		Aliases: []string{"c"},
 		Args:    util.WrappedArgs(cobra.NoArgs),
 		Run: func(cmd *cobra.Command, args []string) {
-			err := editConfig(t)
+			err := editConfig(t, *dryRun)
 			if err != nil {
 				if err == ErrUserAbort {
 					out.Warn("failed to edit config: %s", err)
@@ -188,15 +202,19 @@ See file .track/config.yml to configure the editor to be used.`,
 				out.Err("failed to edit config: %s", err)
 				return
 			}
-			out.Success("Saved config to %s", fs.ConfigPath())
+
+			if *dryRun {
+				out.Success("Saved config to %s - dry-run", fs.ConfigPath())
+			} else {
+				out.Success("Saved config to %s", fs.ConfigPath())
+			}
 		},
 	}
 
-	return editProject
+	return editConfig
 }
 
-func editDayCommand(t *core.Track) *cobra.Command {
-	var dryRun bool
+func editDayCommand(t *core.Track, dryRun *bool) *cobra.Command {
 
 	editDay := &cobra.Command{
 		Use:   "day [DATE]",
@@ -217,7 +235,7 @@ See file .track/config.yml to configure the editor to be used.`,
 					return
 				}
 			}
-			err = editDay(t, date, dryRun)
+			err = editDay(t, date, *dryRun)
 			if err != nil {
 				if err == ErrUserAbort {
 					out.Warn("failed to edit day: %s", err)
@@ -226,18 +244,17 @@ See file .track/config.yml to configure the editor to be used.`,
 				out.Err("failed to edit day: %s", err)
 				return
 			}
-			if dryRun {
+			if *dryRun {
 				out.Success("Saved day records - dry-run")
 			} else {
 				out.Success("Saved day records")
 			}
 		},
 	}
-	editDay.Flags().BoolVar(&dryRun, "dry", false, "Dry run: do not actually change any files")
 
 	return editDay
 }
-func editRecord(t *core.Track, tm time.Time) error {
+func editRecord(t *core.Track, tm time.Time, dryRun bool) error {
 	record, err := t.LoadRecord(tm)
 	if err != nil {
 		return err
@@ -264,8 +281,10 @@ func editRecord(t *core.Track, tm time.Time) error {
 				return err
 			}
 
-			if err = t.SaveRecord(&newRecord, true); err != nil {
-				return err
+			if !dryRun {
+				if err = t.SaveRecord(&newRecord, true); err != nil {
+					return err
+				}
 			}
 			return nil
 		})
@@ -281,6 +300,11 @@ func editDay(t *core.Track, date time.Time, dryRun bool) error {
 		if errors.Is(err, core.ErrNoRecords) {
 			return fmt.Errorf("no records for %s", date.Format(util.DateFormat))
 		}
+		return err
+	}
+
+	projects, err := t.LoadAllProjects()
+	if err != nil {
 		return err
 	}
 
@@ -356,6 +380,9 @@ func editDay(t *core.Track, date time.Time, dryRun bool) error {
 				prevEnd := time.Time{}
 
 				for i, rec := range newRecords {
+					if _, ok := projects[rec.Project]; !ok {
+						return fmt.Errorf("project '%s' does not exist", rec.Project)
+					}
 					if rec.Start.Before(prevStart) {
 						return fmt.Errorf("records are not in chronological order")
 					}
@@ -391,7 +418,7 @@ func editDay(t *core.Track, date time.Time, dryRun bool) error {
 		})
 }
 
-func editProject(t *core.Track, project core.Project) error {
+func editProject(t *core.Track, project core.Project, dryRun bool) error {
 	return edit(t, &project,
 		fmt.Sprintf("%s Project %s\n\n", core.YamlCommentPrefix, project.Name),
 		core.YamlCommentPrefix,
@@ -413,14 +440,17 @@ func editProject(t *core.Track, project core.Project) error {
 			if err := t.CheckParents(newProject); err != nil {
 				return err
 			}
-			if err := t.SaveProject(newProject, true); err != nil {
-				return err
+
+			if !dryRun {
+				if err := t.SaveProject(newProject, true); err != nil {
+					return err
+				}
 			}
 			return nil
 		})
 }
 
-func editConfig(t *core.Track) error {
+func editConfig(t *core.Track, dryRun bool) error {
 	conf, err := core.LoadConfig()
 	if err != nil {
 		return err
@@ -438,56 +468,78 @@ func editConfig(t *core.Track) error {
 				return err
 			}
 
-			if err = core.SaveConfig(newConfig); err != nil {
-				return err
+			if !dryRun {
+				if err = core.SaveConfig(newConfig); err != nil {
+					return err
+				}
 			}
 			return nil
 		})
 }
 
 func edit[T any](t *core.Track, obj T, comment string, commentPrefix string, marshal func(T) ([]byte, error), unmarshal func(b []byte) error) error {
-	file, err := os.CreateTemp("", "track-*.yml")
-	if err != nil {
-		return err
-	}
-	defer os.Remove(file.Name())
-
-	bytes, err := marshal(obj)
+	content, err := marshal(obj)
 	if err != nil {
 		return err
 	}
 
-	_, err = file.WriteString(comment)
-	if err != nil {
-		return err
-	}
-	_, err = file.Write(bytes)
-	if err != nil {
-		return err
-	}
-	_, err = file.WriteString(fmt.Sprintf(editComment, commentPrefix))
-	if err != nil {
-		return err
-	}
+	firstTrial := true
+	errorComment := ""
+	for {
+		file, err := os.CreateTemp("", "track-*.yml")
+		if err != nil {
+			return err
+		}
+		defer os.Remove(file.Name())
 
-	file.Close()
+		if firstTrial {
+			_, err = file.WriteString(comment)
+			if err != nil {
+				return err
+			}
+		} else {
+			_, err = file.WriteString(fmt.Sprintf("%s ERROR: %s\n", commentPrefix, errorComment))
+			if err != nil {
+				return err
+			}
+		}
 
-	err = fs.EditFile(file.Name(), t.Config.TextEditor)
-	if err != nil {
-		return err
-	}
+		_, err = file.Write(content)
+		if err != nil {
+			return err
+		}
 
-	content, err := ioutil.ReadFile(file.Name())
-	if err != nil {
-		return err
-	}
+		if firstTrial {
+			_, err = file.WriteString(fmt.Sprintf(editComment, commentPrefix))
+			if err != nil {
+				return err
+			}
+		}
 
-	if len(content) == 0 {
-		return ErrUserAbort
-	}
+		file.Close()
 
-	if err := unmarshal(content); err != nil {
-		return err
+		err = fs.EditFile(file.Name(), t.Config.TextEditor)
+		if err != nil {
+			return err
+		}
+
+		content, err = ioutil.ReadFile(file.Name())
+		if err != nil {
+			return err
+		}
+
+		if len(content) == 0 {
+			return ErrUserAbort
+		}
+
+		firstTrial = false
+		if err := unmarshal(content); err != nil {
+			out.Err("%s\n", err.Error())
+			errorComment = err.Error()
+			continue
+		}
+
+		break
 	}
 
 	return nil
