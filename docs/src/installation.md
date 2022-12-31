@@ -1,6 +1,6 @@
 # Installation
 
-There are multiple ways to install Yarner:
+There are multiple ways to install *Track*:
 
 [[_TOC_]]
 
@@ -21,7 +21,7 @@ go install github.com/mlange-42/track@latest
 
 ## Clone and build
 
-To build track locally, e.g. to contribute to the project, you will have to clone the repository on your local machine:
+To build *Track* locally, e.g. to contribute to the project, you will have to clone the repository on your local machine:
 
 ```
 git clone https://github.com/mlange-42/track

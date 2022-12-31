@@ -6,11 +6,13 @@
 [![GitHub](https://img.shields.io/badge/github-repo-blue?logo=github)](https://github.com/mlange-42/track)
 [![MIT license](https://img.shields.io/github/license/mlange-42/track)](https://github.com/mlange-42/track/blob/main/LICENSE)
 
-**Track** is a time tracking command line tool .
+***Track*** is a time tracking command line tool .
+
+**!!! The docs are still under construction !!!**
 
 ### GitHub project
 
-Track is Open Source and available [on GitHub](https://github.com/mlange-42/track).
+*Track* is Open Source and available [on GitHub](https://github.com/mlange-42/track).
 
 ### Contributing
 
@@ -18,4 +20,4 @@ For feature requests and issues, please use the [issue tracker](https://github.c
 
 ### License
 
-Track and all its sources are released under the [MIT License](https://github.com/mlange-42/track/blob/main/LICENSE).
+*Track* and all its sources are released under the [MIT License](https://github.com/mlange-42/track/blob/main/LICENSE).
