@@ -144,6 +144,7 @@ track
 │ └─workspaces
 ├─pause [NOTE...]
 ├─report
+│ ├─chart [DATE]
 │ ├─day [DATE]
 │ ├─projects
 │ ├─timeline (days|weeks|months)

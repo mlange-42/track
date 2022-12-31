@@ -14,11 +14,13 @@
 * The command `track edit record` can be used without arguments, or with only time as argument (#59)
 * Command `track list tags` to list all tags, with number of occurrences (#60)
 * Command `track edit day` to edit all records of a day in a single file (#61)
+* Command `track report day` now prints a schedule-like report similar to `week` (#63)
 ### Other
 
 * Removed command `break` (#52)
 * Print only the first line of notes in the records list (#57)
 * Record that starts the day before is included in `list records [DATE]` command (#62)
+* Previous command `report day` (showing bar charts) renamed to `report chart` (#63)
 
 ## [v0.2.1]
 
