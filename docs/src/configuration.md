@@ -1,7 +1,7 @@
 # Configuration
 
 *Track* can be configured for the user's needs.
-Most of this configuration resides in a file `config.yaml` in *Track*'s data directory.
+Most of this configuration resides in a file `config.yml` in *Track*'s data directory.
 
 [[_TOC_]]
 
@@ -13,7 +13,7 @@ The data directory can be changed by setting the environmental variable `TRACK_P
 
 ## Config file
 
-*Track*'s configuration is stored in a file `config.yaml` in the data directory.
+*Track*'s configuration is stored in a file `config.yml` in the data directory.
 See chapter [Manipulating data](./manipulating.md) for editing the config file.
 
 A config file has the following content:
