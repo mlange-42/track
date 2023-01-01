@@ -103,8 +103,8 @@ Notes can contain tags, denoted by the prefix "%s", like "%stag"`, core.TagPrefi
 	}
 
 	switchCom.Flags().BoolVarP(&force, "force", "f", false, "Force start of a new record if the project is already running")
-	switchCom.Flags().StringVar(&atTime, "at", "", "Stop the record at a different time than now.")
-	switchCom.Flags().DurationVar(&ago, "ago", 0*time.Second, "Stop the record at a different time than now, given as a duration.")
+	switchCom.Flags().StringVar(&atTime, "at", "", "Switch at a different time than now.")
+	switchCom.Flags().DurationVar(&ago, "ago", 0*time.Second, "Switch at a different time than now, given as a duration.")
 
 	switchCom.MarkFlagsMutuallyExclusive("at", "ago")
 
