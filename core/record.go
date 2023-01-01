@@ -63,6 +63,14 @@ func (r Record) CurrentPause() (Pause, bool) {
 	return Pause{}, false
 }
 
+// LastPause returns the last pause. Returns false if there is an open pause
+func (r Record) LastPause() (Pause, bool) {
+	if len(r.Pause) > 0 && !r.Pause[len(r.Pause)-1].End.IsZero() {
+		return r.Pause[len(r.Pause)-1], true
+	}
+	return Pause{}, false
+}
+
 // Duration reports the duration of a record
 func (r Record) Duration(min, max time.Time) time.Duration {
 	dur := util.DurationClip(r.Start, r.End, min, max)
