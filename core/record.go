@@ -26,6 +26,8 @@ const YamlCommentPrefix = "#"
 var (
 	// ErrNoRecords is an error for no records found for a date
 	ErrNoRecords = errors.New("no records for date")
+	// ErrRecordNotFound is an error for a particular record not found
+	ErrRecordNotFound = errors.New("record not found")
 )
 
 // Record holds and manipulates data for a record
@@ -390,6 +392,9 @@ func (t *Track) LoadRecord(tm time.Time) (Record, error) {
 	path := t.RecordPath(tm)
 	file, err := os.ReadFile(path)
 	if err != nil {
+		if _, ok := err.(*os.PathError); ok {
+			return Record{}, ErrRecordNotFound
+		}
 		return Record{}, err
 	}
 

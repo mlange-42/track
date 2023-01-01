@@ -90,21 +90,26 @@ Uses the current date if only a time is given.`,
 				}
 				tm = util.DateAndTime(time.Now(), tm)
 			case 2:
-				timeString := strings.Join(args, " ")
-				tm, err = util.ParseDateTime(timeString)
+				date, err := util.ParseDate(args[0])
 				if err != nil {
 					out.Err("failed to edit record: %s", err)
 					return
 				}
+				tm, err = time.Parse(util.TimeFormat, args[1])
+				if err != nil {
+					out.Err("failed to edit record: %s", err)
+					return
+				}
+				tm = util.DateAndTime(date, tm)
 			}
 
 			err = editRecord(t, tm, *dryRun)
 			if err != nil {
 				if err == ErrUserAbort {
-					out.Warn("failed to edit record: %s", err)
+					out.Warn("failed to edit record %s: %s", tm.Format(util.DateTimeFormat), err)
 					return
 				}
-				out.Err("failed to edit record: %s", err)
+				out.Err("failed to edit record %s: %s", tm.Format(util.DateTimeFormat), err)
 				return
 			}
 			if *dryRun {
