@@ -31,6 +31,7 @@
 * Print the latest record in `status`, in the default plain-text format (#75)
 * Limit changes of end time when editing a single record (#76)
 * Allow date words like "yesterday" in record selection for editing (#76)
+* Extensive documentation under [mlange-42.github.io/track/](https://mlange-42.github.io/track/) (#71)
 
 ## [v0.2.1]
 

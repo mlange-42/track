@@ -8,6 +8,14 @@
 
 *Track* is designed to be easy to use, and stores tracking entries in a human-readable plain-text format inspired by [`klog`](https://github.com/jotaen/klog).
 
+## Features
+
+* Track your working time from the command line
+* Natural language-like syntax
+* Supports hierarchical project structure
+* Records stored as plain-text files for human readability and editing
+* Different types of text-based and graphical reports
+
 ## GitHub project
 
 *Track* is Open Source and available [on GitHub](https://github.com/mlange-42/track).
