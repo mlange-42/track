@@ -13,6 +13,7 @@
 - [Reports](./reports.md)
 - [Manipulating data](./manipulating.md)
 - [Workspaces](./workspaces.md)
+- [Importing and exporting](./import-export.md)
 
 # Appendix
 

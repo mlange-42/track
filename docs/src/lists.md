@@ -24,7 +24,7 @@ track list projects
 
 Gives something like this:
 
-```shell
+```text
 <default>
 └─Private         P
   └─Coding        C
