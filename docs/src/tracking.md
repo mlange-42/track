@@ -101,4 +101,15 @@ Notes and tags apply here just as with `start`.
 
 ## Time corrections
 
+For the case that you did not start, stop, pause etc. at the correct time, all commands described in this chapter have flags to correct time:
 
+* `--at` pre-dates the command to the given time  
+  ```shell
+  track start --at 14:00
+  ```
+* `--ago` pre-dates the command by the given duration  
+  ```shell
+  track start --ago 10m
+  ```
+
+These flags are mutually exclusive.
