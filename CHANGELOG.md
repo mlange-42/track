@@ -17,6 +17,11 @@
 * Command `track report day` now prints a schedule-like report similar to `week` (#63)
 * All `edit` subcommands have a flag `--dry` for dry-run (#68)
 * All `edit` subcommands re-open the edited file if parsing/checks fail; improved error messages (#69)
+
+### Bug fixes
+
+* Apply `--at`/`--ago` also to start time in `switch`, not only to end time of previous record (#74)
+
 ### Other
 
 * Removed command `break` (#52)
