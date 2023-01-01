@@ -21,7 +21,7 @@ func Print(format string, a ...interface{}) {
 
 // Err prints an error
 func Err(format string, a ...interface{}) {
-	errorColor.Print(" ERROR ")
+	errorColor.Print(" ERROR   ")
 	fmt.Print(" ")
 	printErr(format, a...)
 }
@@ -42,7 +42,7 @@ func Success(format string, a ...interface{}) {
 
 // Scan prints a prompt message and scans foruser input
 func Scan(format string, a ...interface{}) (string, error) {
-	promptColor.Print(" PROMPT ")
+	promptColor.Print(" PROMPT  ")
 	fmt.Print(" ")
 	printOut(format, a...)
 

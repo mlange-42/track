@@ -90,21 +90,26 @@ Uses the current date if only a time is given.`,
 				}
 				tm = util.DateAndTime(time.Now(), tm)
 			case 2:
-				timeString := strings.Join(args, " ")
-				tm, err = util.ParseDateTime(timeString)
+				date, err := util.ParseDate(args[0])
 				if err != nil {
 					out.Err("failed to edit record: %s", err)
 					return
 				}
+				tm, err = time.Parse(util.TimeFormat, args[1])
+				if err != nil {
+					out.Err("failed to edit record: %s", err)
+					return
+				}
+				tm = util.DateAndTime(date, tm)
 			}
 
 			err = editRecord(t, tm, *dryRun)
 			if err != nil {
 				if err == ErrUserAbort {
-					out.Warn("failed to edit record: %s", err)
+					out.Warn("failed to edit record %s: %s", tm.Format(util.DateTimeFormat), err)
 					return
 				}
-				out.Err("failed to edit record: %s", err)
+				out.Err("failed to edit record %s: %s", tm.Format(util.DateTimeFormat), err)
 				return
 			}
 			if *dryRun {
@@ -276,6 +281,18 @@ func editRecord(t *core.Track, tm time.Time, dryRun bool) error {
 			if newRecord.Start != record.Start {
 				return fmt.Errorf("can't change start time. Try command 'track edit day' instead")
 			}
+			if record.End.IsZero() {
+				if !newRecord.End.IsZero() && newRecord.End.After(time.Now()) {
+					return fmt.Errorf("can't set end time to the future. Try command 'track edit day' instead")
+				}
+			} else {
+				if newRecord.End.IsZero() {
+					return fmt.Errorf("can't open a finished record. Try command 'track edit day' instead")
+				}
+				if newRecord.End.After(record.End) {
+					return fmt.Errorf("can't extend record end time. Try command 'track edit day' instead")
+				}
+			}
 
 			if err = newRecord.Check(); err != nil {
 				return err
@@ -411,6 +428,18 @@ func editDay(t *core.Track, date time.Time, dryRun bool) error {
 					prevStart = rec.Start
 					prevEnd = rec.End
 				}
+			}
+
+			// TODO: this currently can't happen, because we always try to parse as soon as there is any content
+			if len(newRecords) == 0 {
+				out.Warn("all records were removed")
+				if !confirm(fmt.Sprintf(
+					"Really delete all records for '%s'? (yes!/n): ",
+					date.Format(util.DateFormat),
+				)) {
+					return ErrUserAbort
+				}
+
 			}
 
 			if !dryRun {

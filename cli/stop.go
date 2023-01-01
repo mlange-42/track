@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/mlange-42/track/core"
@@ -30,7 +31,12 @@ func stopCommand(t *core.Track) *cobra.Command {
 				return
 			}
 
-			if deleteRecord && !confirmDeleteRecord(open) {
+			if deleteRecord && !confirm(fmt.Sprintf(
+				"Really delete record %s (%s) from project '%s' (y/n): ",
+				open.Start.Format(util.DateTimeFormat),
+				util.FormatDuration(open.Duration(time.Time{}, time.Time{})),
+				open.Project,
+			)) {
 				out.Err("failed to stop record: aborted by user")
 				return
 			}

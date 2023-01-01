@@ -29,6 +29,8 @@
 * Record that starts the day before is included in `list records [DATE]` command (#62)
 * Previous command `report day` (showing bar charts) renamed to `report chart` (#63)
 * Print the latest record in `status`, in the default plain-text format (#75)
+* Limit changes of end time when editing a single record (#76)
+* Allow date words like "yesterday" in record selection for editing (#76)
 
 ## [v0.2.1]
 

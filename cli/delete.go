@@ -1,7 +1,9 @@
 package cli
 
 import (
+	"fmt"
 	"strings"
+	"time"
 
 	"github.com/mlange-42/track/core"
 	"github.com/mlange-42/track/out"
@@ -49,8 +51,13 @@ func deleteRecordCommand(t *core.Track) *cobra.Command {
 				return
 			}
 
-			if !force && !confirmDeleteRecord(&record) {
-				out.Err("failed to delete record: aborted by user")
+			if !force && !confirm(fmt.Sprintf(
+				"Really delete record %s (%s) from project '%s' (y/n): ",
+				record.Start.Format(util.DateTimeFormat),
+				util.FormatDuration(record.Duration(time.Time{}, time.Time{})),
+				record.Project,
+			)) {
+				out.Warn("failed to delete record: aborted by user")
 				return
 			}
 
@@ -101,8 +108,11 @@ func deleteProjectCommand(t *core.Track) *cobra.Command {
 				return
 			}
 
-			if !force && !confirmDeleteProject(pNode.Value) {
-				out.Err("failed to delete project: aborted by user")
+			if !force && !confirm(fmt.Sprintf(
+				"Really delete project '%s' and all associated records? (yes!/n): ",
+				pNode.Value.Name,
+			)) {
+				out.Warn("failed to delete project: aborted by user")
 				return
 			}
 
