@@ -12,6 +12,7 @@ import (
 )
 
 func switchCommand(t *core.Track) *cobra.Command {
+	var copy bool
 	var force bool
 	var atTime string
 	var ago time.Duration
@@ -32,6 +33,12 @@ Notes can contain tags, denoted by the prefix "%s", like "%stag"`, core.TagPrefi
 				out.Err("failed to start record: project '%s' does not exist", project)
 				return
 			}
+
+			if copy && len(args) > 1 {
+				out.Err("failed to start record: can't use note arguments with flag --copy")
+				return
+			}
+
 			proj, err := t.LoadProjectByName(project)
 			if err != nil {
 				out.Err("failed to start record: %s", err)
@@ -89,8 +96,26 @@ Notes can contain tags, denoted by the prefix "%s", like "%stag"`, core.TagPrefi
 				}
 			}
 
-			note := strings.Join(args[1:], " ")
-			tags := core.ExtractTagsSlice(args[1:])
+			note := ""
+			tags := []string{}
+
+			if copy {
+				latest, err := t.FindLatestRecord(core.FilterByProjects([]string{project}))
+				if err != nil {
+					out.Err("failed to start record with copy: %s", err.Error())
+					return
+				}
+				if latest != nil {
+					note = latest.Note
+					tags = latest.Tags
+				} else {
+					out.Err("failed to create record with copy: no previous record in '%s'", project)
+					return
+				}
+			} else {
+				note = strings.Join(args[1:], " ")
+				tags = core.ExtractTagsSlice(args[1:])
+			}
 
 			record, err := t.StartRecord(project, note, tags, startStopTime)
 			if err != nil {
@@ -101,6 +126,7 @@ Notes can contain tags, denoted by the prefix "%s", like "%stag"`, core.TagPrefi
 			out.Success("Started record in '%s' at %s", project, record.Start.Format(util.TimeFormat))
 		},
 	}
+	switchCom.Flags().BoolVarP(&copy, "copy", "c", false, "Copy note and tags from the last record of the project.")
 
 	switchCom.Flags().BoolVarP(&force, "force", "f", false, "Force start of a new record if the project is already running")
 	switchCom.Flags().StringVar(&atTime, "at", "", "Switch at a different time than now.")

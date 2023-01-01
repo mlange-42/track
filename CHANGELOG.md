@@ -7,6 +7,7 @@
 * The data path (normally `%USER%/.track`) can be set via env var `TRACK_PATH` (#81)
 * Configurable fill character for records in day report (#82)
 * Adds flag `--7days` to week reports to show 7 days instead of a calendar week (#85)
+* Adds flag `--copy` to the switch command to copy note and tags like in start command (#86)
 
 ### Bugfixes
 
