@@ -72,30 +72,7 @@ func parseStartEnd(options *filterOptions) (time.Time, time.Time, error) {
 	return startTime, endTime, nil
 }
 
-func confirmDeleteRecord(rec *core.Record) bool {
-	question := fmt.Sprintf(
-		"Really delete record %s (%s) from project '%s' (y/n): ",
-		rec.Start.Format(util.DateTimeFormat),
-		util.FormatDuration(rec.Duration(time.Time{}, time.Time{})),
-		rec.Project,
-	)
-
-	answer, err := out.Scan(question)
-	if err != nil {
-		return false
-	}
-	if answer != "y" {
-		return false
-	}
-	return true
-}
-
-func confirmDeleteProject(project core.Project) bool {
-	question := fmt.Sprintf(
-		"Really delete project '%s' and all associated records? (yes!/n): ",
-		project.Name,
-	)
-
+func confirm(question string) bool {
 	answer, err := out.Scan(question)
 	if err != nil {
 		return false
