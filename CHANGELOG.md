@@ -5,6 +5,7 @@
 ### Features
 
 * The data path (normally `%USER%/.track`) can be set via env var `TRACK_PATH` (#81)
+* Configurable fill character for records in day report (#82)
 
 ### Bugfixes
 
