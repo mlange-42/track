@@ -35,6 +35,8 @@ textEditor: vim
 
 Then, save the file and try to edit using *Track* again with `track edit config`.
 
+For more configuration options, see chapter [Configuration](./configuration.md).
+
 ## Editing records
 
 There are two ways for editing records:

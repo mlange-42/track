@@ -15,6 +15,8 @@ const (
 	projectsDirName = "projects"
 	recordsDirName  = "records"
 	configFile      = "config.yml"
+
+	trackPathEnvVar = "TRACK_PATH"
 )
 
 var (
@@ -26,6 +28,9 @@ var pathSanitizer = strings.NewReplacer("/", "-", "\\", "-")
 
 // RootDir returns the root storage directory
 func RootDir() string {
+	if path, ok := os.LookupEnv(trackPathEnvVar); ok {
+		return path
+	}
 	home, err := os.UserHomeDir()
 	if err != nil {
 		panic(err)

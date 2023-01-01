@@ -2,6 +2,10 @@
 
 ## [[unpublished]](https://github.com/mlange-42/track/compare/v0.3.0...main)
 
+### Features
+
+* The data path (normally `%USER%/.track`) can be set via env var `TRACK_PATH` (#81)
+
 ### Bugfixes
 
 * Fix crash when requesting the open record and there are no records at all (#80)
