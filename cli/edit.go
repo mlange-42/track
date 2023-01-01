@@ -433,10 +433,13 @@ func editDay(t *core.Track, date time.Time, dryRun bool) error {
 			// TODO: this currently can't happen, because we always try to parse as soon as there is any content
 			if len(newRecords) == 0 {
 				out.Warn("all records were removed")
-				if !confirm(fmt.Sprintf(
-					"Really delete all records for '%s'? (yes!/n): ",
-					date.Format(util.DateFormat),
-				)) {
+				if !confirm(
+					fmt.Sprintf(
+						"Really delete all records for '%s'? (yes!/n): ",
+						date.Format(util.DateFormat),
+					),
+					"yes!",
+				) {
 					return ErrUserAbort
 				}
 

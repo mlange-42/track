@@ -72,12 +72,12 @@ func parseStartEnd(options *filterOptions) (time.Time, time.Time, error) {
 	return startTime, endTime, nil
 }
 
-func confirm(question string) bool {
+func confirm(question, yes string) bool {
 	answer, err := out.Scan(question)
 	if err != nil {
 		return false
 	}
-	if answer != "yes!" {
+	if answer != yes {
 		return false
 	}
 	return true

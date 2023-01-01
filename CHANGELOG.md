@@ -10,6 +10,7 @@
 ### Bugfixes
 
 * Fix crash when requesting the open record and there are no records at all (#80)
+* Fix for different `yes` answers in confirm prompt (#82)
 
 ## [[v0.3.0]](https://github.com/mlange-42/track/compare/v0.2.1...v0.3.0)
 
