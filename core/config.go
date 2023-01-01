@@ -16,6 +16,12 @@ import (
 
 const defaultWorkspace = "default"
 
+const (
+	defaultEmptyCell  = "."
+	defaultRecordCell = ":"
+	defaultPauseCell  = "-"
+)
+
 var (
 	// ErrNoConfig is an error for no config file available
 	ErrNoConfig = errors.New("no config file")
@@ -114,11 +120,15 @@ func SaveConfig(conf Config) error {
 
 // CheckConfig checks a config for consistency
 func CheckConfig(conf *Config) error {
+	versionHint := "In case you recently updated track, try to delete file %USER%/.track/config.yml"
 	if utf8.RuneCountInString(conf.EmptyCell) != 1 {
-		return fmt.Errorf("config entry EmptyCell must be a string of length 1. Got '%s'", conf.EmptyCell)
+		return fmt.Errorf("config entry EmptyCell must be a string of length 1. Got '%s'.\n%s", conf.EmptyCell, versionHint)
+	}
+	if utf8.RuneCountInString(conf.RecordCell) != 1 {
+		return fmt.Errorf("config entry RecordCell must be a string of length 1. Got '%s'.\n%s", conf.RecordCell, versionHint)
 	}
 	if utf8.RuneCountInString(conf.PauseCell) != 1 {
-		return fmt.Errorf("config entry PauseCell must be a string of length 1. Got '%s'", conf.PauseCell)
+		return fmt.Errorf("config entry PauseCell must be a string of length 1. Got '%s'.\n%s", conf.PauseCell, versionHint)
 	}
 	return nil
 }
