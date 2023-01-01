@@ -2,6 +2,7 @@
 
 [![Test status](https://github.com/mlange-42/track/actions/workflows/tests.yml/badge.svg)](https://github.com/mlange-42/track/actions/workflows/tests.yml)
 [![GitHub](https://img.shields.io/badge/github-repo-blue?logo=github)](https://github.com/mlange-42/track)
+[![Docs](https://img.shields.io/static/v1?label=docs&message=mdBook&color=B7410E&logo=mdBook)](https://mlange-42.github.io/track/)
 [![MIT license](https://img.shields.io/github/license/mlange-42/track)](https://github.com/mlange-42/track/blob/main/LICENSE)
 
 Track is a time tracking command line tool.
