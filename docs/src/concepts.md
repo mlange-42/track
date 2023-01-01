@@ -1,6 +1,8 @@
 # Concepts
 
-This chapter explains *Track*'s primary concepts
+This chapter explains *Track*'s primary concepts.
+
+To start using *Track* immediately, you can skip to chapter [Time tracking](./tracking.md) and come back here if something seems unclear.
 
 [[_TOC_]]
 
@@ -12,7 +14,7 @@ Each record is associated to a [project](#projects).
 A record is defined as a  contiguous time span spent on a project.
 It is characterized by it's start and end time.
 
-Each records can contain an arbitrary number of pauses, each. characterized by a start time and a duration.
+Each records can contain an arbitrary number of pauses. Each pause is characterized by a start time and a duration.
 
 Further, each record can have a note and tags.
 
@@ -46,7 +48,7 @@ For the full subcommand tree, see appendix [Command tree](./command-tree.md).
 
 ## File formats
 
-*Track* uses a human-readable plain text format to store records.
+*Track* uses a human-readable plain-text format to store records.
 This allows for easy editing, simply using a text editor.
 
 A time tracking record looks like this:

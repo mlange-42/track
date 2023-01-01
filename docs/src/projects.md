@@ -43,14 +43,18 @@ For color values, see section [Colors](#colors).
 
 ## Nested projects
 
-As the examples already showed, a project can have a parent.
+As the examples already showed, a project can have a parent project.
 This way, hierarchies of projects with any depth of nesting can be created.
 
 ```shell
 track create project Private
 track create project Coding --parent Private
 track create project MyApp --parent Coding
+```
 
+To view the project hierarchy, use:
+
+```shell
 track list projects
 ```
 
@@ -89,4 +93,4 @@ track edit project MyProject
 
 This way, the resulting project definition is checked before overwriting the project file.
 
-For more details, see chapter [Manipulating data](./manipulating.md).
+For details, see chapter [Manipulating data](./manipulating.md).

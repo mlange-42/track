@@ -1,6 +1,7 @@
 # Time tracking
 
 *Track* provides several commands to start, stop, pause etc. time tracking.
+They are explained in this chapter in detail.
 
 [[_TOC_]]
 
@@ -35,7 +36,7 @@ track start MyProject work on +artwork
 
 ## Status
 
-To check the tracking status use
+To check the tracking status at any time, use:
 
 ```shell
 track status
@@ -44,9 +45,15 @@ track status
 It will print a summary of the running or the last record:
 
 ```text
+ SUCCESS  Record 2023-01-01 09:08
+09:08 - ?
+    - 10:25 - 10m / Short walk
+    MyProject
+
+work on +GUI +design
 +------------------+-------+-------+-------+-------+
 |          project |  curr | total | break | today |
-|        MyProject | 01:05 | 01:05 | 00:10 | 01:53 |
+|        MyProject | 02:05 | 02:05 | 00:10 | 02:53 |
 +------------------+-------+-------+-------+-------+
 ```
 
@@ -103,11 +110,11 @@ Notes and tags apply here just as with `start`.
 
 For the case that you did not start, stop, pause etc. at the correct time, all commands described in this chapter have flags to correct time:
 
-* `--at` pre-dates the command to the given time  
+* `--at` foredates the command to the given time  
   ```shell
   track start --at 14:00
   ```
-* `--ago` pre-dates the command by the given duration  
+* `--ago` foredates the command by the given duration  
   ```shell
   track start --ago 10m
   ```

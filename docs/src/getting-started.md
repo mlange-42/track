@@ -4,7 +4,7 @@
 
 ## Create a project
 
-Any time tracking `track` is associated to a *Project*.
+Any time tracking in *Track* is associated to a "project".
 Before you can start tracking, create a project:
 
 ```shell

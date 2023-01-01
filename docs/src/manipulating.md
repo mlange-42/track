@@ -1,7 +1,7 @@
 # Manipulating data
 
 Besides the normal tracking workflow with `start`, `stop`, `pause` etc.,
-*Track* provides a simple but efficient way to edit all kinds of underlying data:
+*Track* provides a simple but effective way to edit all kinds of underlying data.
 
 All data is stored in human-readable formats.
 Thus, it can be edited by letting *Track* open it as a temporary file in a text editor.
@@ -40,11 +40,11 @@ Then, save the file and try to edit using *Track* again with `track edit config`
 There are two ways for editing records:
 
 * **Edit a single record** with `track edit record [[DATE] TIME]`  
-  Good for changing a record's project, note or pauses, but limits editing of start and end time of the record
+  Good for changing a record's project, note or pauses, but limits editing of start and end time of the record.
 
 * **Edit all records of a day** in a single file with `track edit day [DATE]`  
   Allows for changing start and end times, in addition to the other properties.
-  Also checks consistency between records (no overlap etc.)
+  Also checks consistency between records (no overlap etc.).
 
 The file format/syntax for editing records should be quite obvious.
 It is the same format that *Track* uses to store records.
@@ -93,4 +93,4 @@ Delete a project, including all records of the project:
 track delete project MyProject
 ```
 
-The `delete` commands ask for interactive confirmation before actually deleting anything.
+The `delete` commands ask for user confirmation before actually deleting anything.
