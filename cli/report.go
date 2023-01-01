@@ -261,10 +261,16 @@ func chartReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 
 func weekReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 	var blocksPerHour int
+	var exact bool
 
-	day := &cobra.Command{
-		Use:     "week [DATE]",
-		Short:   "Report of activities over a week in the form of a schedule",
+	week := &cobra.Command{
+		Use:   "week [DATE]",
+		Short: "Report of activities over a week in the form of a schedule",
+		Long: `Report of activities over a week in the form of a schedule
+
+Reports for the current week if no date is given, or for the past 7 days with flag --7days.
+
+If called with a date, reports for the week containing the date, or for the 7 days starting with the date with flag --7days.`,
 		Aliases: []string{"w"},
 		Args:    util.WrappedArgs(cobra.MaximumNArgs(1)),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -276,6 +282,15 @@ func weekReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 				if err != nil {
 					out.Err("failed to generate report: %s", err)
 					return
+				}
+				if !exact {
+					start = util.Monday(start)
+				}
+			} else {
+				if exact {
+					start = start.Add(-6 * 24 * time.Hour)
+				} else {
+					start = util.Monday(start)
 				}
 			}
 
@@ -297,9 +312,10 @@ func weekReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 		},
 	}
 
-	day.Flags().IntVarP(&blocksPerHour, "width", "w", 12, "Width of the graph, in characters per hour. Auto-scale if not specified")
+	week.Flags().IntVarP(&blocksPerHour, "width", "w", 12, "Width of the graph, in characters per hour. Auto-scale if not specified")
+	week.Flags().BoolVarP(&exact, "7days", "7", false, "Show the report for 7 days instead of the current/given calendar week")
 
-	return day
+	return week
 }
 
 func dayReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
@@ -349,9 +365,6 @@ func schedule(t *core.Track, start time.Time, options *filterOptions, week bool,
 	var filterStart, filterEnd time.Time
 
 	if week {
-		weekDay := (int(start.Weekday()) + 6) % 7
-		start = start.Add(time.Duration(-weekDay * 24 * int(time.Hour)))
-
 		filterStart = start.Add(-time.Hour * 24)
 		filterEnd = start.Add(time.Hour * 24 * 7)
 	} else {

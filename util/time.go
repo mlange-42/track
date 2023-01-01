@@ -26,3 +26,9 @@ func DurationClip(start, end, min, max time.Time) time.Duration {
 
 	return end.Sub(start)
 }
+
+// Monday returns the monday of the week of the given date
+func Monday(date time.Time) time.Time {
+	weekDay := (int(date.Weekday()) + 6) % 7
+	return date.Add(time.Duration(-weekDay * 24 * int(time.Hour)))
+}
