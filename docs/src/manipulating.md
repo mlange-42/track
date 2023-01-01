@@ -10,14 +10,43 @@ After editing the file, the user closes it to confirm.
 
 [[_TOC_]]
 
-## Config
+## Editing the config
+
+For *Track*'s editing to work properly, the text editor to be used must be set in the config file.
+On Windows, `notepad.exe` is set as the default, while it is `nano` on other systems.
+You can try if the setup works for you by editing the config:
+
+```shell
+track edit config
+```
+
+This should open the config file and wait for the user to edit, save and close it.
+If this does not work properly, set the editor manually. Open the config file under
+
+```text
+%USER%/.track/config.yml
+```
+
+There, set the text editor entry to a program of your choice, e.g.:
+
+```yaml
+textEditor: vim
+```
+
+Then, save the file and try to edit using *Track* again with `track edit config`.
+
+## Editing records
 
 [TODO]
 
-## Projects
+## Editing projects
 
 [TODO]
 
-## Records
+## Archiving projects
+
+[TODO]
+
+## Deleting records and projects
 
 [TODO]

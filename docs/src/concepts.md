@@ -27,4 +27,21 @@ For details, see chapter [Projects](./projects.md).
 
 ## File formats
 
-[TODO]
+*Track* uses a human-readable plain text format to store records.
+This allows for easy editing, simply using a text editor.
+
+A time tracking record looks like this:
+
+```text
+8:15 - 17:00
+    - 10:15 - 15m / Breakfast
+    - 13:00 - 30m / Lunch
+    
+    ProjectA
+
+Work on +GUI +design
+```
+
+*Track* provides an `edit` command that opens the entries to be edited in a temporary file,
+and performs checks before replacing the original data.
+See chapter [Manipulating data](./manipulating.md) for details.
