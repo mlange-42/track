@@ -27,6 +27,7 @@ type Config struct {
 	TextEditor       string        `yaml:"textEditor"`
 	MaxBreakDuration time.Duration `yaml:"maxBreakDuration"`
 	EmptyCell        string        `yaml:"emptyCell"`
+	RecordCell       string        `yaml:"recordCell"`
 	PauseCell        string        `yaml:"pauseCell"`
 }
 
@@ -52,6 +53,7 @@ func LoadConfig() (Config, error) {
 		TextEditor:       editor,
 		MaxBreakDuration: 2 * time.Hour,
 		EmptyCell:        ".",
+		RecordCell:       ":",
 		PauseCell:        "-",
 	}
 

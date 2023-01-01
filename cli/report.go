@@ -600,6 +600,7 @@ func renderWeekSchedule(t *core.Track, reporter *core.Reporter, active string, s
 
 	spaceSym := []rune(t.Config.EmptyCell)[0]
 	pauseSym := []rune(t.Config.PauseCell)[0]
+	recordSym := []rune(t.Config.RecordCell)[0]
 
 	projects := maps.Keys(reporter.Projects)
 	sort.Strings(projects)
@@ -721,8 +722,10 @@ func renderWeekSchedule(t *core.Track, reporter *core.Reporter, active string, s
 						if sym == '\n' || sym == '\r' {
 							sym = ' '
 						}
-					} else {
+					} else if idxRecord-3-nameLen == noteLen {
 						sym = ' '
+					} else {
+						sym = recordSym
 					}
 				}
 				if i == nowIdx {
