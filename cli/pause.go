@@ -12,6 +12,8 @@ import (
 
 func pauseCommand(t *core.Track) *cobra.Command {
 	var duration time.Duration
+	var atTime string
+	var ago time.Duration
 
 	pauseCom := &cobra.Command{
 		Use:     "pause [NOTE...]",
@@ -34,13 +36,31 @@ func pauseCommand(t *core.Track) *cobra.Command {
 				return
 			}
 
-			now := time.Now()
-
-			endTime := time.Time{}
-			if cmd.Flags().Changed("duration") {
-				endTime = now
+			minTime := open.Start
+			if pause, ok := open.LastPause(); ok {
+				minTime = pause.End
 			}
-			startTime := now.Add(-duration)
+
+			now := time.Now()
+			var startTime, endTime time.Time
+			nowCorr, err := getStartTime(minTime, ago, atTime)
+			if err != nil {
+				out.Err("failed to insert pause: %s", err)
+				return
+			}
+			if cmd.Flags().Changed("duration") {
+				endTime = nowCorr
+				startTime = nowCorr
+				endTime = startTime.Add(duration)
+				if endTime.After(now) {
+					out.Err("failed to insert pause: end of pause would be in the future")
+					return
+				}
+			} else {
+				startTime = nowCorr
+				endTime = time.Time{}
+			}
+
 			note := strings.Join(args, " ")
 			_, err = open.InsertPause(startTime, endTime, note)
 			if err != nil {
@@ -60,7 +80,12 @@ func pauseCommand(t *core.Track) *cobra.Command {
 			}
 		},
 	}
-	pauseCom.Flags().DurationVarP(&duration, "duration", "d", 0*time.Hour, "Duration of the break. Inserts a finished break if given")
+	pauseCom.Flags().DurationVarP(&duration, "duration", "d", 0*time.Hour, "Duration of the pause. Inserts a finished pause if given.\nOtherwise, a pause with an open end is inserted")
+
+	pauseCom.Flags().StringVar(&atTime, "at", "", "Pause the record at a different time than now.")
+	pauseCom.Flags().DurationVar(&ago, "ago", 0*time.Second, "Pause the record at a different time than now, given as a duration.")
+
+	pauseCom.MarkFlagsMutuallyExclusive("at", "ago")
 
 	return pauseCom
 }

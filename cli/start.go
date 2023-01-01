@@ -122,8 +122,8 @@ Notes can contain tags, denoted by the prefix "%s", like "%stag"`, core.TagPrefi
 
 	start.Flags().BoolVarP(&copy, "copy", "c", false, "Copy note and tags from the last record of the project.")
 
-	start.Flags().StringVar(&atTime, "at", "", "Stop the record at a different time than now.")
-	start.Flags().DurationVar(&ago, "ago", 0*time.Second, "Stop the record at a different time than now, given as a duration.")
+	start.Flags().StringVar(&atTime, "at", "", "Start the record at a different time than now.")
+	start.Flags().DurationVar(&ago, "ago", 0*time.Second, "Start the record at a different time than now, given as a duration.")
 
 	start.MarkFlagsMutuallyExclusive("at", "ago")
 

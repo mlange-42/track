@@ -47,6 +47,7 @@
 * Project colors and symbols are shown in reports and lists (#40)
 * Weekly sum of project time shown in week report (#41)
 * Delete a project with `track delete project PROJECT` (#43)
+* Flags `--at` and `--ago` for all commands like `start`, `stop`, `switch` and `pause` (#72)
 
 ### Bug fixes
 
