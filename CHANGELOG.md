@@ -1,6 +1,10 @@
 # Changelog
 
-## [unpublished]
+## [[unpublished]](https://github.com/mlange-42/track/compare/v0.3.0...main)
+
+Nothing
+
+## [[v0.3.0]](https://github.com/mlange-42/track/compare/v0.2.1...v0.3.0)
 
 ### Features
 
@@ -33,13 +37,13 @@
 * Allow date words like "yesterday" in record selection for editing (#76)
 * Extensive documentation under [mlange-42.github.io/track/](https://mlange-42.github.io/track/) (#71)
 
-## [v0.2.1]
+## [[v0.2.1]](https://github.com/mlange-42/track/compare/v0.2.0...v0.2.1)
 
 ### Bug fixes
 
 * Limit time aggregation in reports to exact requested time range (#45)
 
-## [v0.2.0]
+## [[v0.2.0]](https://github.com/mlange-42/track/compare/v0.1.0...v0.2.0)
 
 ### Features
 
