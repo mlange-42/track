@@ -276,6 +276,18 @@ func editRecord(t *core.Track, tm time.Time, dryRun bool) error {
 			if newRecord.Start != record.Start {
 				return fmt.Errorf("can't change start time. Try command 'track edit day' instead")
 			}
+			if record.End.IsZero() {
+				if !newRecord.End.IsZero() && newRecord.End.After(time.Now()) {
+					return fmt.Errorf("can't set end time to the future. Try command 'track edit day' instead")
+				}
+			} else {
+				if newRecord.End.IsZero() {
+					return fmt.Errorf("can't open a finished record. Try command 'track edit day' instead")
+				}
+				if newRecord.End.After(record.End) {
+					return fmt.Errorf("can't extend record end time. Try command 'track edit day' instead")
+				}
+			}
 
 			if err = newRecord.Check(); err != nil {
 				return err
