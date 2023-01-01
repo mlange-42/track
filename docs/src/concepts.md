@@ -25,6 +25,25 @@ Projects can be organized in a hierarchical tree-like structure.
 
 For details, see chapter [Projects](./projects.md).
 
+## Command line interface
+
+The command line interface heavily relies on nested subcommands.
+This allows for a natural language-like syntax, like
+
+```shell
+track list records yesterday
+```
+
+For normal usage, flags (i.e. options prefixed with `--` or `-`) are rarely required.
+
+Further, all subcommands can be abbreviated by their first letter (with a few exceptions that use a different character or two letters). E.g. this is equivalent to the above list command:
+
+```shell
+track l r yesterday
+```
+
+For the full subcommand tree, see appendix [Command tree](./command-tree.md).
+
 ## File formats
 
 *Track* uses a human-readable plain text format to store records.

@@ -20,7 +20,7 @@ You can try if the setup works for you by editing the config:
 track edit config
 ```
 
-This should open the config file and wait for the user to edit, save and close it.
+This should open the config YAML file and wait for the user to edit, save and close it.
 If this does not work properly, set the editor manually. Open the config file under
 
 ```text
@@ -37,16 +37,60 @@ Then, save the file and try to edit using *Track* again with `track edit config`
 
 ## Editing records
 
-[TODO]
+There are two ways for editing records:
+
+* **Edit a single record** with `track edit record [[DATE] TIME]`  
+  Good for changing a record's project, note or pauses, but limits editing of start and end time of the record
+
+* **Edit all records of a day** in a single file with `track edit day [DATE]`  
+  Allows for changing start and end times, in addition to the other properties.
+  Also checks consistency between records (no overlap etc.)
+
+The file format/syntax for editing records should be quite obvious.
+It is the same format that *Track* uses to store records.
+
+When editing a full day, records are separated by lines starting with 4 dashes: `----`.
+
+For details on the file format, see appendix [File formats](./file-formats.md).
 
 ## Editing projects
 
-[TODO]
+Projects can be edited just like the config or records:
+
+```shell
+track edit project MyProject
+```
+
+Projects are stored and edited as YAML files. For details, see chapter [Projects](./projects.md).
 
 ## Archiving projects
 
-[TODO]
+Projects can be archived.
+Archiving a project has no effects except that the project is excluded from lists and reports.
+
+Some commands have a flag `--archived` to include archived projects.
+
+To archive on un-archive a projects, use the `--archive` flag:
+
+```shell
+track edit project --archive
+track edit project --archive=false
+```
 
 ## Deleting records and projects
 
-[TODO]
+Records and entire projects (including all their records) can be deleted using the CLI.
+
+Delete a record:
+
+```shell
+track delete record 2023-01-01 15:05
+```
+
+Delete a project, including all records of the project:
+
+```shell
+track delete project MyProject
+```
+
+The `delete` commands ask for interactive confirmation before actually deleting anything.

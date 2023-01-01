@@ -6,8 +6,6 @@
 
 ***Track*** is a time tracking command line tool.
 
-**!!! The docs are still under construction !!!**
-
 *Track* is designed to be easy to use, and stores tracking entries in a human-readable plain-text format inspired by [`klog`](https://github.com/jotaen/klog).
 
 ## GitHub project
