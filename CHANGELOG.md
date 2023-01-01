@@ -6,11 +6,12 @@
 
 * The data path (normally `%USER%/.track`) can be set via env var `TRACK_PATH` (#81)
 * Configurable fill character for records in day report (#82)
+* Adds flag `--7days` to week reports to show 7 days instead of a calendar week (#85)
 
 ### Bugfixes
 
 * Fix crash when requesting the open record and there are no records at all (#80)
-* Fix for different `yes` answers in confirm prompt (#82)
+* Fix for different `yes` answers in confirm prompt (#84)
 
 ## [[v0.3.0]](https://github.com/mlange-42/track/compare/v0.2.1...v0.3.0)
 
