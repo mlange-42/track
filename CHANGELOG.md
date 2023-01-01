@@ -2,7 +2,9 @@
 
 ## [[unpublished]](https://github.com/mlange-42/track/compare/v0.3.0...main)
 
-Nothing
+### Bugfixes
+
+* Fix crash when requesting the open record and there are no records at all (#80)
 
 ## [[v0.3.0]](https://github.com/mlange-42/track/compare/v0.2.1...v0.3.0)
 

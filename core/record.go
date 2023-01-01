@@ -720,6 +720,9 @@ func (t *Track) OpenRecord() (*Record, error) {
 		}
 		return nil, err
 	}
+	if latest == nil {
+		return nil, nil
+	}
 	if latest.HasEnded() {
 		return nil, nil
 	}
