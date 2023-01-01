@@ -28,6 +28,7 @@
 * Print only the first line of notes in the records list (#57)
 * Record that starts the day before is included in `list records [DATE]` command (#62)
 * Previous command `report day` (showing bar charts) renamed to `report chart` (#63)
+* Print the latest record in `status`, in the default plain-text format (#75)
 
 ## [v0.2.1]
 

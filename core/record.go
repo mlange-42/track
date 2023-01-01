@@ -628,6 +628,24 @@ func (t *Track) LoadDateRecordsFiltered(date time.Time, filters FilterFunctions)
 	return records, nil
 }
 
+// FindLatestRecord loads the latest record for the given condition. Returns a nil reference if no record is found.
+func (t *Track) FindLatestRecord(cond FilterFunction) (*Record, error) {
+	fn, results, stop := t.AllRecordsFiltered(
+		FilterFunctions{cond},
+		true, // reversed order to find latest record of project
+	)
+	go fn()
+
+	for res := range results {
+		if res.Err != nil {
+			return nil, res.Err
+		}
+		close(stop)
+		return &res.Record, nil
+	}
+	return nil, nil
+}
+
 // LatestRecord loads the latest record. Returns a nil reference if no record is found.
 func (t *Track) LatestRecord() (*Record, error) {
 	records := t.RecordsDir()

@@ -83,25 +83,15 @@ Notes can contain tags, denoted by the prefix "%s", like "%stag"`, core.TagPrefi
 			tags := []string{}
 
 			if copy {
-				fn, results, stop := t.AllRecordsFiltered(
-					core.FilterFunctions{core.FilterByProjects([]string{project})},
-					true, // reversed order to find latest record of project
-				)
-				go fn()
-
-				anyFound := false
-				for res := range results {
-					if res.Err != nil {
-						out.Err("failed to start record with copy: %s", err.Error())
-						return
-					}
-					note = res.Record.Note
-					tags = res.Record.Tags
-					anyFound = true
-					close(stop)
-					break
+				latest, err := t.FindLatestRecord(core.FilterByProjects([]string{project}))
+				if err != nil {
+					out.Err("failed to start record with copy: %s", err.Error())
+					return
 				}
-				if !anyFound {
+				if latest != nil {
+					note = latest.Note
+					tags = latest.Tags
+				} else {
 					out.Err("failed to create record with copy: no previous record in '%s'", project)
 					return
 				}
