@@ -1,8 +1,8 @@
 # Projects
 
 Projects are the main way of structuring time tracking.
-
-Further, there are [Workspaces](./workspaces.md).
+Each time tracking record is associated to a project.
+For more high-level structuring, there are also [Workspaces](./workspaces.md).
 
 [[_TOC_]]
 
