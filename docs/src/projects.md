@@ -80,7 +80,7 @@ Which shows something like this:
 
 ## Editing projects
 
-Properties (except the project's name) can be changed at any time by editing the YAML file.
+Project properties (except the project's name) can be changed at any time by editing the YAML file.
 It is highly recommended to use *Track* for editing rather than to open the file directly:
 
 ```shell
