@@ -85,5 +85,7 @@ func pauseCommand(t *core.Track) *cobra.Command {
 	pauseCom.Flags().StringVar(&atTime, "at", "", "Pause the record at a different time than now.")
 	pauseCom.Flags().DurationVar(&ago, "ago", 0*time.Second, "Pause the record at a different time than now, given as a duration.")
 
+	pauseCom.MarkFlagsMutuallyExclusive("at", "ago")
+
 	return pauseCom
 }
