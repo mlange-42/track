@@ -12,6 +12,7 @@ import (
 	"github.com/mlange-42/track/out"
 	"github.com/mlange-42/track/util"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 type recordWriter interface {
@@ -38,6 +39,7 @@ func exportCommand(t *core.Track) *cobra.Command {
 func exportRecordsCommand(t *core.Track) *cobra.Command {
 	options := filterOptions{}
 	var json bool
+	var yaml bool
 
 	records := &cobra.Command{
 		Use:   "records",
@@ -65,6 +67,8 @@ The default export format is CSV.`,
 			var writer recordWriter
 			if json {
 				writer = jsonWriter{}
+			} else if yaml {
+				writer = yamlWriter{}
 			} else {
 				writer = csvWriter{
 					Separator: ",",
@@ -83,6 +87,9 @@ The default export format is CSV.`,
 	records.Flags().StringVarP(&options.end, "end", "e", "", "End date (inclusive: end at 24:00)")
 
 	records.Flags().BoolVar(&json, "json", false, "Export in JSON format")
+	records.Flags().BoolVar(&yaml, "yaml", false, "Export in YAML format")
+
+	records.MarkFlagsMutuallyExclusive("json", "yaml")
 
 	return records
 }
@@ -151,6 +158,31 @@ func (wr jsonWriter) Write(w io.Writer, results chan core.FilterResult) error {
 	}
 
 	bytes, err := json.MarshalIndent(records, "", "    ")
+	if err != nil {
+		return err
+	}
+
+	_, err = w.Write(bytes)
+	if err != nil {
+		return err
+	}
+
+	return err
+}
+
+type yamlWriter struct{}
+
+func (wr yamlWriter) Write(w io.Writer, results chan core.FilterResult) error {
+	records := []core.Record{}
+
+	for res := range results {
+		if res.Err != nil {
+			return res.Err
+		}
+		records = append(records, res.Record)
+	}
+
+	bytes, err := yaml.Marshal(records)
 	if err != nil {
 		return err
 	}
