@@ -32,12 +32,12 @@ var (
 
 // Record holds and manipulates data for a record
 type Record struct {
-	Project string
-	Start   time.Time
-	End     time.Time
-	Note    string
-	Tags    []string
-	Pause   []Pause
+	Project string    `json:"project"`
+	Start   time.Time `json:"start"`
+	End     time.Time `json:"end"`
+	Note    string    `json:"note"`
+	Tags    []string  `json:"tags"`
+	Pause   []Pause   `json:"pause"`
 }
 
 // Pause holds information about a pause in a record

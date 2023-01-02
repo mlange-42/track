@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -14,17 +15,14 @@ import (
 )
 
 type recordWriter interface {
-	WriteHeader(io.Writer) error
-	Write(io.Writer, *core.Record) error
+	Write(io.Writer, chan core.FilterResult) error
 }
 
 func exportCommand(t *core.Track) *cobra.Command {
 	export := &cobra.Command{
-		Use:   "export",
-		Short: "Export resources",
-		Long: `Export resources
-
-Currently, only export of (potentially filtered) records to CSV is supported.`,
+		Use:     "export",
+		Short:   "Export resources",
+		Long:    `Export resources`,
 		Aliases: []string{"ex"},
 		Run: func(cmd *cobra.Command, args []string) {
 			_ = cmd.Help()
@@ -39,13 +37,15 @@ Currently, only export of (potentially filtered) records to CSV is supported.`,
 
 func exportRecordsCommand(t *core.Track) *cobra.Command {
 	options := filterOptions{}
+	var json bool
 
 	records := &cobra.Command{
 		Use:   "records",
 		Short: "Export records",
 		Long: `Export records
 
-Currently, only export to CSV is supported.`,
+Currently, only export of (potentially filtered) records to CSV and JSON is supported.
+The default export format is CSV.`,
 		Aliases: []string{"r"},
 		Args:    util.WrappedArgs(cobra.NoArgs),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -62,22 +62,18 @@ Currently, only export to CSV is supported.`,
 			}
 
 			io := os.Stdout
-			writer := csvWriter{
-				Separator: ",",
+			var writer recordWriter
+			if json {
+				writer = jsonWriter{}
+			} else {
+				writer = csvWriter{
+					Separator: ",",
+				}
 			}
-			writer.WriteHeader(io)
 
 			fn, results, _ := t.AllRecordsFiltered(filters, false)
-
 			go fn()
-
-			for res := range results {
-				if res.Err != nil {
-					out.Err("failed to export records: %s", res.Err)
-					return
-				}
-				writer.Write(io, &res.Record)
-			}
+			writer.Write(io, results)
 		},
 	}
 
@@ -85,7 +81,8 @@ Currently, only export to CSV is supported.`,
 	records.Flags().StringSliceVarP(&options.tags, "tags", "t", []string{}, "Tags to include (comma-separated). Includes records with any of the given tags")
 	records.Flags().StringVarP(&options.start, "start", "s", "", "Start date (start at 00:00)")
 	records.Flags().StringVarP(&options.end, "end", "e", "", "End date (inclusive: end at 24:00)")
-	records.Flags().BoolVarP(&options.includeArchived, "archived", "a", false, "Include records from archived projects")
+
+	records.Flags().BoolVar(&json, "json", false, "Export in JSON format")
 
 	return records
 }
@@ -94,7 +91,7 @@ type csvWriter struct {
 	Separator string
 }
 
-func (wr csvWriter) WriteHeader(w io.Writer) error {
+func (wr csvWriter) writeHeader(w io.Writer) error {
 	_, err := fmt.Fprintf(
 		w, "%s\n",
 		strings.Join([]string{"start", "end", "project", "total", "work", "pause", "note", "tags"}, wr.Separator),
@@ -102,28 +99,66 @@ func (wr csvWriter) WriteHeader(w io.Writer) error {
 	return err
 }
 
-func (wr csvWriter) Write(w io.Writer, r *core.Record) error {
-	var endTime string
-	if r.End.IsZero() {
-		endTime = ""
-	} else {
-		endTime = r.End.Format(util.DateTimeFormat)
+func (wr csvWriter) Write(w io.Writer, results chan core.FilterResult) error {
+	err := wr.writeHeader(w)
+	if err != nil {
+		return err
 	}
 
-	noTime := time.Time{}
+	for res := range results {
+		if res.Err != nil {
+			return res.Err
+		}
+		r := res.Record
 
-	_, err := fmt.Fprintf(
-		w, "%s\n",
-		strings.Join([]string{
-			r.Start.Format(util.DateTimeFormat),
-			endTime,
-			r.Project,
-			util.FormatDuration(r.TotalDuration(noTime, noTime)),
-			util.FormatDuration(r.Duration(noTime, noTime)),
-			util.FormatDuration(r.PauseDuration(noTime, noTime)),
-			fmt.Sprintf("\"%s\"", strings.ReplaceAll(r.Note, "\n", "\\n")),
-			strings.Join(r.Tags, " "),
-		}, wr.Separator),
-	)
+		var endTime string
+		if r.End.IsZero() {
+			endTime = ""
+		} else {
+			endTime = r.End.Format(util.DateTimeFormat)
+		}
+
+		noTime := time.Time{}
+
+		_, err = fmt.Fprintf(
+			w, "%s\n",
+			strings.Join([]string{
+				r.Start.Format(util.DateTimeFormat),
+				endTime,
+				r.Project,
+				util.FormatDuration(r.TotalDuration(noTime, noTime)),
+				util.FormatDuration(r.Duration(noTime, noTime)),
+				util.FormatDuration(r.PauseDuration(noTime, noTime)),
+				fmt.Sprintf("\"%s\"", strings.ReplaceAll(r.Note, "\n", "\\n")),
+				strings.Join(r.Tags, " "),
+			}, wr.Separator),
+		)
+	}
+
+	return err
+}
+
+type jsonWriter struct{}
+
+func (wr jsonWriter) Write(w io.Writer, results chan core.FilterResult) error {
+	records := []core.Record{}
+
+	for res := range results {
+		if res.Err != nil {
+			return res.Err
+		}
+		records = append(records, res.Record)
+	}
+
+	bytes, err := json.MarshalIndent(records, "", "    ")
+	if err != nil {
+		return err
+	}
+
+	_, err = w.Write(bytes)
+	if err != nil {
+		return err
+	}
+
 	return err
 }
