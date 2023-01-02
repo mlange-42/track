@@ -60,7 +60,7 @@ track report day 2023-01-01
 
 Command `report chart` shows the time spent per project, as a bar chart time series over the current or given day:
 
-```
+```shell
 track report chart
 track report chart yesterday
 track report chart 2023-01-01
@@ -74,6 +74,21 @@ Prints something like this:
 └─Private         P |.........|.........|.........|.........|.........|.........|.........|.........|
   └─Coding        C |.........|.........|.........|.........|.........|.........|.........|.........|
     └─MyApp       M |███▂.....|.........|.........|.........|.....▂█▄.|.██.▂████|█▄.▅.....|.........|
+```
+
+## Treemap report
+
+Command `report treemap` generates an SVG treemap visualization of time spent per project.
+Here, we pipe the SVG to a file:
+
+```shell
+track report treemap > test.svg
+```
+
+You can also open the file with the default program for SVG (ideally a web browser) immediately:
+
+```shell
+track report treemap > test.svg && test.svg
 ```
 
 ## Timeline reports

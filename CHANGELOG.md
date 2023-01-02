@@ -6,6 +6,7 @@
 
 * Export records to JSON and YAML in addition to CSV (#88)
 * Add total, work and pause durations to CSV export (#88)
+* New command `report treemap` to generate an SVG treemap of time per project (#89)
 
 ## [[v0.3.1]](https://github.com/mlange-42/track/compare/v0.3.0...v0.3.1)
 
