@@ -29,6 +29,7 @@ track
 │ ├─day [DATE]
 │ ├─projects
 │ ├─timeline (days|weeks|months)
+│ ├─treemap
 │ └─week [DATE]
 ├─resume [NOTE...]
 ├─start PROJECT [NOTE...]
