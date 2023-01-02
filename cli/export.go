@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/mlange-42/track/core"
 	"github.com/mlange-42/track/out"
@@ -18,8 +19,6 @@ type recordWriter interface {
 }
 
 func exportCommand(t *core.Track) *cobra.Command {
-	options := filterOptions{}
-
 	export := &cobra.Command{
 		Use:   "export",
 		Short: "Export resources",
@@ -32,19 +31,15 @@ Currently, only export of (potentially filtered) records to CSV is supported.`,
 		},
 	}
 
-	export.PersistentFlags().StringSliceVarP(&options.projects, "projects", "p", []string{}, "Projects to include (comma-separated). All projects if not specified")
-	export.PersistentFlags().StringSliceVarP(&options.tags, "tags", "t", []string{}, "Tags to include (comma-separated). Includes records with any of the given tags")
-	export.PersistentFlags().StringVarP(&options.start, "start", "s", "", "Start date (start at 00:00)")
-	export.PersistentFlags().StringVarP(&options.end, "end", "e", "", "End date (inclusive: end at 24:00)")
-	export.PersistentFlags().BoolVarP(&options.includeArchived, "archived", "a", false, "Include records from archived projects")
-
-	export.AddCommand(exportRecordsCommand(t, &options))
+	export.AddCommand(exportRecordsCommand(t))
 
 	export.Long += "\n\n" + formatCmdTree(export)
 	return export
 }
 
-func exportRecordsCommand(t *core.Track, options *filterOptions) *cobra.Command {
+func exportRecordsCommand(t *core.Track) *cobra.Command {
+	options := filterOptions{}
+
 	records := &cobra.Command{
 		Use:   "records",
 		Short: "Export records",
@@ -60,7 +55,7 @@ Currently, only export to CSV is supported.`,
 				return
 			}
 
-			filters, err := createFilters(options, projects, true)
+			filters, err := createFilters(&options, projects, true)
 			if err != nil {
 				out.Err("failed to export records: %s", err)
 				return
@@ -68,7 +63,7 @@ Currently, only export to CSV is supported.`,
 
 			io := os.Stdout
 			writer := csvWriter{
-				Separtor: ",",
+				Separator: ",",
 			}
 			writer.WriteHeader(io)
 
@@ -85,17 +80,24 @@ Currently, only export to CSV is supported.`,
 			}
 		},
 	}
+
+	records.Flags().StringSliceVarP(&options.projects, "projects", "p", []string{}, "Projects to include (comma-separated). All projects if not specified")
+	records.Flags().StringSliceVarP(&options.tags, "tags", "t", []string{}, "Tags to include (comma-separated). Includes records with any of the given tags")
+	records.Flags().StringVarP(&options.start, "start", "s", "", "Start date (start at 00:00)")
+	records.Flags().StringVarP(&options.end, "end", "e", "", "End date (inclusive: end at 24:00)")
+	records.Flags().BoolVarP(&options.includeArchived, "archived", "a", false, "Include records from archived projects")
+
 	return records
 }
 
 type csvWriter struct {
-	Separtor string
+	Separator string
 }
 
 func (wr csvWriter) WriteHeader(w io.Writer) error {
 	_, err := fmt.Fprintf(
 		w, "%s\n",
-		strings.Join([]string{"start", "end", "project", "note", "tags"}, wr.Separtor),
+		strings.Join([]string{"start", "end", "project", "total", "work", "pause", "note", "tags"}, wr.Separator),
 	)
 	return err
 }
@@ -108,15 +110,20 @@ func (wr csvWriter) Write(w io.Writer, r *core.Record) error {
 		endTime = r.End.Format(util.DateTimeFormat)
 	}
 
+	noTime := time.Time{}
+
 	_, err := fmt.Fprintf(
 		w, "%s\n",
 		strings.Join([]string{
 			r.Start.Format(util.DateTimeFormat),
 			endTime,
 			r.Project,
-			r.Note,
+			util.FormatDuration(r.TotalDuration(noTime, noTime)),
+			util.FormatDuration(r.Duration(noTime, noTime)),
+			util.FormatDuration(r.PauseDuration(noTime, noTime)),
+			fmt.Sprintf("\"%s\"", strings.ReplaceAll(r.Note, "\n", "\\n")),
 			strings.Join(r.Tags, " "),
-		}, wr.Separtor),
+		}, wr.Separator),
 	)
 	return err
 }

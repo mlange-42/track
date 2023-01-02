@@ -73,11 +73,16 @@ func (r Record) LastPause() (Pause, bool) {
 	return Pause{}, false
 }
 
-// Duration reports the duration of a record
+// Duration reports the duration of a record, excluding pause time
 func (r Record) Duration(min, max time.Time) time.Duration {
 	dur := util.DurationClip(r.Start, r.End, min, max)
 	dur -= r.PauseDuration(min, max)
 	return dur
+}
+
+// TotalDuration reports the duration of a record, including pause time
+func (r Record) TotalDuration(min, max time.Time) time.Duration {
+	return util.DurationClip(r.Start, r.End, min, max)
 }
 
 // PauseDuration reports the duration of all pauses of the record
