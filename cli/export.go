@@ -46,7 +46,7 @@ func exportRecordsCommand(t *core.Track) *cobra.Command {
 		Short: "Export records",
 		Long: `Export records
 
-Currently, only export of (potentially filtered) records to CSV and JSON is supported.
+Records can be exported in CSV, JSON and YAML format.
 The default export format is CSV.`,
 		Aliases: []string{"r"},
 		Args:    util.WrappedArgs(cobra.NoArgs),

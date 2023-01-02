@@ -2,7 +2,10 @@
 
 ## [[unpublished]](https://github.com/mlange-42/track/compare/v0.3.1...main)
 
-Nothing
+### Features
+
+* Export records to JSON and YAML in addition to CSV (#88)
+* Add total, work and pause durations to CSV export (#88)
 
 ## [[v0.3.1]](https://github.com/mlange-42/track/compare/v0.3.0...v0.3.1)
 
