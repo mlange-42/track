@@ -15,25 +15,25 @@ import (
 func projectsReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 	projects := &cobra.Command{
 		Use:     "projects",
-		Short:   "Timeline reports of time tracking",
+		Short:   "Shows the project tree with time statistics",
 		Aliases: []string{"p"},
 		Args:    util.WrappedArgs(cobra.NoArgs),
 		Run: func(cmd *cobra.Command, args []string) {
 			projects, err := t.LoadAllProjects()
 			if err != nil {
-				out.Err("failed to generate report: %s", err)
+				out.Err("failed to generate report: %s", err.Error())
 				return
 			}
 
 			filters, err := createFilters(options, projects, false)
 			if err != nil {
-				out.Err("failed to generate report: %s", err)
+				out.Err("failed to generate report: %s", err.Error())
 				return
 			}
 
 			startTime, endTime, err := parseStartEnd(options)
 			if err != nil {
-				out.Err("failed to generate report: %s", err)
+				out.Err("failed to generate report: %s", err.Error())
 				return
 			}
 			reporter, err := core.NewReporter(
@@ -41,19 +41,19 @@ func projectsReportCommand(t *core.Track, options *filterOptions) *cobra.Command
 				options.includeArchived, startTime, endTime,
 			)
 			if err != nil {
-				out.Err("failed to generate report: %s", err)
+				out.Err("failed to generate report: %s", err.Error())
 				return
 			}
 
 			tree, err := t.ToProjectTree(reporter.Projects)
 			if err != nil {
-				out.Err("failed to generate report: %s", err)
+				out.Err("failed to generate report: %s", err.Error())
 				return
 			}
 			var active string
 			rec, err := t.OpenRecord()
 			if err != nil {
-				out.Err("failed to generate report: %s", err)
+				out.Err("failed to generate report: %s", err.Error())
 				return
 			}
 			if rec != nil {
@@ -71,7 +71,7 @@ func projectsReportCommand(t *core.Track, options *filterOptions) *cobra.Command
 					if t.Value.Name == active {
 						str = color.BgBlue.Sprintf("%s", name)
 					} else {
-						str = fmt.Sprintf("%s", name)
+						str = name
 					}
 					if fillLen > 0 {
 						str += strings.Repeat(" ", fillLen)

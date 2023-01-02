@@ -27,6 +27,7 @@ func reportCommand(t *core.Track) *cobra.Command {
 	report.AddCommand(chartReportCommand(t, &options))
 	report.AddCommand(weekReportCommand(t, &options))
 	report.AddCommand(dayReportCommand(t, &options))
+	report.AddCommand(treemapReportCommand(t, &options))
 
 	report.Long += "\n\n" + formatCmdTree(report)
 	return report
