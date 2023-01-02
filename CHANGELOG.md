@@ -1,6 +1,12 @@
 # Changelog
 
-## [[unpublished]](https://github.com/mlange-42/track/compare/v0.3.0...main)
+## [[unpublished]](https://github.com/mlange-42/track/compare/v0.3.1...main)
+
+Nothing
+
+## [[v0.3.1]](https://github.com/mlange-42/track/compare/v0.3.0...v0.3.1)
+
+:warning: In case of an error after upgrading to `v0.3.1`, delete the config file `%USER%/.track/config.yml`.
 
 ### Features
 
