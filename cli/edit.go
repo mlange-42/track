@@ -125,6 +125,7 @@ Uses the current date if only a time is given.`,
 
 func editProjectCommand(t *core.Track, dryRun *bool) *cobra.Command {
 	var archive bool
+	var rename string
 
 	editProject := &cobra.Command{
 		Use:   "project PROJECT",
@@ -157,11 +158,26 @@ See file .track/config.yml to configure the editor to be used.`,
 				}
 				changed = true
 			}
+			if cmd.Flags().Changed("rename") {
+				if project.Name == rename {
+					out.Warn("New project name equals old project name\n")
+				} else {
+					recCount, prjCount, err := renameProject(t, &project, rename, *dryRun)
+					if err != nil {
+						out.Err("failed to edit project: %s", err)
+						return
+					}
+					out.Success("Renamed project '%s' to '%s' (%d records, %d projects)\n", project.Name, rename, recCount, prjCount)
+				}
+				changed = true
+			}
 
 			if changed {
-				if err := t.SaveProject(project, true); err != nil {
-					out.Err("failed to edit project: %s", err)
-					return
+				if !*dryRun {
+					if err := t.SaveProject(project, true); err != nil {
+						out.Err("failed to edit project: %s", err)
+						return
+					}
 				}
 			} else {
 				err = editProject(t, project, *dryRun)
@@ -182,6 +198,7 @@ See file .track/config.yml to configure the editor to be used.`,
 		},
 	}
 	editProject.Flags().BoolVarP(&archive, "archive", "a", false, "Archive or un-archive a project. Use like '-a=false'")
+	editProject.Flags().StringVarP(&rename, "rename", "n", "", "Rename a project. Also changes the project name in all associated records")
 
 	return editProject
 }
@@ -584,4 +601,61 @@ func edit[T any](t *core.Track, obj T, comment string, commentPrefix string, mar
 	}
 
 	return nil
+}
+
+func renameProject(t *core.Track, p *core.Project, name string, dryRun bool) (int, int, error) {
+	allProjects, err := t.LoadAllProjects()
+	if err != nil {
+		return 0, 0, err
+	}
+	for _, project := range allProjects {
+		if project.Name == name {
+			return 0, 0, fmt.Errorf("project with name '%s' already exists", name)
+		}
+	}
+	projectCount := 0
+	for _, project := range allProjects {
+		if project.Parent == p.Name {
+			project.Parent = name
+			if !dryRun {
+				err = t.SaveProject(project, true)
+				if err != nil {
+					return 0, projectCount, err
+				}
+			}
+			projectCount++
+		}
+	}
+
+	filters := core.FilterFunctions{
+		core.FilterByProjects([]string{p.Name}),
+	}
+	fn, results, _ := t.AllRecordsFiltered(filters, false)
+	go fn()
+
+	recordCount := 0
+	for rec := range results {
+		if rec.Err != nil {
+			return 0, projectCount, rec.Err
+		}
+		rec.Record.Project = name
+		if !dryRun {
+			err := t.SaveRecord(&rec.Record, true)
+			if err != nil {
+				return recordCount, projectCount, err
+			}
+		}
+		recordCount++
+	}
+
+	if !dryRun {
+		_, err := t.DeleteProject(p, false)
+		if err != nil {
+			return recordCount, projectCount, err
+		}
+	}
+
+	p.Name = name
+
+	return recordCount, projectCount, nil
 }

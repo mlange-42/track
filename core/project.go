@@ -182,22 +182,25 @@ func (t *Track) LoadAllProjects() (map[string]Project, error) {
 }
 
 // DeleteProject deletes a project and all associated records
-func (t *Track) DeleteProject(project Project) (int, error) {
-	// TODO: make a backup
-	filters := []func(r *Record) bool{
-		FilterByProjects([]string{project.Name}),
-	}
-	fn, results, _ := t.AllRecordsFiltered(filters, false)
-
-	go fn()
-
+func (t *Track) DeleteProject(project *Project, deleteRecords bool) (int, error) {
 	counter := 0
-	for res := range results {
-		if res.Err != nil {
-			return counter, res.Err
+
+	if deleteRecords {
+		// TODO: make a backup
+		filters := []func(r *Record) bool{
+			FilterByProjects([]string{project.Name}),
 		}
-		t.DeleteRecord(&res.Record)
-		counter++
+		fn, results, _ := t.AllRecordsFiltered(filters, false)
+
+		go fn()
+
+		for res := range results {
+			if res.Err != nil {
+				return counter, res.Err
+			}
+			t.DeleteRecord(&res.Record)
+			counter++
+		}
 	}
 
 	err := os.Remove(t.ProjectPath(project.Name))

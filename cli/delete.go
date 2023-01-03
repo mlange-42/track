@@ -122,7 +122,7 @@ func deleteProjectCommand(t *core.Track) *cobra.Command {
 				return
 			}
 
-			cnt, err := t.DeleteProject(pNode.Value)
+			cnt, err := t.DeleteProject(&pNode.Value, true)
 			if err != nil {
 				out.Err("failed to delete project: %s", err)
 				out.Err("deleted %d records", cnt)
