@@ -65,6 +65,19 @@ track edit project MyProject
 
 Projects are stored and edited as YAML files. For details, see chapter [Projects](./projects.md).
 
+## Renaming projects
+
+Renaming projects via file editing is prohibited due to it's side effects.
+
+Projects can, however, be renamed via the CLI:
+
+```shell
+track edit project MyProject --rename OtherProject
+```
+
+All records of the project will have their project changed to the new name.
+The project hierarchy is also changed to reflect the name change.
+
 ## Archiving projects
 
 Projects can be archived.
