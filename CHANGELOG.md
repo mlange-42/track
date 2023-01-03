@@ -8,6 +8,7 @@
 * Add total, work and pause durations to CSV export (#88)
 * New command `report treemap` to generate an SVG treemap of time per project (#89)
 * Flag `--rename` for command `edit project` for renaming projects (#90)
+* Additional alias `?` for command `status` (#91)
 
 ## [[v0.3.1]](https://github.com/mlange-42/track/compare/v0.3.0...v0.3.1)
 

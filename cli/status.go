@@ -41,7 +41,7 @@ Columns of the status are:
 * break - Break time today since the last break longer than --max-break
 * today - Total recorded time since midnight
 `,
-		Aliases: []string{"s"},
+		Aliases: []string{"s", "?"},
 		Args:    util.WrappedArgs(cobra.MaximumNArgs(1)),
 		Run: func(cmd *cobra.Command, args []string) {
 			maxBreak, err := time.ParseDuration(maxBreakStr)
