@@ -25,7 +25,7 @@ func timelineReportCommand(t *core.Track, options *filterOptions) *cobra.Command
 	timeline := &cobra.Command{
 		Use:     "timeline (days|weeks|months)",
 		Short:   "Timeline reports of time tracking",
-		Aliases: []string{"t"},
+		Aliases: []string{"l"},
 		Args:    util.WrappedArgs(cobra.ExactArgs(1)),
 		Run: func(cmd *cobra.Command, args []string) {
 			mode := args[0]

@@ -2,7 +2,9 @@
 
 ## [[unpublished]](https://github.com/mlange-42/track/compare/v0.3.2...main)
 
-Nothing
+### Features
+
+* New command `report tag` to list tags with time statistics (#93)
 
 ## [[v0.3.2]](https://github.com/mlange-42/track/compare/v0.3.1...v0.3.2)
 

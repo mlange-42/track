@@ -24,6 +24,7 @@ func reportCommand(t *core.Track) *cobra.Command {
 
 	report.AddCommand(timelineReportCommand(t, &options))
 	report.AddCommand(projectsReportCommand(t, &options))
+	report.AddCommand(tagsReportCommand(t, &options))
 	report.AddCommand(chartReportCommand(t, &options))
 	report.AddCommand(weekReportCommand(t, &options))
 	report.AddCommand(dayReportCommand(t, &options))

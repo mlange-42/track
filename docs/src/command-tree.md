@@ -28,6 +28,7 @@ track
 │ ├─chart [DATE]
 │ ├─day [DATE]
 │ ├─projects
+│ ├─tags
 │ ├─timeline (days|weeks|months)
 │ ├─treemap
 │ └─week [DATE]

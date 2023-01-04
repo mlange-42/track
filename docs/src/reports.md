@@ -37,6 +37,11 @@ Here is an example using filters:
 track report projects --start 2023-01-01 --end 2023-01-07 --projects MyApp --tags GUI,design
 ```
 
+## Tags report
+
+Command `report tags` prints a list of tags, with work time and pause time per tag.
+Usage is the same as for `report projects`.
+
 ## Week report
 
 Command `report week` prints a time-table of the current or given week:
