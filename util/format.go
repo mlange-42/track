@@ -25,8 +25,8 @@ const (
 	DateTimeFormat = "2006-01-02 15:04"
 	// YAMLTimeFormat for YAML date and time formatting
 	YAMLTimeFormat = "2006-01-02 15:04 -0700 MST"
-	// NoTime string representation for zero end time
-	NoTime = " now "
+	// NoTimeString string representation for zero end time
+	NoTimeString = " now "
 	// NoDateTime string representation for zero time
 	NoDateTime = "      ---       "
 )

@@ -73,7 +73,7 @@ Uses the current date if only a time is given.`,
 		Args:    util.WrappedArgs(cobra.MaximumNArgs(2)),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
-			tm := time.Time{}
+			tm := util.NoTime
 			switch len(args) {
 			case 0:
 				last, err := t.LatestRecord()
@@ -286,7 +286,7 @@ func editRecord(t *core.Track, tm time.Time, dryRun bool) error {
 		fmt.Sprintf("%s Record %s\n\n", core.CommentPrefix, record.Start.Format(util.DateTimeFormat)),
 		core.CommentPrefix,
 		func(r *core.Record) ([]byte, error) {
-			str := r.Serialize(time.Time{})
+			str := r.Serialize(util.NoTime)
 			return []byte(str), nil
 		},
 		func(b []byte) error {
@@ -414,8 +414,8 @@ func editDay(t *core.Track, date time.Time, dryRun bool) error {
 					}
 				}
 
-				prevStart := time.Time{}
-				prevEnd := time.Time{}
+				prevStart := util.NoTime
+				prevEnd := util.NoTime
 
 				for i, rec := range newRecords {
 					if _, ok := projects[rec.Project]; !ok {
@@ -627,9 +627,10 @@ func renameProject(t *core.Track, p *core.Project, name string, dryRun bool) (in
 		}
 	}
 
-	filters := core.FilterFunctions{
-		core.FilterByProjects([]string{p.Name}),
-	}
+	filters := core.NewFilter(
+		[]core.FilterFunction{core.FilterByProjects([]string{p.Name})},
+		util.NoTime, util.NoTime,
+	)
 	fn, results, _ := t.AllRecordsFiltered(filters, false)
 	go fn()
 

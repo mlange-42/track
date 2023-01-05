@@ -224,8 +224,8 @@ func (r *Record) Check() error {
 	if !r.End.IsZero() && r.End.Before(r.Start) {
 		return fmt.Errorf("end time is before start time")
 	}
-	prevStart := time.Time{}
-	prevEnd := time.Time{}
+	prevStart := util.NoTime
+	prevEnd := util.NoTime
 	for _, p := range r.Pause {
 		if p.Start.Before(r.Start) {
 			return fmt.Errorf("pause starts before record")
@@ -342,7 +342,7 @@ func (t *Track) SaveRecord(record *Record, force bool) error {
 		return err
 	}
 
-	bytes := record.Serialize(time.Time{})
+	bytes := record.Serialize(util.NoTime)
 
 	_, err = fmt.Fprintf(file, "%s Record %s\n", CommentPrefix, record.Start.Format(util.DateTimeFormat))
 	if err != nil {
@@ -413,63 +413,20 @@ func (t *Track) LoadRecord(tm time.Time) (Record, error) {
 
 // LoadAllRecords loads all records
 func (t *Track) LoadAllRecords() ([]Record, error) {
-	return t.LoadAllRecordsFiltered([]func(*Record) bool{})
+	return t.LoadAllRecordsFiltered(NewFilter([]func(*Record) bool{}, util.NoTime, util.NoTime))
 }
 
 // LoadAllRecordsFiltered loads all records
 func (t *Track) LoadAllRecordsFiltered(filters FilterFunctions) ([]Record, error) {
-	path := t.RecordsDir()
+	fn, results, _ := t.AllRecordsFiltered(filters, false)
+	go fn()
 
 	var records []Record
-
-	yearDirs, err := ioutil.ReadDir(path)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, yearDir := range yearDirs {
-		if !yearDir.IsDir() {
-			continue
+	for res := range results {
+		if res.Err != nil {
+			return records, res.Err
 		}
-		year, err := strconv.Atoi(yearDir.Name())
-		if err != nil {
-			return nil, err
-		}
-		monthDirs, err := ioutil.ReadDir(filepath.Join(path, yearDir.Name()))
-		if err != nil {
-			return nil, err
-		}
-
-		for _, monthDir := range monthDirs {
-			if !monthDir.IsDir() {
-				continue
-			}
-			month, err := strconv.Atoi(monthDir.Name())
-			if err != nil {
-				return nil, err
-			}
-
-			dayDirs, err := ioutil.ReadDir(filepath.Join(path, yearDir.Name(), monthDir.Name()))
-			if err != nil {
-				return nil, err
-			}
-
-			for _, dayDir := range dayDirs {
-				if !dayDir.IsDir() {
-					continue
-				}
-				day, err := strconv.Atoi(dayDir.Name())
-				if err != nil {
-					return nil, err
-				}
-
-				recs, err := t.LoadDateRecordsFiltered(util.Date(year, time.Month(month), day), filters)
-				if err != nil {
-					return nil, err
-				}
-				records = append(records, recs...)
-			}
-		}
+		records = append(records, res.Record)
 	}
 
 	return records, nil
@@ -509,6 +466,13 @@ func (t *Track) AllRecordsFiltered(filters FilterFunctions, reversed bool) (func
 				results <- FilterResult{Record{}, err}
 				return
 			}
+			if !filters.Start.IsZero() && year < filters.Start.Year() {
+				continue
+			}
+			if !filters.End.IsZero() && year > filters.End.Year() {
+				continue
+			}
+
 			monthDirs, err := ioutil.ReadDir(filepath.Join(path, yearDir.Name()))
 
 			if reversed {
@@ -548,7 +512,15 @@ func (t *Track) AllRecordsFiltered(filters FilterFunctions, reversed bool) (func
 						return
 					}
 
-					recs, err := t.LoadDateRecordsFiltered(util.Date(year, time.Month(month), day), filters)
+					date := util.Date(year, time.Month(month), day)
+					if !filters.Start.IsZero() && date.Before(util.ToDate(filters.Start)) {
+						continue
+					}
+					if !filters.End.IsZero() && date.After(filters.End) {
+						continue
+					}
+
+					recs, err := t.LoadDateRecordsFiltered(date, filters)
 					if err != nil {
 						results <- FilterResult{Record{}, err}
 						return
@@ -572,7 +544,7 @@ func (t *Track) AllRecordsFiltered(filters FilterFunctions, reversed bool) (func
 
 // LoadDateRecords loads all records for the given date
 func (t *Track) LoadDateRecords(date time.Time) ([]Record, error) {
-	return t.LoadDateRecordsFiltered(date, []func(*Record) bool{})
+	return t.LoadDateRecordsFiltered(date, FilterFunctions{})
 }
 
 // LoadDateRecordsExact loads all records for the given date, including those starting the das before
@@ -582,7 +554,9 @@ func (t *Track) LoadDateRecordsExact(date time.Time) ([]Record, error) {
 	dateAfter := date.Add(24 * time.Hour)
 
 	filters := FilterFunctions{
-		FilterByTime(date, dateAfter),
+		[]FilterFunction{FilterByTime(date, dateAfter)},
+		util.NoTime,
+		util.NoTime,
 	}
 
 	records, err := t.LoadDateRecordsFiltered(dateBefore, filters)
@@ -641,7 +615,7 @@ func (t *Track) LoadDateRecordsFiltered(date time.Time, filters FilterFunctions)
 // FindLatestRecord loads the latest record for the given condition. Returns a nil reference if no record is found.
 func (t *Track) FindLatestRecord(cond FilterFunction) (*Record, error) {
 	fn, results, stop := t.AllRecordsFiltered(
-		FilterFunctions{cond},
+		FilterFunctions{[]FilterFunction{cond}, util.NoTime, util.NoTime},
 		true, // reversed order to find latest record of project
 	)
 	go fn()
@@ -711,7 +685,7 @@ func pathToTime(y, m, d, file string) (time.Time, error) {
 func fileToTime(date time.Time, file string) (time.Time, error) {
 	t, err := time.ParseInLocation(util.FileTimeFormat, strings.Split(file, ".")[0], time.Local)
 	if err != nil {
-		return time.Time{}, err
+		return util.NoTime, err
 	}
 	return util.DateAndTime(date, t), nil
 }
@@ -741,7 +715,7 @@ func (t *Track) StartRecord(project, note string, tags []string, start time.Time
 		Note:    note,
 		Tags:    tags,
 		Start:   start,
-		End:     time.Time{},
+		End:     util.NoTime,
 	}
 
 	return record, t.SaveRecord(&record, false)

@@ -123,7 +123,7 @@ func TestFilters(t *testing.T) {
 
 	for _, test := range tt {
 		for rec, expOk := range test.records {
-			ok := Filter(rec, test.filters)
+			ok := Filter(rec, FilterFunctions{test.filters, util.NoTime, util.NoTime})
 			if ok != expOk {
 				t.Fatalf("error when %s: expected %t, got %t for %v", test.title, expOk, ok, rec)
 			}

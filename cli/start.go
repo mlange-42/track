@@ -72,7 +72,7 @@ Notes can contain tags, denoted by the prefix "%s", like "%stag"`, core.TagPrefi
 					return
 				}
 			} else {
-				startTime, err = getStartTime(time.Time{}, ago, atTime)
+				startTime, err = getStartTime(util.NoTime, ago, atTime)
 				if err != nil {
 					out.Err("failed to start record: %s", err.Error())
 					return

@@ -137,7 +137,7 @@ func schedule(t *core.Track, start time.Time, options *filterOptions, week bool,
 	if err != nil {
 		return err
 	}
-	filters = append(filters, core.FilterByTime(filterStart, filterEnd))
+	filters = core.NewFilter(filters.Functions, filterStart, filterEnd)
 
 	reporter, err := core.NewReporter(t, options.projects, filters, options.includeArchived, start, filterEnd)
 	if err != nil {

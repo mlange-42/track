@@ -3,7 +3,6 @@ package cli
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/mlange-42/track/core"
 	"github.com/mlange-42/track/out"
@@ -58,7 +57,7 @@ func deleteRecordCommand(t *core.Track, dryRun *bool) *cobra.Command {
 				fmt.Sprintf(
 					"Really delete record %s (%s) from project '%s' (y/n): ",
 					record.Start.Format(util.DateTimeFormat),
-					util.FormatDuration(record.Duration(time.Time{}, time.Time{})),
+					util.FormatDuration(record.Duration(util.NoTime, util.NoTime)),
 					record.Project,
 				),
 				"y",

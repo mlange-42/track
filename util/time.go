@@ -2,6 +2,9 @@ package util
 
 import "time"
 
+// NoTime is a zero time
+var NoTime time.Time = time.Time{}
+
 // DurationClip calculated the duration a time span, clipped by another time span
 func DurationClip(start, end, min, max time.Time) time.Duration {
 	if end.IsZero() {

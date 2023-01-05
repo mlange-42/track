@@ -82,7 +82,7 @@ func NewReporter(
 		}
 	}
 
-	filters = append(filters, FilterByProjects(maps.Keys(projects)))
+	filters.Functions = append(filters.Functions, FilterByProjects(maps.Keys(projects)))
 	records, err := t.LoadAllRecordsFiltered(filters)
 	if err != nil {
 		return nil, err

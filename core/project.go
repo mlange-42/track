@@ -9,6 +9,7 @@ import (
 	"github.com/gookit/color"
 	"github.com/mlange-42/track/fs"
 	"github.com/mlange-42/track/tree"
+	"github.com/mlange-42/track/util"
 	"gopkg.in/yaml.v3"
 )
 
@@ -187,9 +188,11 @@ func (t *Track) DeleteProject(project *Project, deleteRecords bool, dryRun bool)
 
 	if deleteRecords {
 		// TODO: make a backup
-		filters := []func(r *Record) bool{
-			FilterByProjects([]string{project.Name}),
-		}
+		filters := NewFilter(
+			[]func(r *Record) bool{
+				FilterByProjects([]string{project.Name}),
+			}, util.NoTime, util.NoTime,
+		)
 		fn, results, _ := t.AllRecordsFiltered(filters, false)
 
 		go fn()
