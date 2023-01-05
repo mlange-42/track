@@ -17,6 +17,11 @@ func (t *Track) CreateWorkspace(name string) error {
 	return nil
 }
 
+// WorkspaceExists returns whether a workspace exists
+func (t *Track) WorkspaceExists(name string) bool {
+	return fs.DirExists(t.WorkspaceDir(name))
+}
+
 // SwitchWorkspace switches to another workspace
 func (t *Track) SwitchWorkspace(name string) error {
 	if !fs.DirExists(t.WorkspaceDir(name)) {
