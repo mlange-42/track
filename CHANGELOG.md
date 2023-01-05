@@ -5,6 +5,7 @@
 ### Features
 
 * New command `report tag` to list tags with time statistics (#93)
+* Add flag `--dry` to `delete` command for dry-run (#96)
 
 ### Bugfixes
 

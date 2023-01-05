@@ -648,11 +648,9 @@ func renameProject(t *core.Track, p *core.Project, name string, dryRun bool) (in
 		recordCount++
 	}
 
-	if !dryRun {
-		_, err := t.DeleteProject(p, false)
-		if err != nil {
-			return recordCount, projectCount, err
-		}
+	_, err = t.DeleteProject(p, false, dryRun)
+	if err != nil {
+		return recordCount, projectCount, err
 	}
 
 	p.Name = name

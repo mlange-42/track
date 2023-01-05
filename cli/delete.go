@@ -12,7 +12,9 @@ import (
 )
 
 func deleteCommand(t *core.Track) *cobra.Command {
-	edit := &cobra.Command{
+	var dryRun bool
+
+	delete := &cobra.Command{
 		Use:     "delete",
 		Short:   "Delete a resource",
 		Long:    `Delete a resource`,
@@ -21,15 +23,16 @@ func deleteCommand(t *core.Track) *cobra.Command {
 			_ = cmd.Help()
 		},
 	}
+	delete.PersistentFlags().BoolVar(&dryRun, "dry", false, "Dry run: do not actually change any files")
 
-	edit.AddCommand(deleteRecordCommand(t))
-	edit.AddCommand(deleteProjectCommand(t))
+	delete.AddCommand(deleteRecordCommand(t, &dryRun))
+	delete.AddCommand(deleteProjectCommand(t, &dryRun))
 
-	edit.Long += "\n\n" + formatCmdTree(edit)
-	return edit
+	delete.Long += "\n\n" + formatCmdTree(delete)
+	return delete
 }
 
-func deleteRecordCommand(t *core.Track) *cobra.Command {
+func deleteRecordCommand(t *core.Track, dryRun *bool) *cobra.Command {
 	var force bool
 
 	delete := &cobra.Command{
@@ -64,12 +67,16 @@ func deleteRecordCommand(t *core.Track) *cobra.Command {
 				return
 			}
 
-			err = t.DeleteRecord(&record)
-			if err != nil {
-				out.Err("failed to delete record: %s", err)
-				return
+			if *dryRun {
+				out.Success("Deleted record %s from '%s' - dry-run", record.Start.Format(util.DateTimeFormat), record.Project)
+			} else {
+				err = t.DeleteRecord(&record)
+				if err != nil {
+					out.Err("failed to delete record: %s", err)
+					return
+				}
+				out.Success("Deleted record %s from '%s'", record.Start.Format(util.DateTimeFormat), record.Project)
 			}
-			out.Success("Deleted record %s from '%s'", record.Start.Format(util.DateTimeFormat), record.Project)
 		},
 	}
 
@@ -78,7 +85,7 @@ func deleteRecordCommand(t *core.Track) *cobra.Command {
 	return delete
 }
 
-func deleteProjectCommand(t *core.Track) *cobra.Command {
+func deleteProjectCommand(t *core.Track, dryRun *bool) *cobra.Command {
 	var force bool
 
 	delete := &cobra.Command{
@@ -122,13 +129,17 @@ func deleteProjectCommand(t *core.Track) *cobra.Command {
 				return
 			}
 
-			cnt, err := t.DeleteProject(&pNode.Value, true)
+			cnt, err := t.DeleteProject(&pNode.Value, true, *dryRun)
 			if err != nil {
 				out.Err("failed to delete project: %s", err)
 				out.Err("deleted %d records", cnt)
 				return
 			}
-			out.Success("Deleted project '%s' (%d records)", pNode.Value.Name, cnt)
+			if *dryRun {
+				out.Success("Deleted project '%s' (%d records) - dry-run", pNode.Value.Name, cnt)
+			} else {
+				out.Success("Deleted project '%s' (%d records)", pNode.Value.Name, cnt)
+			}
 		},
 	}
 

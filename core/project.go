@@ -182,7 +182,7 @@ func (t *Track) LoadAllProjects() (map[string]Project, error) {
 }
 
 // DeleteProject deletes a project and all associated records
-func (t *Track) DeleteProject(project *Project, deleteRecords bool) (int, error) {
+func (t *Track) DeleteProject(project *Project, deleteRecords bool, dryRun bool) (int, error) {
 	counter := 0
 
 	if deleteRecords {
@@ -198,14 +198,18 @@ func (t *Track) DeleteProject(project *Project, deleteRecords bool) (int, error)
 			if res.Err != nil {
 				return counter, res.Err
 			}
-			t.DeleteRecord(&res.Record)
+			if !dryRun {
+				t.DeleteRecord(&res.Record)
+			}
 			counter++
 		}
 	}
 
-	err := os.Remove(t.ProjectPath(project.Name))
-	if err != nil {
-		return counter, err
+	if !dryRun {
+		err := os.Remove(t.ProjectPath(project.Name))
+		if err != nil {
+			return counter, err
+		}
 	}
 
 	return counter, nil
