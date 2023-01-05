@@ -121,7 +121,7 @@ func NewReporter(
 		projectTotals[k] = v
 	}
 
-	aggregate(projectsTree.Root, totals, func(a, b time.Duration) time.Duration { return a + b })
+	aggregate(projectsTree.Root, totals, 0, func(a, b time.Duration) time.Duration { return a + b })
 
 	report := Reporter{
 		Track:        t,
@@ -136,16 +136,15 @@ func NewReporter(
 	return &report, nil
 }
 
-func aggregate[T any](t *ProjectNode, values map[string]T, fn func(a, b T) T) (T, bool) {
+func aggregate[T any](t *ProjectNode, values map[string]T, zero T, fn func(a, b T) T) T {
 	agg, ok := values[t.Value.Name]
 	if !ok {
-		return agg, false
+		agg = zero
 	}
 	for _, child := range t.Children {
-		if v, ok := aggregate(child, values, fn); ok {
-			agg = fn(agg, v)
-		}
+		v := aggregate(child, values, zero, fn)
+		agg = fn(agg, v)
 	}
 	values[t.Value.Name] = agg
-	return agg, true
+	return agg
 }
