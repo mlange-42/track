@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/gookit/color"
 	"github.com/mlange-42/track/fs"
@@ -187,9 +188,11 @@ func (t *Track) DeleteProject(project *Project, deleteRecords bool, dryRun bool)
 
 	if deleteRecords {
 		// TODO: make a backup
-		filters := []func(r *Record) bool{
-			FilterByProjects([]string{project.Name}),
-		}
+		filters := NewFilter(
+			[]func(r *Record) bool{
+				FilterByProjects([]string{project.Name}),
+			}, time.Time{}, time.Time{},
+		)
 		fn, results, _ := t.AllRecordsFiltered(filters, false)
 
 		go fn()

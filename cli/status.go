@@ -162,9 +162,7 @@ func getStatus(t *core.Track, proj string, maxBreak time.Duration) (statusInfo, 
 	start := util.ToDate(now)
 	filterStart := start.Add(-time.Hour * 24)
 
-	filters := core.FilterFunctions{
-		core.FilterByTime(filterStart, time.Time{}),
-	}
+	filters := core.NewFilter([]core.FilterFunction{}, filterStart, time.Time{})
 
 	reporter, err := core.NewReporter(t, []string{project}, filters, false, start, time.Time{})
 	if err != nil {

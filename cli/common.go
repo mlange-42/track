@@ -27,7 +27,7 @@ type filterOptions struct {
 }
 
 func createFilters(options *filterOptions, projects map[string]core.Project, filterProjects bool) (core.FilterFunctions, error) {
-	var filters core.FilterFunctions
+	filters := []core.FilterFunction{}
 
 	if filterProjects && len(options.projects) > 0 {
 		filters = append(filters, core.FilterByProjects(options.projects))
@@ -43,13 +43,12 @@ func createFilters(options *filterOptions, projects map[string]core.Project, fil
 
 	startTime, endTime, err := parseStartEnd(options)
 	if err != nil {
-		return nil, err
-	}
-	if !(startTime.IsZero() && endTime.IsZero()) {
-		filters = append(filters, core.FilterByTime(startTime, endTime))
+		return core.FilterFunctions{}, err
 	}
 
-	return filters, nil
+	var ff = core.NewFilter(filters, startTime, endTime)
+
+	return ff, nil
 }
 
 func parseStartEnd(options *filterOptions) (time.Time, time.Time, error) {
@@ -93,7 +92,7 @@ func getStopTime(open *core.Record, ago time.Duration, at string) (time.Time, er
 		var err error
 		stopTime, err = util.ParseDateTime(fmt.Sprintf("%s %s", stopTime.Format(util.DateFormat), at))
 		if err != nil {
-			return time.Time{}, err
+			return util.NoTime, err
 		}
 		if stopTime.After(now) {
 			altTime := stopTime.Add(-24 * time.Hour)
@@ -121,7 +120,7 @@ func getStartTime(lastEnd time.Time, ago time.Duration, at string) (time.Time, e
 		var err error
 		startTime, err = util.ParseDateTime(fmt.Sprintf("%s %s", startTime.Format(util.DateFormat), at))
 		if err != nil {
-			return time.Time{}, err
+			return util.NoTime, err
 		}
 		if !lastEnd.IsZero() && startTime.After(now) {
 			altTime := startTime.Add(-24 * time.Hour)

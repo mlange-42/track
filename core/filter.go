@@ -5,12 +5,28 @@ import "time"
 // FilterFunction is an alias for func(r *Record) bool
 type FilterFunction = func(r *Record) bool
 
-// FilterFunctions is an alias for []func(r *Record) bool
-type FilterFunctions = []FilterFunction
+// FilterFunctions contains []func(r *Record) bool and a time range
+type FilterFunctions struct {
+	Functions []FilterFunction
+	Start     time.Time
+	End       time.Time
+}
+
+// NewFilter creates FilterFunctions
+func NewFilter(fn []FilterFunction, start, end time.Time) FilterFunctions {
+	if !start.IsZero() || !end.IsZero() {
+		fn = append(fn, FilterByTime(start, end))
+	}
+	return FilterFunctions{
+		Functions: fn,
+		Start:     start,
+		End:       end,
+	}
+}
 
 // Filter checks a record using multiple filters
 func Filter(record *Record, filters FilterFunctions) bool {
-	for _, f := range filters {
+	for _, f := range filters.Functions {
 		if !f(record) {
 			return false
 		}

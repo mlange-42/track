@@ -6,7 +6,6 @@ import (
 	"io"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/mlange-42/track/core"
 	"github.com/mlange-42/track/out"
@@ -125,17 +124,15 @@ func (wr csvWriter) Write(w io.Writer, results chan core.FilterResult) error {
 			endTime = r.End.Format(util.DateTimeFormat)
 		}
 
-		noTime := time.Time{}
-
 		_, err = fmt.Fprintf(
 			w, "%s\n",
 			strings.Join([]string{
 				r.Start.Format(util.DateTimeFormat),
 				endTime,
 				r.Project,
-				util.FormatDuration(r.TotalDuration(noTime, noTime)),
-				util.FormatDuration(r.Duration(noTime, noTime)),
-				util.FormatDuration(r.PauseDuration(noTime, noTime)),
+				util.FormatDuration(r.TotalDuration(util.NoTime, util.NoTime)),
+				util.FormatDuration(r.Duration(util.NoTime, util.NoTime)),
+				util.FormatDuration(r.PauseDuration(util.NoTime, util.NoTime)),
 				fmt.Sprintf("\"%s\"", strings.ReplaceAll(r.Note, "\n", "\\n")),
 				strings.Join(r.Tags, " "),
 			}, wr.Separator),

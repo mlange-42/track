@@ -229,10 +229,10 @@ func printRecord(r core.Record, project core.Project) {
 	if r.HasEnded() {
 		end = r.End.Format(util.TimeFormat)
 	} else {
-		end = util.NoTime
+		end = util.NoTimeString
 	}
-	dur := r.Duration(time.Time{}, time.Time{})
-	pause := r.PauseDuration(time.Time{}, time.Time{})
+	dur := r.Duration(util.NoTime, util.NoTime)
+	pause := r.PauseDuration(util.NoTime, util.NoTime)
 
 	fillLen := 16 - utf8.RuneCountInString(r.Project)
 	name := r.Project
@@ -313,12 +313,12 @@ func printTags(t *core.Track, includeArchived bool) error {
 
 	tags := map[string]int{}
 
-	filters := core.FilterFunctions{}
+	filters := []core.FilterFunction{}
 	if !includeArchived {
 		filters = append(filters, core.FilterByArchived(false, projects))
 	}
 
-	fn, results, _ := t.AllRecordsFiltered(filters, false)
+	fn, results, _ := t.AllRecordsFiltered(core.NewFilter(filters, util.NoTime, util.NoTime), false)
 
 	go fn()
 	for res := range results {

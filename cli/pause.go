@@ -69,7 +69,7 @@ func pauseCommand(t *core.Track) *cobra.Command {
 				}
 			} else {
 				startTime = nowCorr
-				endTime = time.Time{}
+				endTime = util.NoTime
 			}
 
 			note := strings.Join(args, " ")

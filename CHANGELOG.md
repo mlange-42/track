@@ -11,6 +11,10 @@
 
 * Fix #94 broken child project time aggregation (#95)
 
+### Other
+
+* More efficient filtering of records by explicit consideration of time (#97)
+
 ## [[v0.3.2]](https://github.com/mlange-42/track/compare/v0.3.1...v0.3.2)
 
 ### Features
