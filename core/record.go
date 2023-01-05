@@ -224,8 +224,8 @@ func (r *Record) Check() error {
 	if !r.End.IsZero() && r.End.Before(r.Start) {
 		return fmt.Errorf("end time is before start time")
 	}
-	prevStart := time.Time{}
-	prevEnd := time.Time{}
+	prevStart := util.NoTime
+	prevEnd := util.NoTime
 	for _, p := range r.Pause {
 		if p.Start.Before(r.Start) {
 			return fmt.Errorf("pause starts before record")
@@ -342,7 +342,7 @@ func (t *Track) SaveRecord(record *Record, force bool) error {
 		return err
 	}
 
-	bytes := record.Serialize(time.Time{})
+	bytes := record.Serialize(util.NoTime)
 
 	_, err = fmt.Fprintf(file, "%s Record %s\n", CommentPrefix, record.Start.Format(util.DateTimeFormat))
 	if err != nil {
@@ -685,7 +685,7 @@ func pathToTime(y, m, d, file string) (time.Time, error) {
 func fileToTime(date time.Time, file string) (time.Time, error) {
 	t, err := time.ParseInLocation(util.FileTimeFormat, strings.Split(file, ".")[0], time.Local)
 	if err != nil {
-		return time.Time{}, err
+		return util.NoTime, err
 	}
 	return util.DateAndTime(date, t), nil
 }
@@ -715,7 +715,7 @@ func (t *Track) StartRecord(project, note string, tags []string, start time.Time
 		Note:    note,
 		Tags:    tags,
 		Start:   start,
-		End:     time.Time{},
+		End:     util.NoTime,
 	}
 
 	return record, t.SaveRecord(&record, false)

@@ -35,7 +35,7 @@ func stopCommand(t *core.Track) *cobra.Command {
 				fmt.Sprintf(
 					"Really delete record %s (%s) from project '%s' (y/n): ",
 					open.Start.Format(util.DateTimeFormat),
-					util.FormatDuration(open.Duration(time.Time{}, time.Time{})),
+					util.FormatDuration(open.Duration(util.NoTime, util.NoTime)),
 					open.Project,
 				),
 				"y",

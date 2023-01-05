@@ -38,8 +38,7 @@ func Date(year int, month time.Month, day int) time.Time {
 
 // DateTime creates a datetime
 func DateTime(year int, month time.Month, day, hours, minutes, seconds int) time.Time {
-	tz := time.Time{}.Location()
-	return time.Date(year, month, day, hours, minutes, seconds, 0, tz)
+	return time.Date(year, month, day, hours, minutes, seconds, 0, time.Local)
 }
 
 // ParseTimeRange parses a time range string. Assumes the local time zone.
@@ -91,7 +90,7 @@ func ParseTimeWithOffset(text string, date time.Time) (time.Time, error) {
 	}
 	t, err := time.ParseInLocation(TimeFormat, text, time.Local)
 	if err != nil {
-		return time.Time{}, err
+		return NoTime, err
 	}
 	t = DateAndTime(date, t)
 	if dayOffset != 0 {

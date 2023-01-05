@@ -100,7 +100,7 @@ func resumeOpenRecord(t *core.Track, open *core.Record, atTime string, ago time.
 	var duration time.Duration
 	if skip {
 		pause, _ := open.PopPause()
-		duration = pause.Duration(time.Time{}, time.Time{})
+		duration = pause.Duration(util.NoTime, util.NoTime)
 	} else {
 		tm, err := getStartTime(pause.Start, ago, atTime)
 		if err != nil {
@@ -131,7 +131,7 @@ func resumeLastRecord(t *core.Track, last *core.Record, args []string, atTime st
 	now := time.Now()
 
 	oldEnd := last.End
-	last.End = time.Time{}
+	last.End = util.NoTime
 
 	var duration time.Duration
 	if skip {
@@ -145,7 +145,7 @@ func resumeLastRecord(t *core.Track, last *core.Record, args []string, atTime st
 		if err != nil {
 			return 0, err
 		}
-		duration = pause.Duration(time.Time{}, time.Time{})
+		duration = pause.Duration(util.NoTime, util.NoTime)
 	}
 
 	return duration, t.SaveRecord(last, true)

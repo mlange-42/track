@@ -5,11 +5,11 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/gookit/color"
 	"github.com/mlange-42/track/fs"
 	"github.com/mlange-42/track/tree"
+	"github.com/mlange-42/track/util"
 	"gopkg.in/yaml.v3"
 )
 
@@ -191,7 +191,7 @@ func (t *Track) DeleteProject(project *Project, deleteRecords bool, dryRun bool)
 		filters := NewFilter(
 			[]func(r *Record) bool{
 				FilterByProjects([]string{project.Name}),
-			}, time.Time{}, time.Time{},
+			}, util.NoTime, util.NoTime,
 		)
 		fn, results, _ := t.AllRecordsFiltered(filters, false)
 

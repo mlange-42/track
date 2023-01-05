@@ -155,21 +155,21 @@ func getStatus(t *core.Track, proj string, maxBreak time.Duration) (statusInfo, 
 		}
 		project = open.Project
 		isPaused = open.IsPaused()
-		currPause = open.CurrentPauseDuration(time.Time{}, time.Time{})
+		currPause = open.CurrentPauseDuration(util.NoTime, util.NoTime)
 	}
 
 	now := time.Now()
 	start := util.ToDate(now)
 	filterStart := start.Add(-time.Hour * 24)
 
-	filters := core.NewFilter([]core.FilterFunction{}, filterStart, time.Time{})
+	filters := core.NewFilter([]core.FilterFunction{}, filterStart, util.NoTime)
 
-	reporter, err := core.NewReporter(t, []string{project}, filters, false, start, time.Time{})
+	reporter, err := core.NewReporter(t, []string{project}, filters, false, start, util.NoTime)
 	if err != nil {
 		return statusInfo{}, err
 	}
 
-	prevEnd := time.Time{}
+	prevEnd := util.NoTime
 	currTime := time.Second * 0
 	cumTime := time.Second * 0
 	breakTime := time.Second * 0
@@ -177,7 +177,7 @@ func getStatus(t *core.Track, proj string, maxBreak time.Duration) (statusInfo, 
 
 	for _, rec := range reporter.Records {
 		worked := rec.Duration(start, now)
-		workedTotal := rec.Duration(time.Time{}, time.Time{})
+		workedTotal := rec.Duration(util.NoTime, util.NoTime)
 
 		if !prevEnd.IsZero() {
 			bt := rec.Start.Sub(prevEnd)
@@ -189,7 +189,7 @@ func getStatus(t *core.Track, proj string, maxBreak time.Duration) (statusInfo, 
 			}
 		}
 
-		breakTime += rec.PauseDuration(time.Time{}, time.Time{})
+		breakTime += rec.PauseDuration(util.NoTime, util.NoTime)
 		totalTime += worked
 		cumTime += workedTotal
 		if rec.End.IsZero() {

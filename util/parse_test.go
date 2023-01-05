@@ -18,15 +18,15 @@ func TestParseTimeRange(t *testing.T) {
 		{
 			title:    "Empty string",
 			text:     "",
-			expStart: time.Time{},
-			expEnd:   time.Time{},
+			expStart: NoTime,
+			expEnd:   NoTime,
 			expErr:   true,
 		},
 		{
 			title:    "No end time",
 			text:     "12:30 - ?",
 			expStart: date.Add(time.Duration(time.Minute * (12*60 + 30))),
-			expEnd:   time.Time{},
+			expEnd:   NoTime,
 			expErr:   false,
 		},
 		{
