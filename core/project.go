@@ -41,15 +41,6 @@ type Project struct {
 	Archived bool
 }
 
-type tempProject struct {
-	Name     string
-	Parent   string
-	Color    uint8
-	FgColor  uint8 `yaml:"fgColor"`
-	Symbol   string
-	Archived bool
-}
-
 // NewProject creates a new project
 func NewProject(name string, parent string, symbol string, fgColor, color uint8) Project {
 	p := Project{
@@ -62,6 +53,15 @@ func NewProject(name string, parent string, symbol string, fgColor, color uint8)
 	}
 	p.SetColors(fgColor, color)
 	return p
+}
+
+type tempProject struct {
+	Name     string
+	Parent   string
+	Color    uint8
+	FgColor  uint8 `yaml:"fgColor"`
+	Symbol   string
+	Archived bool
 }
 
 // UnmarshalYAML un-marshals a project
@@ -86,21 +86,6 @@ func (p *Project) SetColors(fgCol, col uint8) {
 	p.Color = col
 	p.FgColor = fgCol
 	p.Render = *color.S256(fgCol, col)
-}
-
-// ProjectsDir returns the projects storage directory
-func (t *Track) ProjectsDir() string {
-	return filepath.Join(fs.RootDir(), t.Workspace(), fs.ProjectsDirName())
-}
-
-// WorkspaceProjectsDir returns the projects storage directory for the given workspace
-func (t *Track) WorkspaceProjectsDir(ws string) string {
-	return filepath.Join(fs.RootDir(), ws, fs.ProjectsDirName())
-}
-
-// ProjectPath returns the full path for a project
-func (t *Track) ProjectPath(name string) string {
-	return filepath.Join(t.ProjectsDir(), fs.Sanitize(name)+".yml")
 }
 
 // ProjectExists checks if a project exists

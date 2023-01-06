@@ -37,6 +37,24 @@ type Config struct {
 	PauseCell        string        `yaml:"pauseCell"`
 }
 
+func defaultConfig() Config {
+	var editor string
+	if strings.ToLower(runtime.GOOS) == "windows" {
+		editor = "notepad.exe"
+	} else {
+		editor = "nano"
+	}
+
+	return Config{
+		Workspace:        defaultWorkspace,
+		TextEditor:       editor,
+		MaxBreakDuration: 2 * time.Hour,
+		EmptyCell:        ".",
+		RecordCell:       ":",
+		PauseCell:        "-",
+	}
+}
+
 // LoadConfig loads the track config, or creates and saves default settings
 func LoadConfig() (Config, error) {
 	conf, err := tryLoadConfig()
@@ -47,21 +65,7 @@ func LoadConfig() (Config, error) {
 		return conf, err
 	}
 
-	var editor string
-	if strings.ToLower(runtime.GOOS) == "windows" {
-		editor = "notepad.exe"
-	} else {
-		editor = "nano"
-	}
-
-	conf = Config{
-		Workspace:        defaultWorkspace,
-		TextEditor:       editor,
-		MaxBreakDuration: 2 * time.Hour,
-		EmptyCell:        ".",
-		RecordCell:       ":",
-		PauseCell:        "-",
-	}
+	conf = defaultConfig()
 
 	err = conf.Save()
 	if err != nil {
@@ -118,7 +122,7 @@ func (conf *Config) Save() error {
 	return err
 }
 
-// CheckConfig checks a config for consistency
+// Check checks the config for consistency
 func (conf *Config) Check() error {
 	versionHint := "In case you recently updated track, try to delete file %USER%/.track/config.yml"
 	if utf8.RuneCountInString(conf.EmptyCell) != 1 {

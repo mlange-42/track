@@ -90,7 +90,7 @@ Columns of the status are:
 			} else {
 				out.Success("Record %s\n", info.Start.Format(util.DateTimeFormat))
 			}
-			out.Print(info.Record.Serialize(time.Now()))
+			out.Print(core.SerializeRecord(info.Record, time.Now()))
 			out.Print("+------------------+-------+-------+-------+-------+\n")
 			out.Print("|          project |  curr | total | break | today |\n")
 			out.Print(
