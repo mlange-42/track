@@ -13,8 +13,6 @@ import (
 const (
 	// DateFormat for date formatting
 	DateFormat = "2006-01-02"
-	// FileDateFormat for file name date formatting
-	FileDateFormat = "2006-01-02"
 	// TimeFormat for time formatting
 	TimeFormat = "15:04"
 	// FileTimeFormat for file name time formatting
@@ -23,12 +21,8 @@ const (
 	FileDateTimeFormat = "2006-01-02 15-04"
 	// DateTimeFormat for date and time formatting
 	DateTimeFormat = "2006-01-02 15:04"
-	// YAMLTimeFormat for YAML date and time formatting
-	YAMLTimeFormat = "2006-01-02 15:04 -0700 MST"
 	// NoTimeString string representation for zero end time
 	NoTimeString = " now "
-	// NoDateTime string representation for zero time
-	NoDateTime = "      ---       "
 )
 
 const (
