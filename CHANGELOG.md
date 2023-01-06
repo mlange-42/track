@@ -2,6 +2,12 @@
 
 ## [[unpublished]](https://github.com/mlange-42/track/compare/v0.3.3...main)
 
+### Features
+
+* Timeline reports now show the total time spent in addition to bars (#105)
+* Timeline reports support CSV format via flag `--csv` (#105)
+* Timeline reports in CSV format can have a column per project via flag `--table` (#105)
+
 ### Bugfixes
 
 * Close file after saving project (#108)
@@ -10,12 +16,6 @@
 
 * Added a lot of unit tests (#106, #108)
 * Extend record and pause consistency checks (#108)
-
-### Features
-
-* Timeline reports now show the total time spent in addition to bars (#105)
-* Timeline reports support CSV format via flag `--csv` (#105)
-* Timeline reports in CSV format can have a column per project via flag `--table` (#105)
 
 ## [[v0.3.3]](https://github.com/mlange-42/track/compare/v0.3.2...v0.3.3)
 
