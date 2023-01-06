@@ -47,6 +47,17 @@ type Pause struct {
 	Note  string
 }
 
+// FilterResult contains a Report or an error from async filtering
+type FilterResult struct {
+	Record Record
+	Err    error
+}
+
+// Duration reports the duration of a pause
+func (p Pause) Duration(min, max time.Time) time.Duration {
+	return util.DurationClip(p.Start, p.End, min, max)
+}
+
 // HasEnded reports whether the record has an end time
 func (r Record) HasEnded() bool {
 	return !r.End.IsZero()
@@ -92,11 +103,6 @@ func (r Record) PauseDuration(min, max time.Time) time.Duration {
 		dur += p.Duration(min, max)
 	}
 	return dur
-}
-
-// Duration reports the duration of a pause
-func (p Pause) Duration(min, max time.Time) time.Duration {
-	return util.DurationClip(p.Start, p.End, min, max)
 }
 
 // CurrentPauseDuration reports the duration of an open pause
@@ -159,28 +165,27 @@ func DeserializeRecord(str string, date time.Time) (Record, error) {
 	pause := []Pause{}
 	for {
 		ln := strings.TrimSpace(lines[index])
-		if strings.HasPrefix(ln, "- ") {
-			ln := strings.TrimPrefix(ln, "- ")
-			lnParts := strings.SplitN(ln, "/", 2)
-			pStart, pEnd, err := util.ParseTimeRange(lnParts[0], date)
-			index++
-			if err != nil {
-				return Record{}, err
-			}
-			note := ""
-			if len(lnParts) > 1 {
-				note = strings.TrimSpace(lnParts[1])
-			}
-			pause = append(pause,
-				Pause{
-					Start: pStart,
-					End:   pEnd,
-					Note:  note,
-				},
-			)
-		} else {
+		if !strings.HasPrefix(ln, "- ") {
 			break
 		}
+		ln = strings.TrimPrefix(ln, "- ")
+		lnParts := strings.SplitN(ln, "/", 2)
+		pStart, pEnd, err := util.ParseTimeRange(lnParts[0], date)
+		index++
+		if err != nil {
+			return Record{}, err
+		}
+		note := ""
+		if len(lnParts) > 1 {
+			note = strings.TrimSpace(lnParts[1])
+		}
+		pause = append(pause,
+			Pause{
+				Start: pStart,
+				End:   pEnd,
+				Note:  note,
+			},
+		)
 	}
 
 	index, ok = skipLines(lines, index, true)
@@ -280,19 +285,6 @@ func (r *Record) EndPause(t time.Time) (Pause, error) {
 	}
 	r.Pause[len(r.Pause)-1].End = t
 	return r.Pause[len(r.Pause)-1], nil
-}
-
-func skipLines(lines []string, index int, skipEmpty bool) (int, bool) {
-	if index >= len(lines) {
-		return index, false
-	}
-	for (skipEmpty && strings.TrimSpace(lines[index]) == "") || strings.HasPrefix(lines[index], CommentPrefix) {
-		index++
-		if index >= len(lines) {
-			return index, false
-		}
-	}
-	return index, true
 }
 
 // RecordsDir returns the records storage directory
@@ -430,12 +422,6 @@ func (t *Track) LoadAllRecordsFiltered(filters FilterFunctions) ([]Record, error
 	}
 
 	return records, nil
-}
-
-// FilterResult contains a Report or an error from async filtering
-type FilterResult struct {
-	Record Record
-	Err    error
 }
 
 // AllRecordsFiltered is an async version of LoadAllRecordsFiltered
@@ -674,22 +660,6 @@ func (t *Track) LatestRecord() (*Record, error) {
 	return &rec, nil
 }
 
-func pathToTime(y, m, d, file string) (time.Time, error) {
-	return time.ParseInLocation(
-		util.FileDateTimeFormat,
-		fmt.Sprintf("%s-%s-%s %s", y, m, d, strings.Split(file, ".")[0]),
-		time.Local,
-	)
-}
-
-func fileToTime(date time.Time, file string) (time.Time, error) {
-	t, err := time.ParseInLocation(util.FileTimeFormat, strings.Split(file, ".")[0], time.Local)
-	if err != nil {
-		return util.NoTime, err
-	}
-	return util.DateAndTime(date, t), nil
-}
-
 // OpenRecord returns the open record if any. Returns a nil reference if no open record is found.
 func (t *Track) OpenRecord() (*Record, error) {
 	latest, err := t.LatestRecord()
@@ -781,4 +751,33 @@ func ExtractTags(text string) []string {
 		}
 	}
 	return result
+}
+
+func skipLines(lines []string, index int, skipEmpty bool) (int, bool) {
+	if index >= len(lines) {
+		return index, false
+	}
+	for (skipEmpty && strings.TrimSpace(lines[index]) == "") || strings.HasPrefix(lines[index], CommentPrefix) {
+		index++
+		if index >= len(lines) {
+			return index, false
+		}
+	}
+	return index, true
+}
+
+func pathToTime(y, m, d, file string) (time.Time, error) {
+	return time.ParseInLocation(
+		util.FileDateTimeFormat,
+		fmt.Sprintf("%s-%s-%s %s", y, m, d, strings.Split(file, ".")[0]),
+		time.Local,
+	)
+}
+
+func fileToTime(date time.Time, file string) (time.Time, error) {
+	t, err := time.ParseInLocation(util.FileTimeFormat, strings.Split(file, ".")[0], time.Local)
+	if err != nil {
+		return util.NoTime, err
+	}
+	return util.DateAndTime(date, t), nil
 }
