@@ -8,6 +8,155 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestCheckRecord(t *testing.T) {
+	tt := []struct {
+		title    string
+		record   Record
+		expError bool
+	}{
+		{
+			title: "fully valid record",
+			record: Record{
+				Project: "test",
+				Start:   time.Date(2001, 2, 3, 8, 0, 0, 0, time.Local),
+				End:     time.Date(2001, 2, 3, 18, 0, 0, 0, time.Local),
+				Pause: []Pause{
+					{
+						Start: time.Date(2001, 2, 3, 9, 0, 0, 0, time.Local),
+						End:   time.Date(2001, 2, 3, 10, 0, 0, 0, time.Local),
+					},
+					{
+						Start: time.Date(2001, 2, 3, 12, 0, 0, 0, time.Local),
+						End:   time.Date(2001, 2, 3, 13, 0, 0, 0, time.Local),
+					},
+				},
+			},
+			expError: false,
+		},
+		{
+			title: "ends before start",
+			record: Record{
+				Project: "test",
+				Start:   time.Date(2001, 2, 3, 8, 0, 0, 0, time.Local),
+				End:     time.Date(2001, 2, 3, 7, 0, 0, 0, time.Local),
+				Pause:   []Pause{},
+			},
+			expError: true,
+		},
+		{
+			title: "pause too early",
+			record: Record{
+				Project: "test",
+				Start:   time.Date(2001, 2, 3, 8, 0, 0, 0, time.Local),
+				End:     time.Date(2001, 2, 3, 18, 0, 0, 0, time.Local),
+				Pause: []Pause{
+					{
+						Start: time.Date(2001, 2, 3, 7, 0, 0, 0, time.Local),
+						End:   time.Date(2001, 2, 3, 10, 0, 0, 0, time.Local),
+					},
+				},
+			},
+			expError: true,
+		},
+		{
+			title: "pause too late",
+			record: Record{
+				Project: "test",
+				Start:   time.Date(2001, 2, 3, 8, 0, 0, 0, time.Local),
+				End:     time.Date(2001, 2, 3, 18, 0, 0, 0, time.Local),
+				Pause: []Pause{
+					{
+						Start: time.Date(2001, 2, 3, 9, 0, 0, 0, time.Local),
+						End:   time.Date(2001, 2, 3, 19, 0, 0, 0, time.Local),
+					},
+				},
+			},
+			expError: true,
+		},
+		{
+			title: "pause ends before start",
+			record: Record{
+				Project: "test",
+				Start:   time.Date(2001, 2, 3, 8, 0, 0, 0, time.Local),
+				End:     time.Date(2001, 2, 3, 18, 0, 0, 0, time.Local),
+				Pause: []Pause{
+					{
+						Start: time.Date(2001, 2, 3, 11, 0, 0, 0, time.Local),
+						End:   time.Date(2001, 2, 3, 10, 0, 0, 0, time.Local),
+					},
+				},
+			},
+			expError: true,
+		},
+		{
+			title: "pause open but record not",
+			record: Record{
+				Project: "test",
+				Start:   time.Date(2001, 2, 3, 8, 0, 0, 0, time.Local),
+				End:     time.Date(2001, 2, 3, 18, 0, 0, 0, time.Local),
+				Pause: []Pause{
+					{
+						Start: time.Date(2001, 2, 3, 11, 0, 0, 0, time.Local),
+						End:   util.NoTime,
+					},
+				},
+			},
+			expError: true,
+		},
+		{
+			title: "pauses overlap",
+			record: Record{
+				Project: "test",
+				Start:   time.Date(2001, 2, 3, 8, 0, 0, 0, time.Local),
+				End:     time.Date(2001, 2, 3, 18, 0, 0, 0, time.Local),
+				Pause: []Pause{
+					{
+						Start: time.Date(2001, 2, 3, 10, 0, 0, 0, time.Local),
+						End:   time.Date(2001, 2, 3, 12, 0, 0, 0, time.Local),
+					},
+					{
+						Start: time.Date(2001, 2, 3, 11, 0, 0, 0, time.Local),
+						End:   time.Date(2001, 2, 3, 13, 0, 0, 0, time.Local),
+					},
+				},
+			},
+			expError: true,
+		},
+		{
+			title: "pauses not chronologically",
+			record: Record{
+				Project: "test",
+				Start:   time.Date(2001, 2, 3, 8, 0, 0, 0, time.Local),
+				End:     time.Date(2001, 2, 3, 18, 0, 0, 0, time.Local),
+				Pause: []Pause{
+					{
+						Start: time.Date(2001, 2, 3, 12, 0, 0, 0, time.Local),
+						End:   time.Date(2001, 2, 3, 13, 0, 0, 0, time.Local),
+					},
+					{
+						Start: time.Date(2001, 2, 3, 10, 0, 0, 0, time.Local),
+						End:   time.Date(2001, 2, 3, 11, 0, 0, 0, time.Local),
+					},
+				},
+			},
+			expError: true,
+		},
+	}
+
+	for _, test := range tt {
+		err := test.record.Check()
+		if err != nil {
+			if !test.expError {
+				t.Fatalf("got unexpected error in  %s: %s", test.title, err.Error())
+			}
+		} else {
+			if test.expError {
+				t.Fatalf("expected error not raised in %s", test.title)
+			}
+		}
+	}
+}
+
 func TestDurationPause(t *testing.T) {
 	tt := []struct {
 		title       string

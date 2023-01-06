@@ -86,7 +86,7 @@ Note with a +tag
 		outRecord, err := DeserializeRecord(test.text, test.time)
 		if err != nil {
 			if !test.expError {
-				t.Fatalf("got unexpected error in %s", test.title)
+				t.Fatalf("got unexpected error in %s: %s", test.title, err.Error())
 			}
 		} else {
 			if test.expError {
