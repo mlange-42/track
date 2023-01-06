@@ -126,7 +126,14 @@ func TestSaveLoad(t *testing.T) {
 	assert.False(t, track.ProjectExists("test"), "Project must not exist")
 
 	project := NewProject("test", "", "T", 0, 15)
-	track.SaveProject(project, false)
+	err = track.SaveProject(project, false)
+	assert.Equal(t, nil, err, "Error saving project")
+
+	// Test overwriting
+	err = track.SaveProject(project, false)
+	assert.True(t, err != nil, "Expect error saving project: should not overwrite")
+	err = track.SaveProject(project, true)
+	assert.Equal(t, nil, err, "Error saving project with force")
 
 	assert.True(t, fs.FileExists(track.ProjectPath("test")), "File must exist")
 	assert.True(t, track.ProjectExists("test"), "Project must exist")
@@ -145,4 +152,42 @@ func TestSaveLoad(t *testing.T) {
 
 	assert.False(t, fs.FileExists(track.ProjectPath("test")), "File must not exist")
 	assert.False(t, track.ProjectExists("test"), "Project must not exist")
+}
+
+func TestCheckParents(t *testing.T) {
+	dir, err := ioutil.TempDir("", "track-test")
+	assert.Equal(t, nil, err, "Error creating temporary directory")
+	defer os.Remove(dir)
+
+	track, err := NewTrack(&dir)
+	assert.Equal(t, nil, err, "Error creating Track instance")
+
+	p1 := NewProject("p1", "", "T", 0, 15)
+	p2 := NewProject("p2", "", "T", 0, 15)
+	p3 := NewProject("p3", "", "T", 0, 15)
+
+	err = track.SaveProject(p1, false)
+	assert.Equal(t, nil, err, "Error saving project")
+	err = track.SaveProject(p2, false)
+	assert.Equal(t, nil, err, "Error saving project")
+	err = track.SaveProject(p3, false)
+	assert.Equal(t, nil, err, "Error saving project")
+
+	assert.True(t, track.CheckParents(p1) == nil, "Unexpected error in parent check")
+
+	p1.Parent = "p1"
+	err = track.SaveProject(p1, true)
+	assert.Equal(t, nil, err, "Error saving project")
+
+	assert.True(t, track.CheckParents(p1) != nil, "Expected error in parent check")
+
+	p2.Parent = "p3"
+	err = track.SaveProject(p2, true)
+	assert.Equal(t, nil, err, "Error saving project")
+	p3.Parent = "p2"
+	err = track.SaveProject(p3, true)
+	assert.Equal(t, nil, err, "Error saving project")
+
+	assert.True(t, track.CheckParents(p2) != nil, "Expected error in parent check")
+	assert.True(t, track.CheckParents(p3) != nil, "Expected error in parent check")
 }
