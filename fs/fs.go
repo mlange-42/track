@@ -26,18 +26,6 @@ var (
 
 var pathSanitizer = strings.NewReplacer("/", "-", "\\", "-")
 
-// RootDir returns the root storage directory
-func RootDir() string {
-	if path, ok := os.LookupEnv(trackPathEnvVar); ok {
-		return path
-	}
-	home, err := os.UserHomeDir()
-	if err != nil {
-		panic(err)
-	}
-	return filepath.Join(home, rootDirName)
-}
-
 // ProjectsDirName returns the directory name for projects
 func ProjectsDirName() string {
 	return projectsDirName
@@ -46,11 +34,6 @@ func ProjectsDirName() string {
 // RecordsDirName returns the directory name for records
 func RecordsDirName() string {
 	return recordsDirName
-}
-
-// ConfigPath returns the default config path
-func ConfigPath() string {
-	return filepath.Join(RootDir(), configFile)
 }
 
 // Sanitize makes stings filename compatible

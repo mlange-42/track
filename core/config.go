@@ -10,7 +10,6 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/mlange-42/track/fs"
 	"gopkg.in/yaml.v3"
 )
 
@@ -56,8 +55,8 @@ func defaultConfig() Config {
 }
 
 // LoadConfig loads the track config, or creates and saves default settings
-func LoadConfig() (Config, error) {
-	conf, err := tryLoadConfig()
+func LoadConfig(path string) (Config, error) {
+	conf, err := tryLoadConfig(path)
 	if err == nil {
 		return conf, nil
 	}
@@ -67,7 +66,7 @@ func LoadConfig() (Config, error) {
 
 	conf = defaultConfig()
 
-	err = conf.Save()
+	err = conf.Save(path)
 	if err != nil {
 		return Config{}, fmt.Errorf("could not save config file: %s", err)
 	}
@@ -75,8 +74,8 @@ func LoadConfig() (Config, error) {
 	return conf, nil
 }
 
-func tryLoadConfig() (Config, error) {
-	file, err := ioutil.ReadFile(fs.ConfigPath())
+func tryLoadConfig(path string) (Config, error) {
+	file, err := ioutil.ReadFile(path)
 	if err != nil {
 		return Config{}, ErrNoConfig
 	}
@@ -95,12 +94,10 @@ func tryLoadConfig() (Config, error) {
 }
 
 // Save saves the given to it's default location
-func (conf *Config) Save() error {
+func (conf *Config) Save(path string) error {
 	if err := conf.Check(); err != nil {
 		return err
 	}
-
-	path := fs.ConfigPath()
 
 	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {

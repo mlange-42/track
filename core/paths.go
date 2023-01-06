@@ -11,12 +11,17 @@ import (
 
 // WorkspaceDir returns the directory of a workspace
 func (t *Track) WorkspaceDir(ws string) string {
-	return filepath.Join(fs.RootDir(), ws)
+	return filepath.Join(t.RootDir, ws)
+}
+
+// ConfigPath returns the default config path
+func (t *Track) ConfigPath() string {
+	return filepath.Join(t.RootDir, configFile)
 }
 
 // ProjectsDir returns the projects storage directory
 func (t *Track) ProjectsDir() string {
-	return filepath.Join(fs.RootDir(), t.Workspace(), fs.ProjectsDirName())
+	return filepath.Join(t.RootDir, t.Workspace(), fs.ProjectsDirName())
 }
 
 // ProjectPath returns the full path for a project
@@ -36,7 +41,7 @@ func (t *Track) RecordDir(tm time.Time) string {
 
 // RecordsDir returns the records storage directory
 func (t *Track) RecordsDir() string {
-	return filepath.Join(fs.RootDir(), t.Workspace(), fs.RecordsDirName())
+	return filepath.Join(t.RootDir, t.Workspace(), fs.RecordsDirName())
 }
 
 // RecordPath returns the full path for a record
