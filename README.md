@@ -9,6 +9,10 @@ Track is a time tracking command line tool.
 
 *Track* is designed to be easy to use, and stores tracking entries in a human-readable plain-text format.
 
+## Screenshots
+
+![App Screenshot](./docs/src/images/document.png)
+
 ## Features
 
 * Track your working time from the command line
