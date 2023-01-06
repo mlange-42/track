@@ -1,6 +1,8 @@
 package core
 
 import (
+	"path/filepath"
+
 	"github.com/mlange-42/track/fs"
 )
 
@@ -33,12 +35,22 @@ func (t *Track) createRootDir() {
 }
 
 func (t *Track) createWorkspaceDirs(workspace string) {
-	err := fs.CreateDir(t.WorkspaceProjectsDir(workspace))
+	err := fs.CreateDir(t.workspaceProjectsDir(workspace))
 	if err != nil {
 		panic(err)
 	}
-	err = fs.CreateDir(t.WorkspaceRecordsDir(workspace))
+	err = fs.CreateDir(t.workspaceRecordsDir(workspace))
 	if err != nil {
 		panic(err)
 	}
+}
+
+// workspaceProjectsDir returns the projects storage directory for the given workspace
+func (t *Track) workspaceProjectsDir(ws string) string {
+	return filepath.Join(fs.RootDir(), ws, fs.ProjectsDirName())
+}
+
+// workspaceRecordsDir returns the records storage directory for the given workspace
+func (t *Track) workspaceRecordsDir(ws string) string {
+	return filepath.Join(fs.RootDir(), ws, fs.RecordsDirName())
 }
