@@ -96,3 +96,32 @@ Note with a +tag
 		}
 	}
 }
+
+func BenchmarkTestSerialize(b *testing.B) {
+	record := fullRecord()
+	for i := 0; i < b.N; i++ {
+		_ = SerializeRecord(&record, record.Start)
+	}
+}
+
+func fullRecord() Record {
+	return Record{
+		Project: "test",
+		Start:   time.Date(2001, 2, 3, 8, 0, 0, 0, time.Local),
+		End:     time.Date(2001, 2, 3, 17, 0, 0, 0, time.Local),
+		Pause: []Pause{
+			{
+				Start: time.Date(2001, 2, 3, 8, 30, 0, 0, time.Local),
+				End:   time.Date(2001, 2, 3, 8, 40, 0, 0, time.Local),
+				Note:  "Breakfast",
+			},
+			{
+				Start: time.Date(2001, 2, 3, 12, 30, 0, 0, time.Local),
+				End:   time.Date(2001, 2, 3, 13, 0, 0, 0, time.Local),
+				Note:  "Lunch",
+			},
+		},
+		Note: "Note with a +tag",
+		Tags: []string{"tag"},
+	}
+}
