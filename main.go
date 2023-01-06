@@ -16,7 +16,7 @@ func main() {
 		color.Disable()
 	}
 
-	track, err := core.NewTrack()
+	track, err := core.NewTrack(nil)
 	if err != nil {
 		out.Err("%s\n", err.Error())
 		os.Exit(1)

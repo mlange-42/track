@@ -36,7 +36,7 @@ func (t *Track) SwitchWorkspace(name string) error {
 	t.createWorkspaceDirs(name)
 
 	t.Config.Workspace = name
-	err = t.Config.Save()
+	err = t.Config.Save(t.ConfigPath())
 	if err != nil {
 		return err
 	}
@@ -51,7 +51,7 @@ func (t *Track) Workspace() string {
 
 // AllWorkspaces returns a slice of all workspaces
 func (t *Track) AllWorkspaces() ([]string, error) {
-	path := fs.RootDir()
+	path := t.RootDir
 	dirs, err := ioutil.ReadDir(path)
 	if err != nil {
 		return nil, err

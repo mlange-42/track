@@ -226,9 +226,9 @@ See file .track/config.yml to configure the editor to be used.`,
 			}
 
 			if *dryRun {
-				out.Success("Saved config to %s - dry-run", fs.ConfigPath())
+				out.Success("Saved config to %s - dry-run", t.ConfigPath())
 			} else {
-				out.Success("Saved config to %s", fs.ConfigPath())
+				out.Success("Saved config to %s", t.ConfigPath())
 			}
 		},
 	}
@@ -509,7 +509,7 @@ func editProject(t *core.Track, project core.Project, dryRun bool) error {
 }
 
 func editConfig(t *core.Track, dryRun bool) error {
-	conf, err := core.LoadConfig()
+	conf, err := core.LoadConfig(t.ConfigPath())
 	if err != nil {
 		return err
 	}
@@ -527,7 +527,7 @@ func editConfig(t *core.Track, dryRun bool) error {
 			}
 
 			if !dryRun {
-				if err = newConfig.Save(); err != nil {
+				if err = newConfig.Save(t.ConfigPath()); err != nil {
 					return err
 				}
 			}
