@@ -1,6 +1,10 @@
 # Changelog
 
-## [[unpublished]](https://github.com/mlange-42/track/compare/v0.3.2...main)
+## [[unpublished]](https://github.com/mlange-42/track/compare/v0.3.3...main)
+
+Nothing
+
+## [[v0.3.3]](https://github.com/mlange-42/track/compare/v0.3.2...v0.3.3)
 
 ### Features
 
