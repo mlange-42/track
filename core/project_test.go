@@ -1,8 +1,11 @@
 package core
 
 import (
+	"io/ioutil"
+	"os"
 	"testing"
 
+	"github.com/mlange-42/track/fs"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -107,4 +110,39 @@ func TestToTree(t *testing.T) {
 		assert.Equal(t, test.expAncestors, anc, "Ancestors don't match in %s", test.title)
 		assert.ElementsMatch(t, test.expDescendants, des, "Descendants don't match in %s", test.title)
 	}
+}
+
+func TestSaveLoad(t *testing.T) {
+	dir, err := ioutil.TempDir("", "track-test")
+	assert.Equal(t, nil, err, "Error creating temporary directory")
+	defer os.Remove(dir)
+
+	track, err := NewTrack(&dir)
+	assert.Equal(t, nil, err, "Error creating Track instance")
+
+	assert.Equal(t, dir, track.RootDir, "Wrong root directory")
+
+	assert.False(t, fs.FileExists(track.ProjectPath("test")), "File must not exist")
+	assert.False(t, track.ProjectExists("test"), "Project must not exist")
+
+	project := NewProject("test", "", "T", 0, 15)
+	track.SaveProject(project, false)
+
+	assert.True(t, fs.FileExists(track.ProjectPath("test")), "File must exist")
+	assert.True(t, track.ProjectExists("test"), "Project must exist")
+
+	allProjects, err := track.LoadAllProjects()
+	assert.Equal(t, nil, err, "Error loading projects")
+
+	assert.Equal(t, map[string]Project{"test": project}, allProjects, "Loaded project not equal to saved project")
+
+	newProject, err := track.LoadProjectByName("test")
+	assert.Equal(t, nil, err, "Error loading project")
+	assert.Equal(t, project, newProject, "Loaded project not equal to saved project")
+
+	_, err = track.DeleteProject(&project, true, false)
+	assert.Equal(t, nil, err, "Error deleting project")
+
+	assert.False(t, fs.FileExists(track.ProjectPath("test")), "File must not exist")
+	assert.False(t, track.ProjectExists("test"), "Project must not exist")
 }

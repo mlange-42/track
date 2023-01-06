@@ -15,7 +15,7 @@ const (
 	trackPathEnvVar = "TRACK_PATH"
 )
 
-// Track is a top-level track instalce
+// Track is a top-level track instance
 type Track struct {
 	RootDir string
 	Config  Config

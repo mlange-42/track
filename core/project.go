@@ -107,6 +107,7 @@ func (t *Track) SaveProject(project Project, force bool) error {
 	if err != nil {
 		return err
 	}
+	defer file.Close()
 
 	bytes, err := yaml.Marshal(&project)
 	if err != nil {
