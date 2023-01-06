@@ -292,7 +292,7 @@ func (t *Track) StopRecord(end time.Time) (*Record, error) {
 
 // ExtractTagsSlice extracts elements with the tag prefix
 func ExtractTagsSlice(tokens []string) []string {
-	var result []string
+	result := make([]string, 0)
 	mapped := make(map[string]bool)
 	for _, token := range tokens {
 		subTokens := strings.Split(token, " ")
@@ -310,7 +310,7 @@ func ExtractTagsSlice(tokens []string) []string {
 
 // ExtractTags extracts elements with the tag prefix
 func ExtractTags(text string) []string {
-	var result []string
+	result := make([]string, 0)
 	mapped := make(map[string]bool)
 	subTokens := strings.Split(text, " ")
 	for _, subToken := range subTokens {

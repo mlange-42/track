@@ -24,6 +24,7 @@ func TestSerializeDeserialize(t *testing.T) {
 				Start:   time.Date(2001, 2, 3, 8, 0, 0, 0, time.Local),
 				End:     time.Date(2001, 2, 3, 9, 0, 0, 0, time.Local),
 				Pause:   make([]Pause, 0),
+				Tags:    make([]string, 0),
 			},
 			text: `08:00 - 09:00
     test
@@ -38,6 +39,7 @@ func TestSerializeDeserialize(t *testing.T) {
 				Start:   time.Date(2001, 2, 3, 8, 0, 0, 0, time.Local),
 				End:     util.NoTime,
 				Pause:   make([]Pause, 0),
+				Tags:    make([]string, 0),
 			},
 			text: `08:00 - ?
     test
