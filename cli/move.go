@@ -31,9 +31,12 @@ func moveCommand(t *core.Track) *cobra.Command {
 func moveProjectCommand(t *core.Track, dryRun *bool) *cobra.Command {
 
 	moveProject := &cobra.Command{
-		Use:     "project PROJECT WORKSPACE",
-		Short:   "Move a project to another workspace",
-		Long:    `Move a project to another workspace.`,
+		Use:   "project PROJECT WORKSPACE",
+		Short: "Move a project to another workspace",
+		Long: `Move a project to another workspace.
+
+Moves the project and all associated records to the given workspace.
+If there is no project with the same name as the parent of the project, the parent is set to none.`,
 		Aliases: []string{"p"},
 		Args:    util.WrappedArgs(cobra.ExactArgs(2)),
 		Run: func(cmd *cobra.Command, args []string) {
