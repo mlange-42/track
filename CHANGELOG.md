@@ -2,6 +2,15 @@
 
 ## [[unpublished]](https://github.com/mlange-42/track/compare/v0.3.3...main)
 
+### Bugfixes
+
+* Close file after saving project (#108)
+
+### Other
+
+* Added a lot of unit tests (#106, #108)
+* Extend record and pause consistency checks (#108)
+
 ### Features
 
 * Timeline reports now show the total time spent in addition to bars (#105)
