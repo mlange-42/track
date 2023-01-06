@@ -109,8 +109,16 @@ track report timeline months
 Prints something like this:
 
 ```text
-Th 2022-12-29 #############.
-Fr 2022-12-30 ##################.
-Sa 2022-12-31 #######.
-Su 2023-01-01 #############
+Th 2022-12-29  06:39  |||||||||||||.
+Fr 2022-12-30  09:20  ||||||||||||||||||:
+Sa 2022-12-31  03:51  |||||||:
+Su 2023-01-01  11:07  ||||||||||||||||||||||.
+Mo 2023-01-02  09:44  |||||||||||||||||||.
+Tu 2023-01-03  08:30  |||||||||||||||||
+We 2023-01-04  09:51  |||||||||||||||||||:
+Th 2023-01-05  09:01  ||||||||||||||||||
+Fr 2023-01-06  03:30  |||||||
 ```
+
+Timeline reports can be exported in CSV format using the flag `--csv`.
+With flag `--table`, a separate column for each project is included in the report.

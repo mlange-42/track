@@ -2,7 +2,11 @@
 
 ## [[unpublished]](https://github.com/mlange-42/track/compare/v0.3.3...main)
 
-Nothing
+### Features
+
+* Timeline reports now show the total time spent in addition to bars (#105)
+* Timeline reports support CSV format via flag `--csv` (#105)
+* Timeline reports in CSV format can have a column per project via flag `--table` (#105)
 
 ## [[v0.3.3]](https://github.com/mlange-42/track/compare/v0.3.2...v0.3.3)
 
