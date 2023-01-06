@@ -13,6 +13,48 @@ import (
 	"github.com/mlange-42/track/util"
 )
 
+// StartRecord starts and saves a record
+func (t *Track) StartRecord(project, note string, tags []string, start time.Time) (Record, error) {
+	record := Record{
+		Project: project,
+		Note:    note,
+		Tags:    tags,
+		Start:   start,
+		End:     util.NoTime,
+		Pause:   []Pause{},
+	}
+
+	return record, t.SaveRecord(&record, false)
+}
+
+// StopRecord stops and saves the current record
+func (t *Track) StopRecord(end time.Time) (*Record, error) {
+	record, err := t.OpenRecord()
+	if err != nil {
+		return record, err
+	}
+	if record == nil {
+		return record, fmt.Errorf("no running record")
+	}
+
+	record.End = end
+	for len(record.Pause) > 0 {
+		idx := len(record.Pause) - 1
+		if record.Pause[idx].End.IsZero() || record.Pause[idx].End.After(end) {
+			record.End = record.Pause[idx].Start
+			record.Pause = record.Pause[:idx]
+		} else {
+			break
+		}
+	}
+
+	err = t.SaveRecord(record, true)
+	if err != nil {
+		return record, err
+	}
+	return record, nil
+}
+
 // LoadRecord loads a record
 func (t *Track) LoadRecord(tm time.Time) (Record, error) {
 	path := t.RecordPath(tm)
@@ -305,4 +347,73 @@ func (t *Track) LoadDateRecordsFiltered(date time.Time, filters FilterFunctions)
 	}
 
 	return records, nil
+}
+
+// SaveRecord saves a record to disk
+func (t *Track) SaveRecord(record *Record, force bool) error {
+	path := t.RecordPath(record.Start)
+	if !force && fs.FileExists(path) {
+		return fmt.Errorf("record already exists")
+	}
+	dir := t.RecordDir(record.Start)
+	err := fs.CreateDir(dir)
+	if err != nil {
+		return err
+	}
+
+	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	defer file.Close()
+
+	if err != nil {
+		return err
+	}
+
+	bytes := SerializeRecord(record, util.NoTime)
+
+	_, err = fmt.Fprintf(file, "%s Record %s\n", CommentPrefix, record.Start.Format(util.DateTimeFormat))
+	if err != nil {
+		return err
+	}
+
+	_, err = file.WriteString(bytes)
+
+	return err
+}
+
+// DeleteRecord deletes a record
+func (t *Track) DeleteRecord(record *Record) error {
+	path := t.RecordPath(record.Start)
+	if !fs.FileExists(path) {
+		return fmt.Errorf("record does not exist")
+	}
+	err := os.Remove(path)
+	if err != nil {
+		return err
+	}
+	dayDir := filepath.Dir(path)
+	empty, err := fs.DirIsEmpty(dayDir)
+	if err != nil {
+		return err
+	}
+	if empty {
+		os.Remove(dayDir)
+		monthDir := filepath.Dir(dayDir)
+		empty, err := fs.DirIsEmpty(monthDir)
+		if err != nil {
+			return err
+		}
+		if empty {
+			os.Remove(monthDir)
+			yearDir := filepath.Dir(monthDir)
+			empty, err := fs.DirIsEmpty(yearDir)
+			if err != nil {
+				return err
+			}
+			if empty {
+				os.Remove(yearDir)
+
+			}
+		}
+	}
+	return nil
 }

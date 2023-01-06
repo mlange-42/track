@@ -112,13 +112,13 @@ func TestToTree(t *testing.T) {
 	}
 }
 
-func TestSaveLoad(t *testing.T) {
+func TestSaveLoadProject(t *testing.T) {
 	dir, err := ioutil.TempDir("", "track-test")
-	assert.Equal(t, nil, err, "Error creating temporary directory")
+	assert.Nil(t, err, "Error creating temporary directory")
 	defer os.Remove(dir)
 
 	track, err := NewTrack(&dir)
-	assert.Equal(t, nil, err, "Error creating Track instance")
+	assert.Nil(t, err, "Error creating Track instance")
 
 	assert.Equal(t, dir, track.RootDir, "Wrong root directory")
 
@@ -127,28 +127,28 @@ func TestSaveLoad(t *testing.T) {
 
 	project := NewProject("test", "", "T", 0, 15)
 	err = track.SaveProject(project, false)
-	assert.Equal(t, nil, err, "Error saving project")
+	assert.Nil(t, err, "Error saving project")
 
 	// Test overwriting
 	err = track.SaveProject(project, false)
 	assert.True(t, err != nil, "Expect error saving project: should not overwrite")
 	err = track.SaveProject(project, true)
-	assert.Equal(t, nil, err, "Error saving project with force")
+	assert.Nil(t, err, "Error saving project with force")
 
 	assert.True(t, fs.FileExists(track.ProjectPath("test")), "File must exist")
 	assert.True(t, track.ProjectExists("test"), "Project must exist")
 
 	allProjects, err := track.LoadAllProjects()
-	assert.Equal(t, nil, err, "Error loading projects")
+	assert.Nil(t, err, "Error loading projects")
 
 	assert.Equal(t, map[string]Project{"test": project}, allProjects, "Loaded project not equal to saved project")
 
 	newProject, err := track.LoadProjectByName("test")
-	assert.Equal(t, nil, err, "Error loading project")
+	assert.Nil(t, err, "Error loading project")
 	assert.Equal(t, project, newProject, "Loaded project not equal to saved project")
 
 	_, err = track.DeleteProject(&project, true, false)
-	assert.Equal(t, nil, err, "Error deleting project")
+	assert.Nil(t, err, "Error deleting project")
 
 	assert.False(t, fs.FileExists(track.ProjectPath("test")), "File must not exist")
 	assert.False(t, track.ProjectExists("test"), "Project must not exist")
@@ -156,37 +156,37 @@ func TestSaveLoad(t *testing.T) {
 
 func TestCheckParents(t *testing.T) {
 	dir, err := ioutil.TempDir("", "track-test")
-	assert.Equal(t, nil, err, "Error creating temporary directory")
+	assert.Nil(t, err, "Error creating temporary directory")
 	defer os.Remove(dir)
 
 	track, err := NewTrack(&dir)
-	assert.Equal(t, nil, err, "Error creating Track instance")
+	assert.Nil(t, err, "Error creating Track instance")
 
 	p1 := NewProject("p1", "", "T", 0, 15)
 	p2 := NewProject("p2", "", "T", 0, 15)
 	p3 := NewProject("p3", "", "T", 0, 15)
 
 	err = track.SaveProject(p1, false)
-	assert.Equal(t, nil, err, "Error saving project")
+	assert.Nil(t, err, "Error saving project")
 	err = track.SaveProject(p2, false)
-	assert.Equal(t, nil, err, "Error saving project")
+	assert.Nil(t, err, "Error saving project")
 	err = track.SaveProject(p3, false)
-	assert.Equal(t, nil, err, "Error saving project")
+	assert.Nil(t, err, "Error saving project")
 
 	assert.True(t, track.CheckParents(p1) == nil, "Unexpected error in parent check")
 
 	p1.Parent = "p1"
 	err = track.SaveProject(p1, true)
-	assert.Equal(t, nil, err, "Error saving project")
+	assert.Nil(t, err, "Error saving project")
 
 	assert.True(t, track.CheckParents(p1) != nil, "Expected error in parent check")
 
 	p2.Parent = "p3"
 	err = track.SaveProject(p2, true)
-	assert.Equal(t, nil, err, "Error saving project")
+	assert.Nil(t, err, "Error saving project")
 	p3.Parent = "p2"
 	err = track.SaveProject(p3, true)
-	assert.Equal(t, nil, err, "Error saving project")
+	assert.Nil(t, err, "Error saving project")
 
 	assert.True(t, track.CheckParents(p2) != nil, "Expected error in parent check")
 	assert.True(t, track.CheckParents(p3) != nil, "Expected error in parent check")

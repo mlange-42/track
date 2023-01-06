@@ -11,11 +11,11 @@ import (
 
 func TestPaths(t *testing.T) {
 	home, err := os.UserHomeDir()
-	assert.Equal(t, nil, err, "Error getting home directory")
+	assert.Nil(t, err, "Error getting home directory")
 
 	track, err := NewTrack(nil)
 
-	assert.Equal(t, nil, err, "Error initializing Track")
+	assert.Nil(t, err, "Error initializing Track")
 	assert.Equal(t, filepath.Join(home, rootDirName), track.RootDir, "Wrong root directory")
 	assert.Equal(t, filepath.Join(home, rootDirName, configFile), track.ConfigPath(), "Wrong config path")
 	assert.Equal(t, filepath.Join(home, rootDirName, defaultWorkspace, projectsDirName), track.ProjectsDir(), "Wrong projects directory")
