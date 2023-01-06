@@ -2,14 +2,32 @@ package util
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/mlange-42/track/tree"
 	"github.com/spf13/cobra"
+	"golang.org/x/crypto/ssh/terminal"
 )
+
+// TerminalSize returns the size of the terminal
+func TerminalSize() (width int, height int, err error) {
+	return terminal.GetSize(int(os.Stdout.Fd()))
+}
+
+// WrappedArgs are PositionalArgs that print usage on error
+func WrappedArgs(fn cobra.PositionalArgs) cobra.PositionalArgs {
+	return func(cmd *cobra.Command, args []string) error {
+		err := fn(cmd, args)
+		if err != nil {
+			return fmt.Errorf("%s\nUsage: %s", err, cmd.UseLine())
+		}
+		return nil
+	}
+}
 
 // FormatCmdTree creates a tree-like representation of a command and its sub-commands
 func FormatCmdTree(command *cobra.Command) (string, error) {
-	cmdTree, err := NewCmdTree(command)
+	cmdTree, err := newCmdTree(command)
 	if err != nil {
 		return "", err
 	}
@@ -29,15 +47,8 @@ type CmdTree = tree.MapTree[*cobra.Command]
 // CmdNode is a tree of cobra commands
 type CmdNode = tree.MapNode[*cobra.Command]
 
-func nodePath(command *cobra.Command) string {
-	if command.HasParent() {
-		return fmt.Sprintf("%s/%s", nodePath(command.Parent()), command.Name())
-	}
-	return command.Name()
-}
-
 // NewCmdTree creates a new project tree
-func NewCmdTree(command *cobra.Command) (*CmdTree, error) {
+func newCmdTree(command *cobra.Command) (*CmdTree, error) {
 
 	t := tree.NewTree(
 		command,
@@ -49,6 +60,13 @@ func NewCmdTree(command *cobra.Command) (*CmdTree, error) {
 		return nil, err
 	}
 	return t, nil
+}
+
+func nodePath(command *cobra.Command) string {
+	if command.HasParent() {
+		return fmt.Sprintf("%s/%s", nodePath(command.Parent()), command.Name())
+	}
+	return command.Name()
 }
 
 func buildTree(t *CmdTree, node *tree.MapNode[*cobra.Command]) error {
