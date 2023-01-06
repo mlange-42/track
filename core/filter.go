@@ -1,6 +1,8 @@
 package core
 
-import "time"
+import (
+	"time"
+)
 
 // FilterFunction is an alias for func(r *Record) bool
 type FilterFunction = func(r *Record) bool
@@ -14,7 +16,7 @@ type FilterFunctions struct {
 
 // NewFilter creates FilterFunctions
 func NewFilter(fn []FilterFunction, start, end time.Time) FilterFunctions {
-	if !start.IsZero() || !end.IsZero() {
+	if !(start.IsZero() && end.IsZero()) {
 		fn = append(fn, FilterByTime(start, end))
 	}
 	return FilterFunctions{

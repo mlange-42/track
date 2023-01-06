@@ -92,6 +92,8 @@ track edit project --archive
 track edit project --archive=false
 ```
 
+To "really" archive projects, the command `track move project PROJECT WORKSPACE` can be used to move a project and all associated records to a different (archives) workspace.
+
 ## Deleting records and projects
 
 Records and entire projects (including all their records) can be deleted using the CLI.

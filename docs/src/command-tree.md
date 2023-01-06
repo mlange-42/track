@@ -23,6 +23,8 @@ track
 │ ├─records [DATE]
 │ ├─tags
 │ └─workspaces
+├─move
+│ └─project PROJECT WORKSPACE
 ├─pause [NOTE...]
 ├─report
 │ ├─chart [DATE]
