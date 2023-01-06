@@ -125,8 +125,16 @@ func (r *Record) Check() error {
 		if p.Start.Before(r.Start) {
 			return fmt.Errorf("pause starts before record")
 		}
-		if !r.End.IsZero() && p.End.After(r.End) {
-			return fmt.Errorf("pause ends after record")
+		if !p.End.IsZero() && p.End.Before(p.Start) {
+			return fmt.Errorf("pause ends before its start")
+		}
+		if !r.End.IsZero() {
+			if p.End.IsZero() {
+				return fmt.Errorf("pause is ongoing but record is finished")
+			}
+			if p.End.After(r.End) {
+				return fmt.Errorf("pause ends after record")
+			}
 		}
 		if prevStart.After(p.Start) {
 			return fmt.Errorf("pause starts not in chronological order")
