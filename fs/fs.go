@@ -26,16 +26,6 @@ var (
 
 var pathSanitizer = strings.NewReplacer("/", "-", "\\", "-")
 
-// ProjectsDirName returns the directory name for projects
-func ProjectsDirName() string {
-	return projectsDirName
-}
-
-// RecordsDirName returns the directory name for records
-func RecordsDirName() string {
-	return recordsDirName
-}
-
 // Sanitize makes stings filename compatible
 func Sanitize(file string) string {
 	return pathSanitizer.Replace(file)

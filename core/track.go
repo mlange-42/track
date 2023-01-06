@@ -73,10 +73,10 @@ func (t *Track) createWorkspaceDirs(workspace string) {
 
 // workspaceProjectsDir returns the projects storage directory for the given workspace
 func (t *Track) workspaceProjectsDir(ws string) string {
-	return filepath.Join(t.RootDir, ws, fs.ProjectsDirName())
+	return filepath.Join(t.RootDir, ws, t.ProjectsDirName())
 }
 
 // workspaceRecordsDir returns the records storage directory for the given workspace
 func (t *Track) workspaceRecordsDir(ws string) string {
-	return filepath.Join(t.RootDir, ws, fs.RecordsDirName())
+	return filepath.Join(t.RootDir, ws, t.RecordsDirName())
 }
