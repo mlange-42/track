@@ -54,22 +54,22 @@ type FilterResult struct {
 }
 
 // Duration reports the duration of a pause
-func (p Pause) Duration(min, max time.Time) time.Duration {
+func (p *Pause) Duration(min, max time.Time) time.Duration {
 	return util.DurationClip(p.Start, p.End, min, max)
 }
 
 // HasEnded reports whether the record has an end time
-func (r Record) HasEnded() bool {
+func (r *Record) HasEnded() bool {
 	return !r.End.IsZero()
 }
 
 // IsPaused reports whether the record is paused
-func (r Record) IsPaused() bool {
+func (r *Record) IsPaused() bool {
 	return len(r.Pause) > 0 && r.Pause[len(r.Pause)-1].End.IsZero()
 }
 
 // CurrentPause returns the current pause
-func (r Record) CurrentPause() (Pause, bool) {
+func (r *Record) CurrentPause() (Pause, bool) {
 	if len(r.Pause) > 0 && r.Pause[len(r.Pause)-1].End.IsZero() {
 		return r.Pause[len(r.Pause)-1], true
 	}
@@ -77,7 +77,7 @@ func (r Record) CurrentPause() (Pause, bool) {
 }
 
 // LastPause returns the last pause. Returns false if there is an open pause
-func (r Record) LastPause() (Pause, bool) {
+func (r *Record) LastPause() (Pause, bool) {
 	if len(r.Pause) > 0 && !r.Pause[len(r.Pause)-1].End.IsZero() {
 		return r.Pause[len(r.Pause)-1], true
 	}
@@ -85,19 +85,19 @@ func (r Record) LastPause() (Pause, bool) {
 }
 
 // Duration reports the duration of a record, excluding pause time
-func (r Record) Duration(min, max time.Time) time.Duration {
+func (r *Record) Duration(min, max time.Time) time.Duration {
 	dur := util.DurationClip(r.Start, r.End, min, max)
 	dur -= r.PauseDuration(min, max)
 	return dur
 }
 
 // TotalDuration reports the duration of a record, including pause time
-func (r Record) TotalDuration(min, max time.Time) time.Duration {
+func (r *Record) TotalDuration(min, max time.Time) time.Duration {
 	return util.DurationClip(r.Start, r.End, min, max)
 }
 
 // PauseDuration reports the duration of all pauses of the record
-func (r Record) PauseDuration(min, max time.Time) time.Duration {
+func (r *Record) PauseDuration(min, max time.Time) time.Duration {
 	dur := time.Second * 0
 	for _, p := range r.Pause {
 		dur += p.Duration(min, max)
@@ -106,7 +106,7 @@ func (r Record) PauseDuration(min, max time.Time) time.Duration {
 }
 
 // CurrentPauseDuration reports the duration of an open pause
-func (r Record) CurrentPauseDuration(min, max time.Time) time.Duration {
+func (r *Record) CurrentPauseDuration(min, max time.Time) time.Duration {
 	dur := time.Second * 0
 	if len(r.Pause) == 0 {
 		return dur
