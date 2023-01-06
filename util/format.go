@@ -85,7 +85,7 @@ func Format(str string, repl map[string]string) string {
 }
 
 // TreeFormatter formats trees
-type TreeFormatter[T any] struct {
+type TreeFormatter[T tree.Named] struct {
 	NameFunc     func(t *tree.MapNode[T], indent int) string
 	Indent       int
 	prefixNone   string
@@ -95,7 +95,7 @@ type TreeFormatter[T any] struct {
 }
 
 // NewTreeFormatter creates a new TreeFormatter
-func NewTreeFormatter[T any](
+func NewTreeFormatter[T tree.Named](
 	nameFunc func(t *tree.MapNode[T], indent int) string,
 	indent int,
 ) TreeFormatter[T] {

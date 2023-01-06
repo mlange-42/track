@@ -21,10 +21,7 @@ type ProjectTree = tree.MapTree[Project]
 
 // NewTree creates a new project tree
 func NewTree(project Project) *ProjectTree {
-	return tree.NewTree(
-		project,
-		func(p Project) string { return p.Name },
-	)
+	return tree.NewTree(project)
 }
 
 // ProjectNode is a tree of projects
@@ -62,6 +59,11 @@ type tempProject struct {
 	FgColor  uint8 `yaml:"fgColor"`
 	Symbol   string
 	Archived bool
+}
+
+// GetName implements the Named interface required for the MapTree
+func (p Project) GetName() string {
+	return p.Name
 }
 
 // UnmarshalYAML un-marshals a project

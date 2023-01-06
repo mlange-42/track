@@ -42,17 +42,26 @@ func FormatCmdTree(command *cobra.Command) (string, error) {
 }
 
 // CmdTree is a tree of cobra commands
-type CmdTree = tree.MapTree[*cobra.Command]
+type CmdTree = tree.MapTree[CmdWrapper]
 
 // CmdNode is a tree of cobra commands
-type CmdNode = tree.MapNode[*cobra.Command]
+type CmdNode = tree.MapNode[CmdWrapper]
+
+// CmdWrapper wraps *cobra.Command to implement the Named interface
+type CmdWrapper struct {
+	*cobra.Command
+}
+
+// GetName implements the Named interface required for the MapTree
+func (cmd CmdWrapper) GetName() string {
+	return nodePath(cmd.Command)
+}
 
 // NewCmdTree creates a new project tree
 func newCmdTree(command *cobra.Command) (*CmdTree, error) {
 
 	t := tree.NewTree(
-		command,
-		func(c *cobra.Command) string { return nodePath(c) },
+		CmdWrapper{command},
 	)
 
 	err := buildTree(t, t.Root)
@@ -69,9 +78,9 @@ func nodePath(command *cobra.Command) string {
 	return command.Name()
 }
 
-func buildTree(t *CmdTree, node *tree.MapNode[*cobra.Command]) error {
+func buildTree(t *CmdTree, node *tree.MapNode[CmdWrapper]) error {
 	for _, cmd := range node.Value.Commands() {
-		child, err := t.Add(node, cmd)
+		child, err := t.Add(node, CmdWrapper{cmd})
 		if err != nil {
 			return err
 		}
