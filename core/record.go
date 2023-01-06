@@ -3,10 +3,8 @@ package core
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -47,18 +45,29 @@ type Pause struct {
 	Note  string
 }
 
+// FilterResult contains a Report or an error from async filtering
+type FilterResult struct {
+	Record Record
+	Err    error
+}
+
+// Duration reports the duration of a pause
+func (p *Pause) Duration(min, max time.Time) time.Duration {
+	return util.DurationClip(p.Start, p.End, min, max)
+}
+
 // HasEnded reports whether the record has an end time
-func (r Record) HasEnded() bool {
+func (r *Record) HasEnded() bool {
 	return !r.End.IsZero()
 }
 
 // IsPaused reports whether the record is paused
-func (r Record) IsPaused() bool {
+func (r *Record) IsPaused() bool {
 	return len(r.Pause) > 0 && r.Pause[len(r.Pause)-1].End.IsZero()
 }
 
 // CurrentPause returns the current pause
-func (r Record) CurrentPause() (Pause, bool) {
+func (r *Record) CurrentPause() (Pause, bool) {
 	if len(r.Pause) > 0 && r.Pause[len(r.Pause)-1].End.IsZero() {
 		return r.Pause[len(r.Pause)-1], true
 	}
@@ -66,7 +75,7 @@ func (r Record) CurrentPause() (Pause, bool) {
 }
 
 // LastPause returns the last pause. Returns false if there is an open pause
-func (r Record) LastPause() (Pause, bool) {
+func (r *Record) LastPause() (Pause, bool) {
 	if len(r.Pause) > 0 && !r.Pause[len(r.Pause)-1].End.IsZero() {
 		return r.Pause[len(r.Pause)-1], true
 	}
@@ -74,19 +83,19 @@ func (r Record) LastPause() (Pause, bool) {
 }
 
 // Duration reports the duration of a record, excluding pause time
-func (r Record) Duration(min, max time.Time) time.Duration {
+func (r *Record) Duration(min, max time.Time) time.Duration {
 	dur := util.DurationClip(r.Start, r.End, min, max)
 	dur -= r.PauseDuration(min, max)
 	return dur
 }
 
 // TotalDuration reports the duration of a record, including pause time
-func (r Record) TotalDuration(min, max time.Time) time.Duration {
+func (r *Record) TotalDuration(min, max time.Time) time.Duration {
 	return util.DurationClip(r.Start, r.End, min, max)
 }
 
 // PauseDuration reports the duration of all pauses of the record
-func (r Record) PauseDuration(min, max time.Time) time.Duration {
+func (r *Record) PauseDuration(min, max time.Time) time.Duration {
 	dur := time.Second * 0
 	for _, p := range r.Pause {
 		dur += p.Duration(min, max)
@@ -94,13 +103,8 @@ func (r Record) PauseDuration(min, max time.Time) time.Duration {
 	return dur
 }
 
-// Duration reports the duration of a pause
-func (p Pause) Duration(min, max time.Time) time.Duration {
-	return util.DurationClip(p.Start, p.End, min, max)
-}
-
 // CurrentPauseDuration reports the duration of an open pause
-func (r Record) CurrentPauseDuration(min, max time.Time) time.Duration {
+func (r *Record) CurrentPauseDuration(min, max time.Time) time.Duration {
 	dur := time.Second * 0
 	if len(r.Pause) == 0 {
 		return dur
@@ -111,112 +115,6 @@ func (r Record) CurrentPauseDuration(min, max time.Time) time.Duration {
 	last := r.Pause[len(r.Pause)-1]
 
 	return last.Duration(min, max)
-}
-
-// Serialize converts a record to a serialization string
-func (r Record) Serialize(date time.Time) string {
-	reference := date
-	if reference.IsZero() {
-		reference = r.Start
-	}
-	startDate := util.FormatTimeWithOffset(r.Start, reference)
-	endTime := util.FormatTimeWithOffset(r.End, reference)
-
-	res := fmt.Sprintf("%s - %s", startDate, endTime)
-	for _, p := range r.Pause {
-		duration := "?"
-		if !p.End.IsZero() {
-			duration = p.End.Sub(p.Start).Round(time.Second).String()
-		}
-		startTime := util.FormatTimeWithOffset(p.Start, reference)
-		res += fmt.Sprintf("\n    - %s - %s", startTime, duration)
-		if p.Note != "" {
-			res += fmt.Sprintf(" / %s", p.Note)
-		}
-	}
-	res += fmt.Sprintf("\n    %s", r.Project)
-
-	if len(r.Note) > 0 {
-		res += fmt.Sprintf("\n\n%s", r.Note)
-	}
-	return res + "\n"
-}
-
-// DeserializeRecord converts a serialization string to a record
-func DeserializeRecord(str string, date time.Time) (Record, error) {
-	str = strings.TrimSpace(str)
-	lines := strings.Split(strings.ReplaceAll(str, "\r\n", "\n"), "\n")
-	index, ok := skipLines(lines, 0, true)
-	if !ok {
-		return Record{}, fmt.Errorf("invalid record: missing time range (1st line)")
-	}
-	start, end, err := util.ParseTimeRange(lines[index], date)
-	index++
-	if err != nil {
-		return Record{}, err
-	}
-
-	pause := []Pause{}
-	for {
-		ln := strings.TrimSpace(lines[index])
-		if strings.HasPrefix(ln, "- ") {
-			ln := strings.TrimPrefix(ln, "- ")
-			lnParts := strings.SplitN(ln, "/", 2)
-			pStart, pEnd, err := util.ParseTimeRange(lnParts[0], date)
-			index++
-			if err != nil {
-				return Record{}, err
-			}
-			note := ""
-			if len(lnParts) > 1 {
-				note = strings.TrimSpace(lnParts[1])
-			}
-			pause = append(pause,
-				Pause{
-					Start: pStart,
-					End:   pEnd,
-					Note:  note,
-				},
-			)
-		} else {
-			break
-		}
-	}
-
-	index, ok = skipLines(lines, index, true)
-	if !ok {
-		return Record{}, fmt.Errorf("invalid record: missing project (2nd line)")
-	}
-	project := strings.TrimSpace(lines[index])
-	index++
-
-	notes := []string{}
-	tags := []string{}
-	index, ok = skipLines(lines, index, true)
-	if ok {
-		for ok {
-			notes = append(notes, lines[index])
-			index++
-			index, ok = skipLines(lines, index, false)
-		}
-	}
-	tags = ExtractTagsSlice(notes)
-
-	record := Record{
-		Project: project,
-		Start:   start,
-		End:     end,
-		Note:    strings.TrimSpace(strings.Join(notes, "\n")),
-		Tags:    tags,
-		Pause:   pause,
-	}
-
-	err = record.Check()
-	if err != nil {
-		return record, err
-	}
-
-	return record, nil
 }
 
 // Check checks consistency of a record
@@ -282,47 +180,6 @@ func (r *Record) EndPause(t time.Time) (Pause, error) {
 	return r.Pause[len(r.Pause)-1], nil
 }
 
-func skipLines(lines []string, index int, skipEmpty bool) (int, bool) {
-	if index >= len(lines) {
-		return index, false
-	}
-	for (skipEmpty && strings.TrimSpace(lines[index]) == "") || strings.HasPrefix(lines[index], CommentPrefix) {
-		index++
-		if index >= len(lines) {
-			return index, false
-		}
-	}
-	return index, true
-}
-
-// RecordsDir returns the records storage directory
-func (t *Track) RecordsDir() string {
-	return filepath.Join(fs.RootDir(), t.Workspace(), fs.RecordsDirName())
-}
-
-// WorkspaceRecordsDir returns the records storage directory for the given workspace
-func (t *Track) WorkspaceRecordsDir(ws string) string {
-	return filepath.Join(fs.RootDir(), ws, fs.RecordsDirName())
-}
-
-// RecordPath returns the full path for a record
-func (t *Track) RecordPath(tm time.Time) string {
-	return filepath.Join(
-		t.RecordDir(tm),
-		fmt.Sprintf("%s.trk", tm.Format(util.FileTimeFormat)),
-	)
-}
-
-// RecordDir returns the directory path for a record
-func (t *Track) RecordDir(tm time.Time) string {
-	return filepath.Join(
-		t.RecordsDir(),
-		fmt.Sprintf("%04d", tm.Year()),
-		fmt.Sprintf("%02d", int(tm.Month())),
-		fmt.Sprintf("%02d", tm.Day()),
-	)
-}
-
 // SaveRecord saves a record to disk
 func (t *Track) SaveRecord(record *Record, force bool) error {
 	path := t.RecordPath(record.Start)
@@ -342,7 +199,7 @@ func (t *Track) SaveRecord(record *Record, force bool) error {
 		return err
 	}
 
-	bytes := record.Serialize(util.NoTime)
+	bytes := SerializeRecord(record, util.NoTime)
 
 	_, err = fmt.Fprintf(file, "%s Record %s\n", CommentPrefix, record.Start.Format(util.DateTimeFormat))
 	if err != nil {
@@ -390,322 +247,6 @@ func (t *Track) DeleteRecord(record *Record) error {
 		}
 	}
 	return nil
-}
-
-// LoadRecord loads a record
-func (t *Track) LoadRecord(tm time.Time) (Record, error) {
-	path := t.RecordPath(tm)
-	file, err := os.ReadFile(path)
-	if err != nil {
-		if _, ok := err.(*os.PathError); ok {
-			return Record{}, ErrRecordNotFound
-		}
-		return Record{}, err
-	}
-
-	record, err := DeserializeRecord(string(file), tm)
-	if err != nil {
-		return Record{}, err
-	}
-
-	return record, nil
-}
-
-// LoadAllRecords loads all records
-func (t *Track) LoadAllRecords() ([]Record, error) {
-	return t.LoadAllRecordsFiltered(NewFilter([]func(*Record) bool{}, util.NoTime, util.NoTime))
-}
-
-// LoadAllRecordsFiltered loads all records
-func (t *Track) LoadAllRecordsFiltered(filters FilterFunctions) ([]Record, error) {
-	fn, results, _ := t.AllRecordsFiltered(filters, false)
-	go fn()
-
-	var records []Record
-	for res := range results {
-		if res.Err != nil {
-			return records, res.Err
-		}
-		records = append(records, res.Record)
-	}
-
-	return records, nil
-}
-
-// FilterResult contains a Report or an error from async filtering
-type FilterResult struct {
-	Record Record
-	Err    error
-}
-
-// AllRecordsFiltered is an async version of LoadAllRecordsFiltered
-func (t *Track) AllRecordsFiltered(filters FilterFunctions, reversed bool) (func(), chan FilterResult, chan struct{}) {
-	results := make(chan FilterResult, 32)
-	stop := make(chan struct{})
-
-	return func() {
-		defer close(results)
-
-		path := t.RecordsDir()
-
-		yearDirs, err := ioutil.ReadDir(path)
-		if err != nil {
-			results <- FilterResult{Record{}, err}
-			return
-		}
-		if reversed {
-			util.Reverse(yearDirs)
-		}
-
-		for _, yearDir := range yearDirs {
-			if !yearDir.IsDir() {
-				continue
-			}
-			year, err := strconv.Atoi(yearDir.Name())
-			if err != nil {
-				results <- FilterResult{Record{}, err}
-				return
-			}
-			if !filters.Start.IsZero() && year < filters.Start.Year() {
-				continue
-			}
-			if !filters.End.IsZero() && year > filters.End.Year() {
-				continue
-			}
-
-			monthDirs, err := ioutil.ReadDir(filepath.Join(path, yearDir.Name()))
-
-			if reversed {
-				util.Reverse(monthDirs)
-			}
-			if err != nil {
-				results <- FilterResult{Record{}, err}
-				return
-			}
-
-			for _, monthDir := range monthDirs {
-				if !monthDir.IsDir() {
-					continue
-				}
-				month, err := strconv.Atoi(monthDir.Name())
-				if err != nil {
-					results <- FilterResult{Record{}, err}
-					return
-				}
-
-				dayDirs, err := ioutil.ReadDir(filepath.Join(path, yearDir.Name(), monthDir.Name()))
-				if err != nil {
-					results <- FilterResult{Record{}, err}
-					return
-				}
-
-				if reversed {
-					util.Reverse(dayDirs)
-				}
-				for _, dayDir := range dayDirs {
-					if !dayDir.IsDir() {
-						continue
-					}
-					day, err := strconv.Atoi(dayDir.Name())
-					if err != nil {
-						results <- FilterResult{Record{}, err}
-						return
-					}
-
-					date := util.Date(year, time.Month(month), day)
-					if !filters.Start.IsZero() && date.Before(util.ToDate(filters.Start)) {
-						continue
-					}
-					if !filters.End.IsZero() && date.After(filters.End) {
-						continue
-					}
-
-					recs, err := t.LoadDateRecordsFiltered(date, filters)
-					if err != nil {
-						results <- FilterResult{Record{}, err}
-						return
-					}
-
-					if reversed {
-						util.Reverse(recs)
-					}
-					for _, rec := range recs {
-						select {
-						case <-stop:
-							return
-						case results <- FilterResult{rec, nil}:
-						}
-					}
-				}
-			}
-		}
-	}, results, stop
-}
-
-// LoadDateRecords loads all records for the given date
-func (t *Track) LoadDateRecords(date time.Time) ([]Record, error) {
-	return t.LoadDateRecordsFiltered(date, FilterFunctions{})
-}
-
-// LoadDateRecordsExact loads all records for the given date, including those starting the das before
-func (t *Track) LoadDateRecordsExact(date time.Time) ([]Record, error) {
-	date = util.ToDate(date)
-	dateBefore := date.Add(-24 * time.Hour)
-	dateAfter := date.Add(24 * time.Hour)
-
-	filters := FilterFunctions{
-		[]FilterFunction{FilterByTime(date, dateAfter)},
-		util.NoTime,
-		util.NoTime,
-	}
-
-	records, err := t.LoadDateRecordsFiltered(dateBefore, filters)
-	if err != nil && !errors.Is(err, ErrNoRecords) {
-		return nil, err
-	}
-	records2, err := t.LoadDateRecordsFiltered(date, filters)
-	if err != nil && !errors.Is(err, ErrNoRecords) {
-		return nil, err
-	}
-	records = append(records, records2...)
-
-	if len(records) == 0 {
-		return nil, ErrNoRecords
-	}
-	return records, nil
-}
-
-// LoadDateRecordsFiltered loads all records for the given date string/directory
-func (t *Track) LoadDateRecordsFiltered(date time.Time, filters FilterFunctions) ([]Record, error) {
-	subPath := t.RecordDir(date)
-
-	info, err := os.Stat(subPath)
-	if err != nil {
-		return nil, ErrNoRecords
-	}
-	if !info.IsDir() {
-		return nil, fmt.Errorf("'%s' is not a directory", info.Name())
-	}
-
-	var records []Record
-
-	files, err := ioutil.ReadDir(subPath)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, file := range files {
-		if file.IsDir() {
-			continue
-		}
-
-		tm, err := fileToTime(date, file.Name())
-		record, err := t.LoadRecord(tm)
-		if err != nil {
-			return nil, err
-		}
-		if Filter(&record, filters) {
-			records = append(records, record)
-		}
-	}
-
-	return records, nil
-}
-
-// FindLatestRecord loads the latest record for the given condition. Returns a nil reference if no record is found.
-func (t *Track) FindLatestRecord(cond FilterFunction) (*Record, error) {
-	fn, results, stop := t.AllRecordsFiltered(
-		FilterFunctions{[]FilterFunction{cond}, util.NoTime, util.NoTime},
-		true, // reversed order to find latest record of project
-	)
-	go fn()
-
-	for res := range results {
-		if res.Err != nil {
-			return nil, res.Err
-		}
-		close(stop)
-		return &res.Record, nil
-	}
-	return nil, nil
-}
-
-// LatestRecord loads the latest record. Returns a nil reference if no record is found.
-func (t *Track) LatestRecord() (*Record, error) {
-	records := t.RecordsDir()
-	yearPath, year, err := fs.FindLatests(records, true)
-	if err != nil {
-		if errors.Is(err, fs.ErrNoFiles) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	monthPath, month, err := fs.FindLatests(yearPath, true)
-	if err != nil {
-		if errors.Is(err, fs.ErrNoFiles) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	dayPath, day, err := fs.FindLatests(monthPath, true)
-	if err != nil {
-		if errors.Is(err, fs.ErrNoFiles) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	_, record, err := fs.FindLatests(dayPath, false)
-	if err != nil {
-		if errors.Is(err, fs.ErrNoFiles) {
-			return nil, nil
-		}
-		return nil, err
-	}
-
-	tm, err := pathToTime(year, month, day, record)
-	if err != nil {
-		return nil, err
-	}
-	rec, err := t.LoadRecord(tm)
-	if err != nil {
-		return nil, err
-	}
-
-	return &rec, nil
-}
-
-func pathToTime(y, m, d, file string) (time.Time, error) {
-	return time.ParseInLocation(
-		util.FileDateTimeFormat,
-		fmt.Sprintf("%s-%s-%s %s", y, m, d, strings.Split(file, ".")[0]),
-		time.Local,
-	)
-}
-
-func fileToTime(date time.Time, file string) (time.Time, error) {
-	t, err := time.ParseInLocation(util.FileTimeFormat, strings.Split(file, ".")[0], time.Local)
-	if err != nil {
-		return util.NoTime, err
-	}
-	return util.DateAndTime(date, t), nil
-}
-
-// OpenRecord returns the open record if any. Returns a nil reference if no open record is found.
-func (t *Track) OpenRecord() (*Record, error) {
-	latest, err := t.LatestRecord()
-	if err != nil {
-		if err == fs.ErrNoFiles {
-			return nil, nil
-		}
-		return nil, err
-	}
-	if latest == nil {
-		return nil, nil
-	}
-	if latest.HasEnded() {
-		return nil, nil
-	}
-	return latest, nil
 }
 
 // StartRecord starts and saves a record
@@ -781,4 +322,20 @@ func ExtractTags(text string) []string {
 		}
 	}
 	return result
+}
+
+func pathToTime(y, m, d, file string) (time.Time, error) {
+	return time.ParseInLocation(
+		util.FileDateTimeFormat,
+		fmt.Sprintf("%s-%s-%s %s", y, m, d, strings.Split(file, ".")[0]),
+		time.Local,
+	)
+}
+
+func fileToTime(date time.Time, file string) (time.Time, error) {
+	t, err := time.ParseInLocation(util.FileTimeFormat, strings.Split(file, ".")[0], time.Local)
+	if err != nil {
+		return util.NoTime, err
+	}
+	return util.DateAndTime(date, t), nil
 }

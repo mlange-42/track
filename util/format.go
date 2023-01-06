@@ -13,8 +13,6 @@ import (
 const (
 	// DateFormat for date formatting
 	DateFormat = "2006-01-02"
-	// FileDateFormat for file name date formatting
-	FileDateFormat = "2006-01-02"
 	// TimeFormat for time formatting
 	TimeFormat = "15:04"
 	// FileTimeFormat for file name time formatting
@@ -23,12 +21,8 @@ const (
 	FileDateTimeFormat = "2006-01-02 15-04"
 	// DateTimeFormat for date and time formatting
 	DateTimeFormat = "2006-01-02 15:04"
-	// YAMLTimeFormat for YAML date and time formatting
-	YAMLTimeFormat = "2006-01-02 15:04 -0700 MST"
 	// NoTimeString string representation for zero end time
 	NoTimeString = " now "
-	// NoDateTime string representation for zero time
-	NoDateTime = "      ---       "
 )
 
 const (
@@ -91,7 +85,7 @@ func Format(str string, repl map[string]string) string {
 }
 
 // TreeFormatter formats trees
-type TreeFormatter[T any] struct {
+type TreeFormatter[T tree.Named] struct {
 	NameFunc     func(t *tree.MapNode[T], indent int) string
 	Indent       int
 	prefixNone   string
@@ -101,7 +95,7 @@ type TreeFormatter[T any] struct {
 }
 
 // NewTreeFormatter creates a new TreeFormatter
-func NewTreeFormatter[T any](
+func NewTreeFormatter[T tree.Named](
 	nameFunc func(t *tree.MapNode[T], indent int) string,
 	indent int,
 ) TreeFormatter[T] {

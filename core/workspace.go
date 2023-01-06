@@ -3,7 +3,6 @@ package core
 import (
 	"fmt"
 	"io/ioutil"
-	"path/filepath"
 
 	"github.com/mlange-42/track/fs"
 )
@@ -37,14 +36,12 @@ func (t *Track) SwitchWorkspace(name string) error {
 	t.createWorkspaceDirs(name)
 
 	t.Config.Workspace = name
-	SaveConfig(t.Config)
+	err = t.Config.Save()
+	if err != nil {
+		return err
+	}
 
 	return nil
-}
-
-// WorkspaceDir returns the directory of a workspace
-func (t *Track) WorkspaceDir(ws string) string {
-	return filepath.Join(fs.RootDir(), ws)
 }
 
 // Workspace returns the current workspace

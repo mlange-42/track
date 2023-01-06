@@ -10,13 +10,16 @@ type testStruct struct {
 	Name string
 }
 
+func (t testStruct) GetName() string {
+	return t.Name
+}
+
 type testTree = MapTree[testStruct]
 type testNode = MapNode[testStruct]
 
 func TestAdd(t *testing.T) {
 	tr := NewTree(
 		testStruct{Name: "root"},
-		func(t testStruct) string { return t.Name },
 	)
 	tr.Add(tr.Root, testStruct{Name: "child"})
 
@@ -32,7 +35,6 @@ func TestAdd(t *testing.T) {
 func TestNodeAdd(t *testing.T) {
 	tr := NewTree(
 		testStruct{Name: "root"},
-		func(t testStruct) string { return t.Name },
 	)
 	tr.AddNode(tr.Root, NewNode(testStruct{Name: "child"}))
 
@@ -48,7 +50,6 @@ func TestNodeAdd(t *testing.T) {
 func TestAncestorDescendants(t *testing.T) {
 	tr := NewTree(
 		testStruct{Name: "root"},
-		func(t testStruct) string { return t.Name },
 	)
 	root := tr.Root
 	a := NewNode(testStruct{Name: "a"})

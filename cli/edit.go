@@ -286,7 +286,7 @@ func editRecord(t *core.Track, tm time.Time, dryRun bool) error {
 		fmt.Sprintf("%s Record %s\n\n", core.CommentPrefix, record.Start.Format(util.DateTimeFormat)),
 		core.CommentPrefix,
 		func(r *core.Record) ([]byte, error) {
-			str := r.Serialize(util.NoTime)
+			str := core.SerializeRecord(r, util.NoTime)
 			return []byte(str), nil
 		},
 		func(b []byte) error {
@@ -348,7 +348,7 @@ func editDay(t *core.Track, date time.Time, dryRun bool) error {
 		func(records []core.Record) ([]byte, error) {
 			str := ""
 			for i, rec := range records {
-				str += rec.Serialize(date)
+				str += core.SerializeRecord(&rec, date)
 				if i < len(records)-1 {
 					str += "\n--------------------\n\n"
 				}
@@ -527,7 +527,7 @@ func editConfig(t *core.Track, dryRun bool) error {
 			}
 
 			if !dryRun {
-				if err = core.SaveConfig(newConfig); err != nil {
+				if err = newConfig.Save(); err != nil {
 					return err
 				}
 			}
