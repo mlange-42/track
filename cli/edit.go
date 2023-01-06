@@ -527,7 +527,7 @@ func editConfig(t *core.Track, dryRun bool) error {
 			}
 
 			if !dryRun {
-				if err = core.SaveConfig(newConfig); err != nil {
+				if err = newConfig.Save(); err != nil {
 					return err
 				}
 			}

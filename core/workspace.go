@@ -37,7 +37,10 @@ func (t *Track) SwitchWorkspace(name string) error {
 	t.createWorkspaceDirs(name)
 
 	t.Config.Workspace = name
-	SaveConfig(t.Config)
+	err = t.Config.Save()
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

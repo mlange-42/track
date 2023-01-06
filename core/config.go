@@ -63,7 +63,7 @@ func LoadConfig() (Config, error) {
 		PauseCell:        "-",
 	}
 
-	err = SaveConfig(conf)
+	err = conf.Save()
 	if err != nil {
 		return Config{}, fmt.Errorf("could not save config file: %s", err)
 	}
@@ -83,16 +83,16 @@ func tryLoadConfig() (Config, error) {
 		return Config{}, err
 	}
 
-	if err = CheckConfig(&conf); err != nil {
+	if err = conf.Check(); err != nil {
 		return conf, err
 	}
 
 	return conf, nil
 }
 
-// SaveConfig saves the given config to it's default location
-func SaveConfig(conf Config) error {
-	if err := CheckConfig(&conf); err != nil {
+// Save saves the given to it's default location
+func (conf *Config) Save() error {
+	if err := conf.Check(); err != nil {
 		return err
 	}
 
@@ -119,7 +119,7 @@ func SaveConfig(conf Config) error {
 }
 
 // CheckConfig checks a config for consistency
-func CheckConfig(conf *Config) error {
+func (conf *Config) Check() error {
 	versionHint := "In case you recently updated track, try to delete file %USER%/.track/config.yml"
 	if utf8.RuneCountInString(conf.EmptyCell) != 1 {
 		return fmt.Errorf("config entry EmptyCell must be a string of length 1. Got '%s'.\n%s", conf.EmptyCell, versionHint)
