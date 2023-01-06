@@ -97,10 +97,19 @@ Note with a +tag
 	}
 }
 
-func BenchmarkTestSerialize(b *testing.B) {
+func BenchmarkSerialize(b *testing.B) {
 	record := fullRecord()
 	for i := 0; i < b.N; i++ {
 		_ = SerializeRecord(&record, record.Start)
+	}
+}
+
+func BenchmarkDeserialize(b *testing.B) {
+	record := fullRecord()
+	text := SerializeRecord(&record, record.Start)
+
+	for i := 0; i < b.N; i++ {
+		_, _ = DeserializeRecord(text, record.Start)
 	}
 }
 
