@@ -19,15 +19,13 @@ type FilterResult struct {
 	Err    error
 }
 
-// WorkerResult contains a Record or an error from async filtering
-type WorkerResult struct {
+type workerResult struct {
 	Index  int
 	Record Record
 	Err    error
 }
 
-// ListFilterResult contains a Record time or an error from async filtering
-type ListFilterResult struct {
+type listFilterResult struct {
 	Time time.Time
 	Err  error
 }
@@ -211,14 +209,14 @@ func (t *Track) AllRecordsFiltered(filters FilterFunctions, reversed bool) (func
 
 		go fn()
 
-		worker := func(index int, tasks chan time.Time, ch chan WorkerResult) {
+		worker := func(index int, tasks chan time.Time, ch chan workerResult) {
 			for tm := range tasks {
 				record, err := t.LoadRecord(tm)
-				ch <- WorkerResult{index, record, err}
+				ch <- workerResult{index, record, err}
 			}
 		}
 
-		process := func(index int, times []time.Time, taskChannels []chan time.Time, resChannel chan WorkerResult) {
+		process := func(index int, times []time.Time, taskChannels []chan time.Time, resChannel chan workerResult) {
 			for i := 0; i < index; i++ {
 				taskChannels[i] <- times[i]
 			}
@@ -244,7 +242,7 @@ func (t *Track) AllRecordsFiltered(filters FilterFunctions, reversed bool) (func
 
 		tempTimes := make([]time.Time, numWorkers, numWorkers)
 
-		resChannel := make(chan WorkerResult, numWorkers)
+		resChannel := make(chan workerResult, numWorkers)
 		taskChannels := make([]chan time.Time, numWorkers)
 
 		index := 0
@@ -279,8 +277,8 @@ func (t *Track) AllRecordsFiltered(filters FilterFunctions, reversed bool) (func
 	}, results, stop
 }
 
-func (t *Track) listAllRecordsFiltered(filters FilterFunctions, reversed bool) (func(), chan ListFilterResult, chan struct{}) {
-	results := make(chan ListFilterResult, 64)
+func (t *Track) listAllRecordsFiltered(filters FilterFunctions, reversed bool) (func(), chan listFilterResult, chan struct{}) {
+	results := make(chan listFilterResult, 64)
 	stop := make(chan struct{})
 
 	return func() {
@@ -290,7 +288,7 @@ func (t *Track) listAllRecordsFiltered(filters FilterFunctions, reversed bool) (
 
 		yearDirs, err := ioutil.ReadDir(path)
 		if err != nil {
-			results <- ListFilterResult{util.NoTime, err}
+			results <- listFilterResult{util.NoTime, err}
 			return
 		}
 		if reversed {
@@ -303,7 +301,7 @@ func (t *Track) listAllRecordsFiltered(filters FilterFunctions, reversed bool) (
 			}
 			year, err := strconv.Atoi(yearDir.Name())
 			if err != nil {
-				results <- ListFilterResult{util.NoTime, err}
+				results <- listFilterResult{util.NoTime, err}
 				return
 			}
 			if !filters.Start.IsZero() && year < filters.Start.Year() {
@@ -319,7 +317,7 @@ func (t *Track) listAllRecordsFiltered(filters FilterFunctions, reversed bool) (
 				util.Reverse(monthDirs)
 			}
 			if err != nil {
-				results <- ListFilterResult{util.NoTime, err}
+				results <- listFilterResult{util.NoTime, err}
 				return
 			}
 
@@ -329,13 +327,13 @@ func (t *Track) listAllRecordsFiltered(filters FilterFunctions, reversed bool) (
 				}
 				month, err := strconv.Atoi(monthDir.Name())
 				if err != nil {
-					results <- ListFilterResult{util.NoTime, err}
+					results <- listFilterResult{util.NoTime, err}
 					return
 				}
 
 				dayDirs, err := ioutil.ReadDir(filepath.Join(path, yearDir.Name(), monthDir.Name()))
 				if err != nil {
-					results <- ListFilterResult{util.NoTime, err}
+					results <- listFilterResult{util.NoTime, err}
 					return
 				}
 
@@ -348,7 +346,7 @@ func (t *Track) listAllRecordsFiltered(filters FilterFunctions, reversed bool) (
 					}
 					day, err := strconv.Atoi(dayDir.Name())
 					if err != nil {
-						results <- ListFilterResult{util.NoTime, err}
+						results <- listFilterResult{util.NoTime, err}
 						return
 					}
 
@@ -362,7 +360,7 @@ func (t *Track) listAllRecordsFiltered(filters FilterFunctions, reversed bool) (
 
 					recs, err := t.listDateRecords(date)
 					if err != nil {
-						results <- ListFilterResult{util.NoTime, err}
+						results <- listFilterResult{util.NoTime, err}
 						return
 					}
 
@@ -373,7 +371,7 @@ func (t *Track) listAllRecordsFiltered(filters FilterFunctions, reversed bool) (
 						select {
 						case <-stop:
 							return
-						case results <- ListFilterResult{rec, nil}:
+						case results <- listFilterResult{rec, nil}:
 						}
 					}
 				}
