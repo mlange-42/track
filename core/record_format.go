@@ -8,8 +8,12 @@ import (
 	"github.com/mlange-42/track/util"
 )
 
+var builder = strings.Builder{}
+
 // SerializeRecord converts a record to a serialization string
 func SerializeRecord(r *Record, date time.Time) string {
+	builder.Reset()
+
 	reference := date
 	if reference.IsZero() {
 		reference = r.Start
@@ -17,24 +21,25 @@ func SerializeRecord(r *Record, date time.Time) string {
 	startDate := util.FormatTimeWithOffset(r.Start, reference)
 	endTime := util.FormatTimeWithOffset(r.End, reference)
 
-	res := fmt.Sprintf("%s - %s", startDate, endTime)
+	fmt.Fprintf(&builder, "%s - %s", startDate, endTime)
 	for _, p := range r.Pause {
 		duration := "?"
 		if !p.End.IsZero() {
 			duration = p.End.Sub(p.Start).Round(time.Second).String()
 		}
 		startTime := util.FormatTimeWithOffset(p.Start, reference)
-		res += fmt.Sprintf("\n    - %s - %s", startTime, duration)
+		fmt.Fprintf(&builder, "\n    - %s - %s", startTime, duration)
 		if p.Note != "" {
-			res += fmt.Sprintf(" / %s", p.Note)
+			fmt.Fprintf(&builder, " / %s", p.Note)
 		}
 	}
-	res += fmt.Sprintf("\n    %s", r.Project)
+	fmt.Fprintf(&builder, "\n    %s", r.Project)
 
 	if len(r.Note) > 0 {
-		res += fmt.Sprintf("\n\n%s", r.Note)
+		fmt.Fprintf(&builder, "\n\n%s", r.Note)
 	}
-	return res + "\n"
+	fmt.Fprint(&builder, "\n")
+	return builder.String()
 }
 
 // DeserializeRecord converts a serialization string to a record

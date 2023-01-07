@@ -175,6 +175,11 @@ func (t *Track) LoadAllRecordsFiltered(filters FilterFunctions) ([]Record, error
 	return records, nil
 }
 
+// AllRecords is an async version of LoadAllRecords
+func (t *Track) AllRecords() (func(), chan FilterResult, chan struct{}) {
+	return t.AllRecordsFiltered(NewFilter([]func(*Record) bool{}, util.NoTime, util.NoTime), false)
+}
+
 // AllRecordsFiltered is an async version of LoadAllRecordsFiltered
 func (t *Track) AllRecordsFiltered(filters FilterFunctions, reversed bool) (func(), chan FilterResult, chan struct{}) {
 	results := make(chan FilterResult, 32)
