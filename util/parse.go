@@ -80,15 +80,17 @@ func ParseTimeRange(text string, date time.Time) (start, end time.Time, err erro
 // ParseTimeWithOffset parses a time with offset markers
 func ParseTimeWithOffset(text string, date time.Time) (time.Time, error) {
 	dayOffset := 0
+	start := 0
+	end := len(text)
 	if strings.HasPrefix(text, PrevDayPrefix) {
-		text = strings.TrimPrefix(text, PrevDayPrefix)
+		start += len(PrevDayPrefix)
 		dayOffset--
 	}
 	if strings.HasSuffix(text, NextDaySuffix) {
-		text = strings.TrimSuffix(text, NextDaySuffix)
+		end -= len(NextDaySuffix)
 		dayOffset++
 	}
-	t, err := time.ParseInLocation(TimeFormat, text, time.Local)
+	t, err := time.ParseInLocation(TimeFormat, text[start:end], time.Local)
 	if err != nil {
 		return NoTime, err
 	}
