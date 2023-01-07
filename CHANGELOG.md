@@ -16,6 +16,7 @@
 
 * Added a lot of unit tests (#106, #108)
 * Extend record and pause consistency checks (#108)
+* Use goroutines for reading record files, to improve performance on large datasets (#112)
 
 ## [[v0.3.3]](https://github.com/mlange-42/track/compare/v0.3.2...v0.3.3)
 
