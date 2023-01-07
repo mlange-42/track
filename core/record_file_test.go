@@ -68,9 +68,11 @@ func TestSaveLoadRecord(t *testing.T) {
 	assert.Nil(t, err, "Error loading record")
 	assert.Equal(t, record2, *openRecord, "Loaded record not equal to saved record")
 
-	allRecords, err := track.LoadAllRecords()
-	assert.Nil(t, err, "Error loading all records")
-	assert.Equal(t, []Record{record1, record2}, allRecords, "Loaded record not equal to saved record")
+	for i := 0; i < 25; i++ {
+		allRecords, err := track.LoadAllRecords()
+		assert.Nil(t, err, "Error loading all records")
+		assert.Equal(t, []Record{record1, record2}, allRecords, "Loaded record not equal to saved record")
+	}
 
 	err = track.DeleteRecord(&record1)
 	assert.Nil(t, err, "Error deleting record")
