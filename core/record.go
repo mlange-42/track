@@ -42,12 +42,6 @@ type Pause struct {
 	Note  string
 }
 
-// FilterResult contains a Report or an error from async filtering
-type FilterResult struct {
-	Record Record
-	Err    error
-}
-
 // Duration reports the duration of a pause
 func (p *Pause) Duration(min, max time.Time) time.Duration {
 	return util.DurationClip(p.Start, p.End, min, max)
