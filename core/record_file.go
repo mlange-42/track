@@ -13,6 +13,18 @@ import (
 	"github.com/mlange-42/track/util"
 )
 
+// FilterResult contains a Record or an error from async filtering
+type FilterResult struct {
+	Record Record
+	Err    error
+}
+
+// ListFilterResult contains a Record time or an error from async filtering
+type ListFilterResult struct {
+	Time time.Time
+	Err  error
+}
+
 // StartRecord starts and saves a record
 func (t *Track) StartRecord(project, note string, tags []string, start time.Time) (Record, error) {
 	record := Record{
@@ -182,7 +194,38 @@ func (t *Track) AllRecords() (func(), chan FilterResult, chan struct{}) {
 
 // AllRecordsFiltered is an async version of LoadAllRecordsFiltered
 func (t *Track) AllRecordsFiltered(filters FilterFunctions, reversed bool) (func(), chan FilterResult, chan struct{}) {
-	results := make(chan FilterResult, 32)
+	results := make(chan FilterResult, 64)
+
+	fn, listResults, stop := t.listAllRecordsFiltered(filters, reversed)
+
+	return func() {
+		defer close(results)
+
+		go fn()
+
+		for rec := range listResults {
+			var err error
+			var record Record
+			if rec.Err != nil {
+				err = rec.Err
+			} else {
+				record, err = t.LoadRecord(rec.Time)
+				if !Filter(&record, filters) {
+					continue
+				}
+			}
+
+			select {
+			case <-stop:
+				return
+			case results <- FilterResult{record, err}:
+			}
+		}
+	}, results, stop
+}
+
+func (t *Track) listAllRecordsFiltered(filters FilterFunctions, reversed bool) (func(), chan ListFilterResult, chan struct{}) {
+	results := make(chan ListFilterResult, 64)
 	stop := make(chan struct{})
 
 	return func() {
@@ -192,7 +235,7 @@ func (t *Track) AllRecordsFiltered(filters FilterFunctions, reversed bool) (func
 
 		yearDirs, err := ioutil.ReadDir(path)
 		if err != nil {
-			results <- FilterResult{Record{}, err}
+			results <- ListFilterResult{util.NoTime, err}
 			return
 		}
 		if reversed {
@@ -205,7 +248,7 @@ func (t *Track) AllRecordsFiltered(filters FilterFunctions, reversed bool) (func
 			}
 			year, err := strconv.Atoi(yearDir.Name())
 			if err != nil {
-				results <- FilterResult{Record{}, err}
+				results <- ListFilterResult{util.NoTime, err}
 				return
 			}
 			if !filters.Start.IsZero() && year < filters.Start.Year() {
@@ -221,7 +264,7 @@ func (t *Track) AllRecordsFiltered(filters FilterFunctions, reversed bool) (func
 				util.Reverse(monthDirs)
 			}
 			if err != nil {
-				results <- FilterResult{Record{}, err}
+				results <- ListFilterResult{util.NoTime, err}
 				return
 			}
 
@@ -231,13 +274,13 @@ func (t *Track) AllRecordsFiltered(filters FilterFunctions, reversed bool) (func
 				}
 				month, err := strconv.Atoi(monthDir.Name())
 				if err != nil {
-					results <- FilterResult{Record{}, err}
+					results <- ListFilterResult{util.NoTime, err}
 					return
 				}
 
 				dayDirs, err := ioutil.ReadDir(filepath.Join(path, yearDir.Name(), monthDir.Name()))
 				if err != nil {
-					results <- FilterResult{Record{}, err}
+					results <- ListFilterResult{util.NoTime, err}
 					return
 				}
 
@@ -250,7 +293,7 @@ func (t *Track) AllRecordsFiltered(filters FilterFunctions, reversed bool) (func
 					}
 					day, err := strconv.Atoi(dayDir.Name())
 					if err != nil {
-						results <- FilterResult{Record{}, err}
+						results <- ListFilterResult{util.NoTime, err}
 						return
 					}
 
@@ -262,9 +305,9 @@ func (t *Track) AllRecordsFiltered(filters FilterFunctions, reversed bool) (func
 						continue
 					}
 
-					recs, err := t.LoadDateRecordsFiltered(date, filters)
+					recs, err := t.listDateRecords(date)
 					if err != nil {
-						results <- FilterResult{Record{}, err}
+						results <- ListFilterResult{util.NoTime, err}
 						return
 					}
 
@@ -275,7 +318,7 @@ func (t *Track) AllRecordsFiltered(filters FilterFunctions, reversed bool) (func
 						select {
 						case <-stop:
 							return
-						case results <- FilterResult{rec, nil}:
+						case results <- ListFilterResult{rec, nil}:
 						}
 					}
 				}
@@ -319,6 +362,27 @@ func (t *Track) LoadDateRecordsExact(date time.Time) ([]Record, error) {
 
 // LoadDateRecordsFiltered loads all records for the given date string/directory
 func (t *Track) LoadDateRecordsFiltered(date time.Time, filters FilterFunctions) ([]Record, error) {
+	recs, err := t.listDateRecords(date)
+	if err != nil {
+		return nil, err
+	}
+
+	records := make([]Record, 0, len(recs))
+
+	for _, tm := range recs {
+		record, err := t.LoadRecord(tm)
+		if err != nil {
+			return nil, err
+		}
+		if Filter(&record, filters) {
+			records = append(records, record)
+		}
+	}
+
+	return records, nil
+}
+
+func (t *Track) listDateRecords(date time.Time) ([]time.Time, error) {
 	subPath := t.RecordDir(date)
 
 	info, err := os.Stat(subPath)
@@ -329,7 +393,7 @@ func (t *Track) LoadDateRecordsFiltered(date time.Time, filters FilterFunctions)
 		return nil, fmt.Errorf("'%s' is not a directory", info.Name())
 	}
 
-	var records []Record
+	var records []time.Time
 
 	files, err := ioutil.ReadDir(subPath)
 	if err != nil {
@@ -342,13 +406,10 @@ func (t *Track) LoadDateRecordsFiltered(date time.Time, filters FilterFunctions)
 		}
 
 		tm, err := fileToTime(date, file.Name())
-		record, err := t.LoadRecord(tm)
 		if err != nil {
 			return nil, err
 		}
-		if Filter(&record, filters) {
-			records = append(records, record)
-		}
+		records = append(records, tm)
 	}
 
 	return records, nil
