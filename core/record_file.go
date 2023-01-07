@@ -19,6 +19,13 @@ type FilterResult struct {
 	Err    error
 }
 
+// WorkerResult contains a Record or an error from async filtering
+type WorkerResult struct {
+	Index  int
+	Record Record
+	Err    error
+}
+
 // ListFilterResult contains a Record time or an error from async filtering
 type ListFilterResult struct {
 	Time time.Time
@@ -194,6 +201,7 @@ func (t *Track) AllRecords() (func(), chan FilterResult, chan struct{}) {
 
 // AllRecordsFiltered is an async version of LoadAllRecordsFiltered
 func (t *Track) AllRecordsFiltered(filters FilterFunctions, reversed bool) (func(), chan FilterResult, chan struct{}) {
+	numWorkers := 32
 	results := make(chan FilterResult, 64)
 
 	fn, listResults, stop := t.listAllRecordsFiltered(filters, reversed)
@@ -203,23 +211,58 @@ func (t *Track) AllRecordsFiltered(filters FilterFunctions, reversed bool) (func
 
 		go fn()
 
-		for rec := range listResults {
-			var err error
-			var record Record
-			if rec.Err != nil {
-				err = rec.Err
-			} else {
-				record, err = t.LoadRecord(rec.Time)
-				if !Filter(&record, filters) {
-					continue
+		worker := func(tm time.Time, index int, ch chan WorkerResult) {
+			record, err := t.LoadRecord(tm)
+			ch <- WorkerResult{index, record, err}
+		}
+
+		process := func(index int, times []time.Time, tempRes []FilterResult, resChannel chan WorkerResult) {
+			for i := 0; i < index; i++ {
+				go worker(times[i], i, resChannel)
+			}
+			for i := 0; i < index; i++ {
+				res := <-resChannel
+				tempRes[res.Index] = FilterResult{res.Record, res.Err}
+			}
+			for i := 0; i < index; i++ {
+				select {
+				case <-stop:
+					return
+				default:
+				}
+				res := tempRes[i]
+				if res.Err != nil {
+					results <- res
+					return
+				}
+				if Filter(&res.Record, filters) {
+					results <- tempRes[i]
 				}
 			}
+		}
 
-			select {
-			case <-stop:
+		tempTimes := make([]time.Time, numWorkers, numWorkers)
+		tempResults := make([]FilterResult, numWorkers, numWorkers)
+
+		resChannel := make(chan WorkerResult, 16)
+
+		index := 0
+
+		for rec := range listResults {
+			if rec.Err != nil {
+				results <- FilterResult{Record{}, rec.Err}
 				return
-			case results <- FilterResult{record, err}:
 			}
+			tempTimes[index] = rec.Time
+
+			index++
+			if index >= numWorkers {
+				process(index, tempTimes, tempResults, resChannel)
+				index = 0
+			}
+		}
+		if index > 0 {
+			process(index, tempTimes, tempResults, resChannel)
 		}
 	}, results, stop
 }
