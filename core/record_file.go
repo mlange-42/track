@@ -218,28 +218,31 @@ func (t *Track) AllRecordsFiltered(filters FilterFunctions, reversed bool) (func
 			}
 		}
 
-		process := func(index int, times []time.Time, tempRes []FilterResult, taskChannels []chan time.Time, resChannel chan WorkerResult) {
+		process := func(index int, times []time.Time, taskChannels []chan time.Time, resChannel chan WorkerResult) {
 			for i := 0; i < index; i++ {
 				taskChannels[i] <- times[i]
 			}
 			for i := 0; i < index; i++ {
+				select {
+				case <-stop:
+					return
+				default:
+				}
+
 				res := <-resChannel
-				tempRes[res.Index] = FilterResult{res.Record, res.Err}
-			}
-			for i := 0; i < index; i++ {
-				res := tempRes[i]
+
+				fr := FilterResult{res.Record, res.Err}
 				if res.Err != nil {
-					results <- res
+					results <- fr
 					return
 				}
 				if Filter(&res.Record, filters) {
-					results <- tempRes[i]
+					results <- fr
 				}
 			}
 		}
 
 		tempTimes := make([]time.Time, numWorkers, numWorkers)
-		tempResults := make([]FilterResult, numWorkers, numWorkers)
 
 		resChannel := make(chan WorkerResult, numWorkers)
 		taskChannels := make([]chan time.Time, numWorkers)
@@ -248,6 +251,7 @@ func (t *Track) AllRecordsFiltered(filters FilterFunctions, reversed bool) (func
 
 		for i := 0; i < numWorkers; i++ {
 			taskChannels[i] = make(chan time.Time, 4)
+			defer close(taskChannels[i])
 			go worker(i, taskChannels[i], resChannel)
 		}
 
@@ -260,16 +264,17 @@ func (t *Track) AllRecordsFiltered(filters FilterFunctions, reversed bool) (func
 
 			index++
 			if index >= numWorkers {
-				process(index, tempTimes, tempResults, taskChannels, resChannel)
+				process(index, tempTimes, taskChannels, resChannel)
 				index = 0
+				select {
+				case <-stop:
+					return
+				default:
+				}
 			}
 		}
 		if index > 0 {
-			process(index, tempTimes, tempResults, taskChannels, resChannel)
-		}
-
-		for i := 0; i < numWorkers; i++ {
-			close(taskChannels[i])
+			process(index, tempTimes, taskChannels, resChannel)
 		}
 	}, results, stop
 }
