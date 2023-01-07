@@ -6,6 +6,7 @@ on:
 
 jobs:
   build-linux:
+    name: Linux build
     runs-on: ubuntu-latest
     steps:
       - name: Get tag
@@ -33,6 +34,7 @@ jobs:
           tag: ${{ github.ref }}
 
   build-windows:
+    name: Windows build
     runs-on: ubuntu-latest
     steps:
       - name: Get tag
@@ -60,6 +62,7 @@ jobs:
           tag: ${{ github.ref }}
 
   build-macos:
+    name: MacOS build
     runs-on: ubuntu-latest
     steps:
       - name: Get tag
