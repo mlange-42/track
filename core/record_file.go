@@ -211,25 +211,22 @@ func (t *Track) AllRecordsFiltered(filters FilterFunctions, reversed bool) (func
 
 		go fn()
 
-		worker := func(tm time.Time, index int, ch chan WorkerResult) {
-			record, err := t.LoadRecord(tm)
-			ch <- WorkerResult{index, record, err}
+		worker := func(index int, tasks chan time.Time, ch chan WorkerResult) {
+			for tm := range tasks {
+				record, err := t.LoadRecord(tm)
+				ch <- WorkerResult{index, record, err}
+			}
 		}
 
-		process := func(index int, times []time.Time, tempRes []FilterResult, resChannel chan WorkerResult) {
+		process := func(index int, times []time.Time, tempRes []FilterResult, taskChannels []chan time.Time, resChannel chan WorkerResult) {
 			for i := 0; i < index; i++ {
-				go worker(times[i], i, resChannel)
+				taskChannels[i] <- times[i]
 			}
 			for i := 0; i < index; i++ {
 				res := <-resChannel
 				tempRes[res.Index] = FilterResult{res.Record, res.Err}
 			}
 			for i := 0; i < index; i++ {
-				select {
-				case <-stop:
-					return
-				default:
-				}
 				res := tempRes[i]
 				if res.Err != nil {
 					results <- res
@@ -244,9 +241,15 @@ func (t *Track) AllRecordsFiltered(filters FilterFunctions, reversed bool) (func
 		tempTimes := make([]time.Time, numWorkers, numWorkers)
 		tempResults := make([]FilterResult, numWorkers, numWorkers)
 
-		resChannel := make(chan WorkerResult, 16)
+		resChannel := make(chan WorkerResult, numWorkers)
+		taskChannels := make([]chan time.Time, numWorkers)
 
 		index := 0
+
+		for i := 0; i < numWorkers; i++ {
+			taskChannels[i] = make(chan time.Time, 4)
+			go worker(i, taskChannels[i], resChannel)
+		}
 
 		for rec := range listResults {
 			if rec.Err != nil {
@@ -257,12 +260,16 @@ func (t *Track) AllRecordsFiltered(filters FilterFunctions, reversed bool) (func
 
 			index++
 			if index >= numWorkers {
-				process(index, tempTimes, tempResults, resChannel)
+				process(index, tempTimes, tempResults, taskChannels, resChannel)
 				index = 0
 			}
 		}
 		if index > 0 {
-			process(index, tempTimes, tempResults, resChannel)
+			process(index, tempTimes, tempResults, taskChannels, resChannel)
+		}
+
+		for i := 0; i < numWorkers; i++ {
+			close(taskChannels[i])
 		}
 	}, results, stop
 }
