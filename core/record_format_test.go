@@ -138,6 +138,30 @@ func BenchmarkRead1k(b *testing.B) {
 	}
 }
 
+func BenchmarkRead1kAsync(b *testing.B) {
+	dir, err := ioutil.TempDir("", "track-test")
+	assert.Nil(b, err, "Error creating temporary directory")
+	defer os.Remove(dir)
+
+	track, err := NewTrack(&dir)
+	assert.Nil(b, err, "Error creating Track instance")
+
+	generateDataset(
+		&track,
+		util.Date(1990, 1, 1),
+		2*time.Hour,
+		1000,
+	)
+
+	for i := 0; i < b.N; i++ {
+		fn, results, _ := track.AllRecords()
+		go fn()
+		for res := range results {
+			_ = res.Record
+		}
+	}
+}
+
 func BenchmarkRead10k(b *testing.B) {
 	dir, err := ioutil.TempDir("", "track-test")
 	assert.Nil(b, err, "Error creating temporary directory")
@@ -156,6 +180,30 @@ func BenchmarkRead10k(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_, err = track.LoadAllRecords()
 		assert.Nil(b, err, "error loading records")
+	}
+}
+
+func BenchmarkRead10kAsync(b *testing.B) {
+	dir, err := ioutil.TempDir("", "track-test")
+	assert.Nil(b, err, "Error creating temporary directory")
+	defer os.Remove(dir)
+
+	track, err := NewTrack(&dir)
+	assert.Nil(b, err, "Error creating Track instance")
+
+	generateDataset(
+		&track,
+		util.Date(1990, 1, 1),
+		2*time.Hour,
+		10000,
+	)
+
+	for i := 0; i < b.N; i++ {
+		fn, results, _ := track.AllRecords()
+		go fn()
+		for res := range results {
+			_ = res.Record
+		}
 	}
 }
 
