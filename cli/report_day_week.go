@@ -199,7 +199,7 @@ func renderWeekSchedule(t *core.Track, reporter *core.Reporter, active string, s
 		index := indices[rec.Project]
 		for i := startIdx; i <= endIdx; i++ {
 			timeline[i] = index
-			record[i] = recIdx
+			record[i] = recIdx + 1
 		}
 		for _, p := range rec.Pause {
 			startIdx, endIdx, ok := toIndexRange(p.Start, p.End, startDate, bph, numDays)
@@ -250,15 +250,16 @@ func renderWeekSchedule(t *core.Track, reporter *core.Reporter, active string, s
 				rec := record[i]
 				pr := timeline[i]
 				pause := paused[i]
-				if rec != lastRecord {
+
+				if rec > 0 && rec != lastRecord {
 					lastRecord = rec
 					idxRecord = 0
 					if pr == 0 {
 						currNote = []rune{}
 						currName = []rune{}
 					} else {
-						currNote = []rune(reporter.Records[rec].Note)
-						currName = []rune(reporter.Records[rec].Project)
+						currNote = []rune(reporter.Records[rec-1].Note)
+						currName = []rune(reporter.Records[rec-1].Project)
 					}
 				} else {
 					if !pause {

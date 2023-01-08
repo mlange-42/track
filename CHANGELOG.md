@@ -2,7 +2,10 @@
 
 ## [[unpublished]](https://github.com/mlange-42/track/compare/v0.3.4...main)
 
-Nothing
+### Bugfixes
+
+ * Fix note not shown on first record in day report (#121)
+ * Show records in week and day report one cell shorter (#121)
 
 ## [[v0.3.4]](https://github.com/mlange-42/track/compare/v0.3.3...v0.3.4)
 
