@@ -342,7 +342,7 @@ func toIndexRange(start, end, startDate time.Time, bph int, days int) (int, int,
 	}
 
 	startIdx := int(start.Sub(startDate).Hours() * float64(bph))
-	endIdx := int(end.Sub(startDate).Hours() * float64(bph))
+	endIdx := int(end.Sub(startDate).Hours()*float64(bph)) - 1
 	if startIdx < 0 {
 		startIdx = 0
 	}
