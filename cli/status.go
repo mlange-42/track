@@ -134,13 +134,13 @@ func getStatus(t *core.Track, proj string, maxBreak time.Duration) (statusInfo, 
 		project = proj
 		if hasOpenRecord && open.Project != project {
 			hasOpenRecord = false
-			open, err = t.FindLatestRecord(core.FilterByProjects([]string{project}))
-			if err != nil {
-				return statusInfo{}, err
-			}
-			if open == nil {
-				return statusInfo{}, fmt.Errorf("No records for project '%s'", project)
-			}
+		}
+		open, err = t.FindLatestRecord(core.FilterByProjects([]string{project}))
+		if err != nil {
+			return statusInfo{}, err
+		}
+		if open == nil {
+			return statusInfo{}, fmt.Errorf("No records for project '%s'", project)
 		}
 	} else {
 		if !hasOpenRecord {

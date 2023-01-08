@@ -34,15 +34,29 @@ func TestSaveLoadRecord(t *testing.T) {
 		},
 	}
 	record2 := Record{
+		Project: "test2",
+		Start:   time.Date(2001, 6, 2, 23, 0, 0, 0, time.Local),
+		End:     time.Date(2001, 6, 3, 4, 0, 0, 0, time.Local),
+		Note:    "Note with +tag",
+		Tags:    []string{"tag"},
+		Pause: []Pause{
+			{
+				Start: time.Date(2001, 6, 3, 1, 0, 0, 0, time.Local),
+				End:   time.Date(2001, 6, 3, 2, 0, 0, 0, time.Local),
+				Note:  "Pause note",
+			},
+		},
+	}
+	record3 := Record{
 		Project: "test",
-		Start:   time.Date(2001, 6, 3, 4, 5, 0, 0, time.Local),
+		Start:   time.Date(2001, 6, 3, 11, 0, 0, 0, time.Local),
 		End:     util.NoTime,
 		Note:    "Note with +tag",
 		Tags:    []string{"tag"},
 		Pause: []Pause{
 			{
-				Start: time.Date(2001, 6, 3, 4, 8, 0, 0, time.Local),
-				End:   time.Date(2001, 6, 3, 4, 9, 0, 0, time.Local),
+				Start: time.Date(2001, 6, 3, 12, 0, 0, 0, time.Local),
+				End:   time.Date(2001, 6, 3, 13, 0, 0, 0, time.Local),
 				Note:  "Pause note",
 			},
 		},
@@ -52,9 +66,12 @@ func TestSaveLoadRecord(t *testing.T) {
 	assert.Nil(t, err, "Error saving record")
 	err = track.SaveRecord(&record2, false)
 	assert.Nil(t, err, "Error saving record")
+	err = track.SaveRecord(&record3, false)
+	assert.Nil(t, err, "Error saving record")
 
 	assert.True(t, fs.FileExists(track.RecordPath(record1.Start)), "File must exist")
 	assert.True(t, fs.FileExists(track.RecordPath(record2.Start)), "File must exist")
+	assert.True(t, fs.FileExists(track.RecordPath(record3.Start)), "File must exist")
 
 	newRecord, err := track.LoadRecord(record1.Start)
 	assert.Nil(t, err, "Error loading record")
@@ -62,16 +79,16 @@ func TestSaveLoadRecord(t *testing.T) {
 
 	latestRecord, err := track.LatestRecord()
 	assert.Nil(t, err, "Error loading record")
-	assert.Equal(t, record2, *latestRecord, "Loaded record not equal to saved record")
+	assert.Equal(t, record3, *latestRecord, "Loaded record not equal to saved record")
 
 	openRecord, err := track.OpenRecord()
 	assert.Nil(t, err, "Error loading record")
-	assert.Equal(t, record2, *openRecord, "Loaded record not equal to saved record")
+	assert.Equal(t, record3, *openRecord, "Loaded record not equal to saved record")
 
 	for i := 0; i < 25; i++ {
 		allRecords, err := track.LoadAllRecords()
 		assert.Nil(t, err, "Error loading all records")
-		assert.Equal(t, []Record{record1, record2}, allRecords, "Loaded record not equal to saved record")
+		assert.Equal(t, []Record{record1, record2, record3}, allRecords, "Loaded record not equal to saved record")
 	}
 
 	err = track.DeleteRecord(&record1)
