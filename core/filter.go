@@ -2,6 +2,8 @@ package core
 
 import (
 	"time"
+
+	"github.com/mlange-42/track/util"
 )
 
 // FilterFunction is an alias for func(r *Record) bool
@@ -73,11 +75,23 @@ func FilterByArchived(archived bool, projects map[string]Project) FilterFunction
 }
 
 // FilterByTagsAny returns a function for filtering by tags
-func FilterByTagsAny(tags map[string]string) FilterFunction {
+func FilterByTagsAny(tags []util.Pair[string, string]) FilterFunction {
+	tg := map[string]map[string]bool{}
+	for _, kv := range tags {
+		if m, ok := tg[kv.Key]; ok {
+			m[kv.Value] = true
+		} else {
+			tg[kv.Key] = map[string]bool{kv.Value: true}
+		}
+	}
+
 	return func(r *Record) bool {
 		for t, v := range r.Tags {
-			if v2, ok := tags[t]; ok {
-				if v2 == "" || v == v2 {
+			if values, ok := tg[t]; ok {
+				if _, ok := values[""]; ok {
+					return true
+				}
+				if _, ok := values[v]; ok {
 					return true
 				}
 			}
@@ -87,12 +101,12 @@ func FilterByTagsAny(tags map[string]string) FilterFunction {
 }
 
 // FilterByTagsAll returns a function for filtering by tags
-func FilterByTagsAll(tags map[string]string) FilterFunction {
+func FilterByTagsAll(tags []util.Pair[string, string]) FilterFunction {
 	return func(r *Record) bool {
-		for t, v := range tags {
+		for _, kv := range tags {
 			found := false
 			for t2, v2 := range r.Tags {
-				if t == t2 && (v == "" || v == v2) {
+				if kv.Key == t2 && (kv.Value == "" || kv.Value == v2) {
 					found = true
 					break
 				}

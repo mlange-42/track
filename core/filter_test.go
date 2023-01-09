@@ -76,7 +76,9 @@ func TestFilters(t *testing.T) {
 		{
 			title: "filter by any tags",
 			filters: []func(r *Record) bool{
-				FilterByTagsAny(map[string]string{"A": "", "B": ""}),
+				FilterByTagsAny([]util.Pair[string, string]{
+					{Key: "A", Value: ""}, {Key: "B", Value: ""},
+				}),
 			},
 			records: map[*Record]bool{
 				{
@@ -102,7 +104,9 @@ func TestFilters(t *testing.T) {
 		{
 			title: "filter by any tags with value",
 			filters: []func(r *Record) bool{
-				FilterByTagsAny(map[string]string{"A": "a", "B": "b"}),
+				FilterByTagsAny([]util.Pair[string, string]{
+					{Key: "A", Value: "a"}, {Key: "B", Value: "b"},
+				}),
 			},
 			records: map[*Record]bool{
 				{
@@ -132,9 +136,39 @@ func TestFilters(t *testing.T) {
 			},
 		},
 		{
+			title: "filter by any tag valuea",
+			filters: []func(r *Record) bool{
+				FilterByTagsAny([]util.Pair[string, string]{
+					{Key: "A", Value: "a"}, {Key: "A", Value: "b"},
+				}),
+			},
+			records: map[*Record]bool{
+				{
+					Tags: map[string]string{},
+				}: false,
+				{
+					Tags: map[string]string{"C": "c", "D": "d"},
+				}: false,
+				{
+					Tags: map[string]string{"A": "a", "C": "c"},
+				}: true,
+				{
+					Tags: map[string]string{"A": "b", "C": "c"},
+				}: true,
+				{
+					Tags: map[string]string{"A": "a", "C": "c"},
+				}: true,
+				{
+					Tags: map[string]string{"A": "c", "C": "c"},
+				}: false,
+			},
+		},
+		{
 			title: "filter by all tags",
 			filters: []func(r *Record) bool{
-				FilterByTagsAll(map[string]string{"A": "", "B": ""}),
+				FilterByTagsAll([]util.Pair[string, string]{
+					{Key: "A", Value: ""}, {Key: "B", Value: ""},
+				}),
 			},
 			records: map[*Record]bool{
 				{
@@ -157,7 +191,9 @@ func TestFilters(t *testing.T) {
 		{
 			title: "filter by all tags with value",
 			filters: []func(r *Record) bool{
-				FilterByTagsAll(map[string]string{"A": "a", "B": ""}),
+				FilterByTagsAll([]util.Pair[string, string]{
+					{Key: "A", Value: "a"}, {Key: "B", Value: ""},
+				}),
 			},
 			records: map[*Record]bool{
 				{
@@ -174,9 +210,6 @@ func TestFilters(t *testing.T) {
 				}: false,
 				{
 					Tags: map[string]string{"A": "a", "B": "a"},
-				}: true,
-				{
-					Tags: map[string]string{"A": "a", "B": "b"},
 				}: true,
 				{
 					Tags: map[string]string{"A": "a", "B": "a", "C": ""},
