@@ -80,19 +80,19 @@ func TestFilters(t *testing.T) {
 			},
 			records: map[*Record]bool{
 				{
-					Tags: []string{},
+					Tags: map[string]string{},
 				}: false,
 				{
-					Tags: []string{"C", "D"},
+					Tags: map[string]string{"C": "", "D": ""},
 				}: false,
 				{
-					Tags: []string{"A", "C"},
+					Tags: map[string]string{"A": "", "C": ""},
 				}: true,
 				{
-					Tags: []string{"A", "B"},
+					Tags: map[string]string{"A": "", "B": ""},
 				}: true,
 				{
-					Tags: []string{"A", "B", "C"},
+					Tags: map[string]string{"A": "", "B": "", "C": ""},
 				}: true,
 			},
 		},
@@ -103,19 +103,19 @@ func TestFilters(t *testing.T) {
 			},
 			records: map[*Record]bool{
 				{
-					Tags: []string{},
+					Tags: map[string]string{},
 				}: false,
 				{
-					Tags: []string{"C", "D"},
+					Tags: map[string]string{"C": "", "D": ""},
 				}: false,
 				{
-					Tags: []string{"A", "C"},
+					Tags: map[string]string{"A": "", "C": ""},
 				}: false,
 				{
-					Tags: []string{"A", "B"},
+					Tags: map[string]string{"A": "", "B": ""},
 				}: true,
 				{
-					Tags: []string{"A", "B", "C"},
+					Tags: map[string]string{"A": "", "B": "", "C": ""},
 				}: true,
 			},
 		},

@@ -27,12 +27,12 @@ var (
 
 // Record holds and manipulates data for a record
 type Record struct {
-	Project string    `json:"project"`
-	Start   time.Time `json:"start"`
-	End     time.Time `json:"end"`
-	Note    string    `json:"note"`
-	Tags    []string  `json:"tags"`
-	Pause   []Pause   `json:"pause"`
+	Project string            `json:"project"`
+	Start   time.Time         `json:"start"`
+	End     time.Time         `json:"end"`
+	Note    string            `json:"note"`
+	Tags    map[string]string `json:"tags"`
+	Pause   []Pause           `json:"pause"`
 }
 
 // Pause holds information about a pause in a record
@@ -180,37 +180,43 @@ func (r *Record) EndPause(t time.Time) (Pause, error) {
 }
 
 // ExtractTagsSlice extracts elements with the tag prefix
-func ExtractTagsSlice(tokens []string) []string {
-	result := make([]string, 0)
-	mapped := make(map[string]bool)
+func ExtractTagsSlice(tokens []string) (map[string]string, error) {
+	result := make(map[string]string)
 	for _, token := range tokens {
 		subTokens := strings.Split(token, " ")
 		for _, subToken := range subTokens {
 			if strings.HasPrefix(subToken, TagPrefix) {
-				if _, ok := mapped[subToken]; !ok {
-					mapped[subToken] = true
-					result = append(result, strings.TrimPrefix(subToken, TagPrefix))
+				parts := strings.SplitN(strings.TrimPrefix(subToken, TagPrefix), "=", 2)
+				value := ""
+				if len(parts) > 1 {
+					value = parts[1]
 				}
+				if old, ok := result[parts[0]]; ok && value != old {
+					return nil, fmt.Errorf("tag '%s' already has value '%s'", parts[0], value)
+				}
+				result[parts[0]] = value
 			}
 		}
 	}
-	return result
+	return result, nil
 }
 
 // ExtractTags extracts elements with the tag prefix
-func ExtractTags(text string) []string {
-	result := make([]string, 0)
-	mapped := make(map[string]bool)
+func ExtractTags(text string) (map[string]string, error) {
+	result := make(map[string]string)
 	subTokens := strings.Split(text, " ")
 	for _, subToken := range subTokens {
-		if strings.HasPrefix(subToken, TagPrefix) {
-			if _, ok := mapped[subToken]; !ok {
-				mapped[subToken] = true
-				result = append(result, strings.TrimPrefix(subToken, TagPrefix))
-			}
+		parts := strings.SplitN(strings.TrimPrefix(subToken, TagPrefix), "=", 2)
+		value := ""
+		if len(parts) > 1 {
+			value = parts[1]
 		}
+		if old, ok := result[parts[0]]; ok && value != old {
+			return nil, fmt.Errorf("tag '%s' already has value '%s'", parts[0], value)
+		}
+		result[parts[0]] = value
 	}
-	return result
+	return result, nil
 }
 
 func pathToTime(y, m, d, file string) (time.Time, error) {

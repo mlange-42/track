@@ -124,6 +124,13 @@ func (wr csvWriter) Write(w io.Writer, results chan core.FilterResult) error {
 			endTime = r.End.Format(util.DateTimeFormat)
 		}
 
+		tags := make([]string, len(r.Tags), len(r.Tags))
+		i := 0
+		for k, v := range r.Tags {
+			tags[i] = fmt.Sprintf("%s=%s", k, v)
+			i++
+		}
+
 		_, err = fmt.Fprintf(
 			w, "%s\n",
 			strings.Join([]string{
@@ -134,7 +141,7 @@ func (wr csvWriter) Write(w io.Writer, results chan core.FilterResult) error {
 				util.FormatDuration(r.Duration(util.NoTime, util.NoTime)),
 				util.FormatDuration(r.PauseDuration(util.NoTime, util.NoTime)),
 				fmt.Sprintf("\"%s\"", strings.ReplaceAll(r.Note, "\n", "\\n")),
-				strings.Join(r.Tags, " "),
+				strings.Join(tags, " "),
 			}, wr.Separator),
 		)
 	}

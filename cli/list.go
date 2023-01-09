@@ -325,7 +325,7 @@ func printTags(t *core.Track, includeArchived bool) error {
 		if res.Err != nil {
 			return res.Err
 		}
-		for _, tag := range res.Record.Tags {
+		for tag := range res.Record.Tags {
 			if v, ok := tags[tag]; ok {
 				tags[tag] = v + 1
 			} else {

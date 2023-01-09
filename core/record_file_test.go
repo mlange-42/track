@@ -24,7 +24,7 @@ func TestSaveLoadRecord(t *testing.T) {
 		Start:   time.Date(2001, 2, 3, 4, 5, 0, 0, time.Local),
 		End:     time.Date(2001, 2, 3, 4, 15, 0, 0, time.Local),
 		Note:    "Note with +tag",
-		Tags:    []string{"tag"},
+		Tags:    map[string]string{"tag": ""},
 		Pause: []Pause{
 			{
 				Start: time.Date(2001, 2, 3, 4, 8, 0, 0, time.Local),
@@ -38,7 +38,7 @@ func TestSaveLoadRecord(t *testing.T) {
 		Start:   time.Date(2001, 6, 2, 23, 0, 0, 0, time.Local),
 		End:     time.Date(2001, 6, 3, 4, 0, 0, 0, time.Local),
 		Note:    "Note with +tag",
-		Tags:    []string{"tag"},
+		Tags:    map[string]string{"tag": ""},
 		Pause: []Pause{
 			{
 				Start: time.Date(2001, 6, 3, 1, 0, 0, 0, time.Local),
@@ -52,7 +52,7 @@ func TestSaveLoadRecord(t *testing.T) {
 		Start:   time.Date(2001, 6, 3, 11, 0, 0, 0, time.Local),
 		End:     util.NoTime,
 		Note:    "Note with +tag",
-		Tags:    []string{"tag"},
+		Tags:    map[string]string{"tag": ""},
 		Pause: []Pause{
 			{
 				Start: time.Date(2001, 6, 3, 12, 0, 0, 0, time.Local),
@@ -105,7 +105,7 @@ func TestStartStopRecord(t *testing.T) {
 	assert.Nil(t, err, "Error creating Track instance")
 
 	start := time.Now().Round(time.Minute).Add(-time.Hour)
-	record, err := track.StartRecord("test", "", []string{}, start)
+	record, err := track.StartRecord("test", "", map[string]string{}, start)
 	assert.Nil(t, err, "Error starting record")
 
 	openRecord, err := track.OpenRecord()

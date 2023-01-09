@@ -79,7 +79,7 @@ func FilterByTagsAny(tags []string) FilterFunction {
 		tg[t] = true
 	}
 	return func(r *Record) bool {
-		for _, t := range r.Tags {
+		for t := range r.Tags {
 			if _, ok := tg[t]; ok {
 				return true
 			}
@@ -93,7 +93,7 @@ func FilterByTagsAll(tags []string) FilterFunction {
 	return func(r *Record) bool {
 		for _, t := range tags {
 			found := false
-			for _, t2 := range r.Tags {
+			for t2 := range r.Tags {
 				if t == t2 {
 					found = true
 					break

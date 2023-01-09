@@ -97,7 +97,7 @@ Notes can contain tags, denoted by the prefix "%s", like "%stag"`, core.TagPrefi
 			}
 
 			note := ""
-			tags := []string{}
+			tags := map[string]string{}
 
 			if copy {
 				latest, err := t.FindLatestRecord(core.FilterByProjects([]string{project}))
@@ -114,7 +114,11 @@ Notes can contain tags, denoted by the prefix "%s", like "%stag"`, core.TagPrefi
 				}
 			} else {
 				note = strings.Join(args[1:], " ")
-				tags = core.ExtractTagsSlice(args[1:])
+				tags, err = core.ExtractTagsSlice(args[1:])
+				if err != nil {
+					out.Err("failed to start record: %s", err.Error())
+					return
+				}
 			}
 
 			record, err := t.StartRecord(project, note, tags, startStopTime)

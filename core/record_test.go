@@ -250,7 +250,8 @@ func TestExtractTags(t *testing.T) {
 	}
 
 	for _, test := range tt {
-		tags := ExtractTags(test.note)
+		tags, err := ExtractTags(test.note)
+		assert.Nil(t, err, "Error extracting tags")
 		assert.Equal(t, test.expTags, tags, "Failed extracting tags %s", test.title)
 	}
 }
@@ -289,7 +290,8 @@ func TestExtractTagsSlice(t *testing.T) {
 	}
 
 	for _, test := range tt {
-		tags := ExtractTagsSlice(test.note)
+		tags, err := ExtractTagsSlice(test.note)
+		assert.Nil(t, err, "Error extracting tags")
 		assert.Equal(t, test.expTags, tags, "Failed extracting tags %s", test.title)
 	}
 }

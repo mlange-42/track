@@ -109,6 +109,6 @@ func timedRecord(start time.Time, duration time.Duration, pauses int, lines int)
 		End:     start.Add(duration),
 		Pause:   pause,
 		Note:    strings.Join(note, "\n"),
-		Tags:    []string{},
+		Tags:    map[string]string{},
 	}
 }

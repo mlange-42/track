@@ -62,7 +62,7 @@ func tagsReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 			for _, rec := range reporter.Records {
 				dur := rec.Duration(util.NoTime, util.NoTime)
 				pause := rec.PauseDuration(util.NoTime, util.NoTime)
-				for _, tag := range rec.Tags {
+				for tag := range rec.Tags {
 					if _, ok := tags[tag]; ok || len(tags) == 0 {
 						if entry, ok := allTags[tag]; ok {
 							entry.Work += dur
