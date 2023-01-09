@@ -104,7 +104,7 @@ Notes can contain tags, denoted by the prefix "%s", like "%stag"`, core.TagPrefi
 				}
 			}
 
-			record, err := t.StartRecord(project, note, tags, startTime)
+			record, err := t.StartRecord(&proj, note, tags, startTime)
 			if err != nil {
 				out.Err("failed to create record: %s", err.Error())
 				return

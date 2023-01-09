@@ -295,6 +295,14 @@ func editRecord(t *core.Track, tm time.Time, dryRun bool) error {
 				return err
 			}
 
+			project, err := t.LoadProjectByName(newRecord.Project)
+			if err != nil {
+				return err
+			}
+			if err = newRecord.Check(&project); err != nil {
+				return err
+			}
+
 			if newRecord.Start != record.Start {
 				return fmt.Errorf("can't change start time. Try command 'track edit day' instead")
 			}
@@ -309,10 +317,6 @@ func editRecord(t *core.Track, tm time.Time, dryRun bool) error {
 				if newRecord.End.After(record.End) {
 					return fmt.Errorf("can't extend record end time. Try command 'track edit day' instead")
 				}
-			}
-
-			if err = newRecord.Check(); err != nil {
-				return err
 			}
 
 			if !dryRun {
@@ -418,9 +422,14 @@ func editDay(t *core.Track, date time.Time, dryRun bool) error {
 				prevEnd := util.NoTime
 
 				for i, rec := range newRecords {
-					if _, ok := projects[rec.Project]; !ok {
+					project, ok := projects[rec.Project]
+					if !ok {
 						return fmt.Errorf("project '%s' does not exist (%s)", rec.Project, rec.Start.Format(util.TimeFormat))
 					}
+					if err := rec.Check(&project); err != nil {
+						return err
+					}
+
 					if rec.Start.Before(prevStart) {
 						return fmt.Errorf(
 							"records are not in chronological order (%s / %s)",

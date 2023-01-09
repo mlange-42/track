@@ -9,9 +9,13 @@ import (
 )
 
 func TestCheckRecord(t *testing.T) {
+	projectTags := NewProject("test", "", "t", []string{"a"}, 15, 0)
+	projectNoTags := NewProject("test", "", "t", []string{}, 15, 0)
+
 	tt := []struct {
 		title    string
 		record   Record
+		project  Project
 		expError bool
 	}{
 		{
@@ -31,7 +35,44 @@ func TestCheckRecord(t *testing.T) {
 					},
 				},
 			},
+			project:  projectNoTags,
 			expError: false,
+		},
+		{
+			title: "fully valid record with tags",
+			record: Record{
+				Project: "test",
+				Start:   time.Date(2001, 2, 3, 8, 0, 0, 0, time.Local),
+				End:     time.Date(2001, 2, 3, 18, 0, 0, 0, time.Local),
+				Tags:    map[string]string{"a": "value"},
+				Pause:   []Pause{},
+			},
+			project:  projectTags,
+			expError: false,
+		},
+		{
+			title: "record with missing tag value",
+			record: Record{
+				Project: "test",
+				Start:   time.Date(2001, 2, 3, 8, 0, 0, 0, time.Local),
+				End:     time.Date(2001, 2, 3, 18, 0, 0, 0, time.Local),
+				Tags:    map[string]string{"a": ""},
+				Pause:   []Pause{},
+			},
+			project:  projectTags,
+			expError: true,
+		},
+		{
+			title: "record with missing tag",
+			record: Record{
+				Project: "test",
+				Start:   time.Date(2001, 2, 3, 8, 0, 0, 0, time.Local),
+				End:     time.Date(2001, 2, 3, 18, 0, 0, 0, time.Local),
+				Tags:    map[string]string{"b": "value"},
+				Pause:   []Pause{},
+			},
+			project:  projectTags,
+			expError: true,
 		},
 		{
 			title: "ends before start",
@@ -144,7 +185,7 @@ func TestCheckRecord(t *testing.T) {
 	}
 
 	for _, test := range tt {
-		err := test.record.Check()
+		err := test.record.Check(&test.project)
 		if err != nil {
 			if !test.expError {
 				t.Fatalf("got unexpected error in  %s: %s", test.title, err.Error())

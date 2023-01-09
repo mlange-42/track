@@ -31,14 +31,18 @@ type listFilterResult struct {
 }
 
 // StartRecord starts and saves a record
-func (t *Track) StartRecord(project, note string, tags map[string]string, start time.Time) (Record, error) {
+func (t *Track) StartRecord(project *Project, note string, tags map[string]string, start time.Time) (Record, error) {
 	record := Record{
-		Project: project,
+		Project: project.Name,
 		Note:    note,
 		Tags:    tags,
 		Start:   start,
 		End:     util.NoTime,
 		Pause:   []Pause{},
+	}
+
+	if err := record.Check(project); err != nil {
+		return record, err
 	}
 
 	return record, t.SaveRecord(&record, false)
