@@ -8,14 +8,13 @@ import (
 
 // ParseDate parses a date string
 func ParseDate(text string) (time.Time, error) {
-	now := time.Now()
 	switch text {
 	case "today":
-		return ToDate(now), nil
+		return ToDate(time.Now()), nil
 	case "tomorrow":
-		return ToDate(now).Add(24 * time.Hour), nil
+		return ToDate(time.Now()).Add(24 * time.Hour), nil
 	case "yesterday":
-		return ToDate(now).Add(-24 * time.Hour), nil
+		return ToDate(time.Now()).Add(-24 * time.Hour), nil
 	}
 	return time.ParseInLocation(DateFormat, text, time.Local)
 }
