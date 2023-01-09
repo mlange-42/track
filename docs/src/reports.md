@@ -12,6 +12,8 @@ All `report` sub-commands support filtering via flags, for:
 
 Lists for these flags should be comma-separated, like `--projects ProjectA,ProjectB`.
 
+Tags can also be used with a value to filter for, like `--tags key=value`
+
 Further, most sub-commands support restricting the time range using the flags `--start` and `--end`. Both flags accept a date, like `2023-01-01` or `yesterday`. The end date is inclusive.
 
 ## Projects report
@@ -41,6 +43,8 @@ track report projects --start 2023-01-01 --end 2023-01-07 --projects MyApp --tag
 
 Command `report tags` prints a list of tags, with work time and pause time per tag.
 Usage is the same as for `report projects`.
+
+If the `--tag` flag is used for filtering and only a single tag is used, the report is broken down to individual tag values.
 
 ## Week report
 

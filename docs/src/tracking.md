@@ -34,6 +34,12 @@ Here is an example:
 track start MyProject work on +artwork
 ```
 
+Tags can also be key/value pairs, like:
+
+```shell
+track start MyProject work on +topic=artwork
+```
+
 ## Status
 
 To check the tracking status at any time, use:

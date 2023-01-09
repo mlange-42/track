@@ -2,6 +2,10 @@
 
 ## [[unpublished]](https://github.com/mlange-42/track/compare/v0.3.4...main)
 
+### Features
+
+* Tags can have values, like `+tag=value` (#122)
+
 ### Bugfixes
 
  * Fix note not shown on first record in day report (#121)

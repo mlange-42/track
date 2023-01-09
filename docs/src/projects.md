@@ -13,6 +13,7 @@ A project has the following properties, as specified in it's YAML file:
 ```yaml
 name: MyProject
 parent: ParentProject
+requiredTags: []
 color: 0
 fgColor: 15
 symbol: M
