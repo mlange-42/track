@@ -23,12 +23,12 @@ func SerializeRecord(r *Record, date time.Time) string {
 
 	fmt.Fprintf(&builder, "%s - %s", startDate, endTime)
 	for _, p := range r.Pause {
-		duration := "?"
-		if !p.End.IsZero() {
-			duration = p.End.Sub(p.Start).Round(time.Second).String()
-		}
 		startTime := util.FormatTimeWithOffset(p.Start, reference)
-		fmt.Fprintf(&builder, "\n    - %s - %s", startTime, duration)
+		if p.End.IsZero() {
+			fmt.Fprintf(&builder, "\n    - %s - ?", startTime)
+		} else {
+			fmt.Fprintf(&builder, "\n    - %s - %s", startTime, p.End.Sub(p.Start).Round(time.Second))
+		}
 		if p.Note != "" {
 			fmt.Fprintf(&builder, " / %s", p.Note)
 		}

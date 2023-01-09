@@ -16,4 +16,6 @@ jobs:
       - name: Install dependencies
         run: go get .
       - name: Benchmarks
-        run: go test -benchmem -run=^$ -bench ^.*$ github.com/mlange-42/track/core
+        run: |
+          go test -benchmem -run=^$ -bench ^.*$ github.com/mlange-42/track/core
+          go test -benchmem -run=^$ -bench ^.*$ github.com/mlange-42/track/util

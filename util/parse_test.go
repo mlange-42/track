@@ -3,6 +3,8 @@ package util
 import (
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestParseTimeRange(t *testing.T) {
@@ -100,5 +102,69 @@ func TestParseTimeRange(t *testing.T) {
 				err,
 			)
 		}
+	}
+}
+
+func TestParseDate(t *testing.T) {
+	today := ToDate(time.Now())
+
+	tt := []struct {
+		title   string
+		text    string
+		expDate time.Time
+	}{
+		{
+			title:   "today",
+			text:    "today",
+			expDate: today,
+		},
+		{
+			title:   "yesterday",
+			text:    "yesterday",
+			expDate: today.Add(-24 * time.Hour),
+		},
+		{
+			title:   "tomorrow",
+			text:    "tomorrow",
+			expDate: today.Add(24 * time.Hour),
+		},
+		{
+			title:   "date",
+			text:    "2022-12-31",
+			expDate: Date(2022, 12, 31),
+		},
+	}
+
+	for _, test := range tt {
+		date, err := ParseDate(test.text)
+		assert.Nil(t, err, "Error parsing date in %s", test.title)
+		assert.Equal(t, test.expDate, date, "Wrong date in %s", test.title)
+	}
+}
+
+func BenchmarkParseTimeRange(b *testing.B) {
+	today := ToDate(time.Now())
+	text := "10:00 - 18:00"
+
+	for i := 0; i < b.N; i++ {
+		_, _, _ = ParseTimeRange(text, today)
+	}
+}
+
+func BenchmarkParseTimeRangeOffset(b *testing.B) {
+	today := ToDate(time.Now())
+	text := "<10:00 - 18:00"
+
+	for i := 0; i < b.N; i++ {
+		_, _, _ = ParseTimeRange(text, today)
+	}
+}
+
+func BenchmarkParseTimeOffset(b *testing.B) {
+	today := ToDate(time.Now())
+	text := "00:31>"
+
+	for i := 0; i < b.N; i++ {
+		_, _ = ParseTimeWithOffset(text, today)
 	}
 }
