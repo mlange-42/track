@@ -1,9 +1,10 @@
 name: Docs
 
 on:
-  - push
-  - release:
-      types: [ created ]
+  push:
+    branches: ["**"]
+  release:
+    types: [ created ]
 
 jobs:
   publish:
