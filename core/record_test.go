@@ -225,27 +225,32 @@ func TestExtractTags(t *testing.T) {
 	tt := []struct {
 		title   string
 		note    string
-		expTags []string
+		expTags map[string]string
 	}{
 		{
 			title:   "no tags",
 			note:    "Note without tags",
-			expTags: []string{},
+			expTags: map[string]string{},
 		},
 		{
 			title:   "one tags",
 			note:    "Note with a +tag in it",
-			expTags: []string{"tag"},
+			expTags: map[string]string{"tag": ""},
 		},
 		{
 			title:   "two tags",
 			note:    "Note with +two +tags in it",
-			expTags: []string{"two", "tags"},
+			expTags: map[string]string{"two": "", "tags": ""},
 		},
 		{
 			title:   "repeated tags",
 			note:    "Note with +two +tags in it +tags +two",
-			expTags: []string{"two", "tags"},
+			expTags: map[string]string{"two": "", "tags": ""},
+		},
+		{
+			title:   "tags with values",
+			note:    "Note with +two=foo +tags= in it",
+			expTags: map[string]string{"two": "foo", "tags": ""},
 		},
 	}
 
@@ -260,32 +265,37 @@ func TestExtractTagsSlice(t *testing.T) {
 	tt := []struct {
 		title   string
 		note    []string
-		expTags []string
+		expTags map[string]string
 	}{
 		{
 			title:   "no tags",
 			note:    []string{"Note without tags"},
-			expTags: []string{},
+			expTags: map[string]string{},
 		},
 		{
 			title:   "one tag",
 			note:    []string{"Note with a +tag in it"},
-			expTags: []string{"tag"},
+			expTags: map[string]string{"tag": ""},
 		},
 		{
 			title:   "tag on 2ng line",
 			note:    []string{"No tag", "Note with a +tag in it"},
-			expTags: []string{"tag"},
+			expTags: map[string]string{"tag": ""},
 		},
 		{
 			title:   "two tags",
 			note:    []string{"Note with +two +tags in it"},
-			expTags: []string{"two", "tags"},
+			expTags: map[string]string{"two": "", "tags": ""},
 		},
 		{
 			title:   "repeated tags",
 			note:    []string{"Note with +two +tags in it +tags +two"},
-			expTags: []string{"two", "tags"},
+			expTags: map[string]string{"two": "", "tags": ""},
+		},
+		{
+			title:   "tags with value",
+			note:    []string{"Note with +two=foo +tags= in it"},
+			expTags: map[string]string{"two": "foo", "tags": ""},
 		},
 	}
 

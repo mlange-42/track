@@ -73,15 +73,13 @@ func FilterByArchived(archived bool, projects map[string]Project) FilterFunction
 }
 
 // FilterByTagsAny returns a function for filtering by tags
-func FilterByTagsAny(tags []string) FilterFunction {
-	tg := make(map[string]bool)
-	for _, t := range tags {
-		tg[t] = true
-	}
+func FilterByTagsAny(tags map[string]string) FilterFunction {
 	return func(r *Record) bool {
-		for t := range r.Tags {
-			if _, ok := tg[t]; ok {
-				return true
+		for t, v := range r.Tags {
+			if v2, ok := tags[t]; ok {
+				if v2 == "" || v == v2 {
+					return true
+				}
 			}
 		}
 		return false
@@ -89,12 +87,12 @@ func FilterByTagsAny(tags []string) FilterFunction {
 }
 
 // FilterByTagsAll returns a function for filtering by tags
-func FilterByTagsAll(tags []string) FilterFunction {
+func FilterByTagsAll(tags map[string]string) FilterFunction {
 	return func(r *Record) bool {
-		for _, t := range tags {
+		for t, v := range tags {
 			found := false
-			for t2 := range r.Tags {
-				if t == t2 {
+			for t2, v2 := range r.Tags {
+				if t == t2 && (v == "" || v == v2) {
 					found = true
 					break
 				}

@@ -38,7 +38,12 @@ func createFilters(options *filterOptions, projects map[string]core.Project, fil
 	}
 
 	if len(options.tags) > 0 {
-		filters = append(filters, core.FilterByTagsAny(options.tags))
+		tags := make(map[string]string, len(options.tags))
+		for _, tag := range options.tags {
+			k, v := core.ParseTag(tag)
+			tags[k] = v
+		}
+		filters = append(filters, core.FilterByTagsAny(tags))
 	}
 
 	startTime, endTime, err := parseStartEnd(options)

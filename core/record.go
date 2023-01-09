@@ -179,6 +179,16 @@ func (r *Record) EndPause(t time.Time) (Pause, error) {
 	return r.Pause[len(r.Pause)-1], nil
 }
 
+// ParseTag parses a key=value pair
+func ParseTag(tag string) (string, string) {
+	parts := strings.SplitN(tag, "=", 2)
+	value := ""
+	if len(parts) > 1 {
+		value = parts[1]
+	}
+	return parts[0], value
+}
+
 // ExtractTagsSlice extracts elements with the tag prefix
 func ExtractTagsSlice(tokens []string) (map[string]string, error) {
 	result := make(map[string]string)
@@ -186,15 +196,11 @@ func ExtractTagsSlice(tokens []string) (map[string]string, error) {
 		subTokens := strings.Split(token, " ")
 		for _, subToken := range subTokens {
 			if strings.HasPrefix(subToken, TagPrefix) {
-				parts := strings.SplitN(strings.TrimPrefix(subToken, TagPrefix), "=", 2)
-				value := ""
-				if len(parts) > 1 {
-					value = parts[1]
+				key, value := ParseTag(strings.TrimPrefix(subToken, TagPrefix))
+				if old, ok := result[key]; ok && value != old {
+					return nil, fmt.Errorf("tag '%s' already has value '%s'", key, value)
 				}
-				if old, ok := result[parts[0]]; ok && value != old {
-					return nil, fmt.Errorf("tag '%s' already has value '%s'", parts[0], value)
-				}
-				result[parts[0]] = value
+				result[key] = value
 			}
 		}
 	}
@@ -206,15 +212,13 @@ func ExtractTags(text string) (map[string]string, error) {
 	result := make(map[string]string)
 	subTokens := strings.Split(text, " ")
 	for _, subToken := range subTokens {
-		parts := strings.SplitN(strings.TrimPrefix(subToken, TagPrefix), "=", 2)
-		value := ""
-		if len(parts) > 1 {
-			value = parts[1]
+		if strings.HasPrefix(subToken, TagPrefix) {
+			key, value := ParseTag(strings.TrimPrefix(subToken, TagPrefix))
+			if old, ok := result[key]; ok && value != old {
+				return nil, fmt.Errorf("tag '%s' already has value '%s'", key, value)
+			}
+			result[key] = value
 		}
-		if old, ok := result[parts[0]]; ok && value != old {
-			return nil, fmt.Errorf("tag '%s' already has value '%s'", parts[0], value)
-		}
-		result[parts[0]] = value
 	}
 	return result, nil
 }
