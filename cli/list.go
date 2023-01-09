@@ -312,6 +312,7 @@ func printTags(t *core.Track, includeArchived bool) error {
 	}
 
 	tags := map[string]int{}
+	values := map[string]map[string]bool{}
 
 	filters := []core.FilterFunction{}
 	if !includeArchived {
@@ -325,11 +326,13 @@ func printTags(t *core.Track, includeArchived bool) error {
 		if res.Err != nil {
 			return res.Err
 		}
-		for tag := range res.Record.Tags {
+		for tag, value := range res.Record.Tags {
 			if v, ok := tags[tag]; ok {
 				tags[tag] = v + 1
+				values[tag][value] = true
 			} else {
 				tags[tag] = 1
+				values[tag] = map[string]bool{value: true}
 			}
 		}
 	}
@@ -338,7 +341,13 @@ func printTags(t *core.Track, includeArchived bool) error {
 	sort.Strings(keys)
 
 	for _, tag := range keys {
-		out.Print("%16s %4d\n", tag, tags[tag])
+		v := maps.Keys(values[tag])
+		sort.Strings(v)
+		out.Print("%16s %4d", tag, tags[tag])
+		if len(v) > 1 || (len(v) > 0 && v[0] != "") {
+			out.Print(" [%s]", strings.Join(v, " "))
+		}
+		out.Print("\n")
 	}
 
 	return nil
