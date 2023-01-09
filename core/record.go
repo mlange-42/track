@@ -109,7 +109,17 @@ func (r *Record) CurrentPauseDuration(min, max time.Time) time.Duration {
 }
 
 // Check checks consistency of a record
-func (r *Record) Check() error {
+func (r *Record) Check(project *Project) error {
+	for _, tag := range project.RequiredTags {
+		if v, ok := r.Tags[tag]; ok {
+			if v == "" {
+				return fmt.Errorf("missing value for required tag '%s' for project '%s'", tag, project.Name)
+			}
+		} else {
+			return fmt.Errorf("missing required tag '%s' for project '%s'", tag, project.Name)
+		}
+	}
+
 	if !r.End.IsZero() && r.End.Before(r.Start) {
 		return fmt.Errorf("end time is before start time")
 	}

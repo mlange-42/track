@@ -101,11 +101,13 @@ func TestStartStopRecord(t *testing.T) {
 	assert.Nil(t, err, "Error creating temporary directory")
 	defer os.Remove(dir)
 
+	project := NewProject("test", "", "t", []string{}, 15, 0)
+
 	track, err := NewTrack(&dir)
 	assert.Nil(t, err, "Error creating Track instance")
 
 	start := time.Now().Round(time.Minute).Add(-time.Hour)
-	record, err := track.StartRecord("test", "", map[string]string{}, start)
+	record, err := track.StartRecord(&project, "", map[string]string{}, start)
 	assert.Nil(t, err, "Error starting record")
 
 	openRecord, err := track.OpenRecord()

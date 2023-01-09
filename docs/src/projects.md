@@ -72,6 +72,7 @@ For further ways to structure time tracking, see [Tags](./tracking.md#note-and-t
 
 ## Colors
 
+For each project, a foreground and background color can be defined (`fgColor`, `color`).
 *Track* uses 256 indexed terminal colors. To view the available colors, run:
 
 ```shell
@@ -82,6 +83,14 @@ Which shows something like this:
 
 ![Colors](./images/colors.png)
 *Available colors with indices*
+
+## Required tags
+
+In `requiredTags`, projects can define a list of tags that must be given for any record, with a value.
+This feature can be used to enforce another layer or dimension of categorization, beyond projects.
+
+E.g., *Track* projects could represent real-world projects, while a required tag holds information about the type of activity.
+Here, a tag `activity` could be used with values like `writing`, `coding`, `meeting` etc.
 
 ## Editing projects
 

@@ -5,6 +5,8 @@
 ### Features
 
 * Tags can have values, like `+tag=value` (#122)
+* Command `report tags` shows a breakdown of tag values if a single tag is selected (#122)
+* Projects can have required tags that must be given for each record, with a value (#125)
 
 ### Bugfixes
 

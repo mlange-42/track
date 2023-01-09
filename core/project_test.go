@@ -125,7 +125,7 @@ func TestSaveLoadProject(t *testing.T) {
 	assert.False(t, fs.FileExists(track.ProjectPath("test")), "File must not exist")
 	assert.False(t, track.ProjectExists("test"), "Project must not exist")
 
-	project := NewProject("test", "", "T", 0, 15)
+	project := NewProject("test", "", "T", []string{"a", "b"}, 0, 15)
 	err = track.SaveProject(project, false)
 	assert.Nil(t, err, "Error saving project")
 
@@ -162,9 +162,9 @@ func TestCheckParents(t *testing.T) {
 	track, err := NewTrack(&dir)
 	assert.Nil(t, err, "Error creating Track instance")
 
-	p1 := NewProject("p1", "", "T", 0, 15)
-	p2 := NewProject("p2", "", "T", 0, 15)
-	p3 := NewProject("p3", "", "T", 0, 15)
+	p1 := NewProject("p1", "", "T", []string{"a", "b"}, 0, 15)
+	p2 := NewProject("p2", "", "T", []string{"a", "b"}, 0, 15)
+	p3 := NewProject("p3", "", "T", []string{"a", "b"}, 0, 15)
 
 	err = track.SaveProject(p1, false)
 	assert.Nil(t, err, "Error saving project")

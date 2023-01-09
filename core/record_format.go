@@ -86,7 +86,7 @@ func DeserializeRecord(str string, date time.Time) (Record, error) {
 	if !ok {
 		return Record{}, fmt.Errorf("invalid record: missing project (2nd line)")
 	}
-	project := strings.TrimSpace(lines[index])
+	projectName := strings.TrimSpace(lines[index])
 	index++
 
 	notes := []string{}
@@ -103,21 +103,14 @@ func DeserializeRecord(str string, date time.Time) (Record, error) {
 		return Record{}, err
 	}
 
-	record := Record{
-		Project: project,
+	return Record{
+		Project: projectName,
 		Start:   start,
 		End:     end,
 		Note:    strings.TrimSpace(strings.Join(notes, "\n")),
 		Tags:    tags,
 		Pause:   pause,
-	}
-
-	err = record.Check()
-	if err != nil {
-		return record, err
-	}
-
-	return record, nil
+	}, nil
 }
 
 func skipLines(lines []string, index int, skipEmpty bool) (int, bool) {

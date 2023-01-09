@@ -29,36 +29,39 @@ type ProjectNode = tree.MapNode[Project]
 
 // Project holds and manipulates data for a project
 type Project struct {
-	Name     string
-	Parent   string
-	Color    uint8
-	FgColor  uint8          `yaml:"fgColor"`
-	Render   color.Style256 `yaml:"-"`
-	Symbol   string
-	Archived bool
+	Name         string
+	Parent       string
+	RequiredTags []string `yaml:"requiredTags"`
+	Color        uint8
+	FgColor      uint8          `yaml:"fgColor"`
+	Render       color.Style256 `yaml:"-"`
+	Symbol       string
+	Archived     bool
 }
 
 // NewProject creates a new project
-func NewProject(name string, parent string, symbol string, fgColor, color uint8) Project {
+func NewProject(name string, parent string, symbol string, requiredTags []string, fgColor, color uint8) Project {
 	p := Project{
-		Name:     name,
-		Parent:   parent,
-		Symbol:   symbol,
-		Color:    color,
-		FgColor:  fgColor,
-		Archived: false,
+		Name:         name,
+		Parent:       parent,
+		RequiredTags: requiredTags,
+		Symbol:       symbol,
+		Color:        color,
+		FgColor:      fgColor,
+		Archived:     false,
 	}
 	p.SetColors(fgColor, color)
 	return p
 }
 
 type tempProject struct {
-	Name     string
-	Parent   string
-	Color    uint8
-	FgColor  uint8 `yaml:"fgColor"`
-	Symbol   string
-	Archived bool
+	Name         string
+	Parent       string
+	RequiredTags []string `yaml:"requiredTags"`
+	Color        uint8
+	FgColor      uint8 `yaml:"fgColor"`
+	Symbol       string
+	Archived     bool
 }
 
 // GetName implements the Named interface required for the MapTree
@@ -75,6 +78,7 @@ func (p *Project) UnmarshalYAML(value *yaml.Node) error {
 	}
 	p.Name = tmp.Name
 	p.Parent = tmp.Parent
+	p.RequiredTags = tmp.RequiredTags
 	p.Symbol = tmp.Symbol
 	p.Archived = tmp.Archived
 
