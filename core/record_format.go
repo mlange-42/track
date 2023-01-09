@@ -90,7 +90,6 @@ func DeserializeRecord(str string, date time.Time) (Record, error) {
 	index++
 
 	notes := []string{}
-	tags := []string{}
 	index, ok = skipLines(lines, index, true)
 	if ok {
 		for ok {
@@ -99,7 +98,10 @@ func DeserializeRecord(str string, date time.Time) (Record, error) {
 			index, ok = skipLines(lines, index, false)
 		}
 	}
-	tags = ExtractTagsSlice(notes)
+	tags, err := ExtractTagsSlice(notes)
+	if err != nil {
+		return Record{}, err
+	}
 
 	record := Record{
 		Project: project,

@@ -2,6 +2,8 @@ package core
 
 import (
 	"time"
+
+	"github.com/mlange-42/track/util"
 )
 
 // FilterFunction is an alias for func(r *Record) bool
@@ -73,15 +75,25 @@ func FilterByArchived(archived bool, projects map[string]Project) FilterFunction
 }
 
 // FilterByTagsAny returns a function for filtering by tags
-func FilterByTagsAny(tags []string) FilterFunction {
-	tg := make(map[string]bool)
-	for _, t := range tags {
-		tg[t] = true
+func FilterByTagsAny(tags []util.Pair[string, string]) FilterFunction {
+	tg := map[string]map[string]bool{}
+	for _, kv := range tags {
+		if m, ok := tg[kv.Key]; ok {
+			m[kv.Value] = true
+		} else {
+			tg[kv.Key] = map[string]bool{kv.Value: true}
+		}
 	}
+
 	return func(r *Record) bool {
-		for _, t := range r.Tags {
-			if _, ok := tg[t]; ok {
-				return true
+		for t, v := range r.Tags {
+			if values, ok := tg[t]; ok {
+				if _, ok := values[""]; ok {
+					return true
+				}
+				if _, ok := values[v]; ok {
+					return true
+				}
 			}
 		}
 		return false
@@ -89,12 +101,12 @@ func FilterByTagsAny(tags []string) FilterFunction {
 }
 
 // FilterByTagsAll returns a function for filtering by tags
-func FilterByTagsAll(tags []string) FilterFunction {
+func FilterByTagsAll(tags []util.Pair[string, string]) FilterFunction {
 	return func(r *Record) bool {
-		for _, t := range tags {
+		for _, kv := range tags {
 			found := false
-			for _, t2 := range r.Tags {
-				if t == t2 {
+			for t2, v2 := range r.Tags {
+				if kv.Key == t2 && (kv.Value == "" || kv.Value == v2) {
 					found = true
 					break
 				}

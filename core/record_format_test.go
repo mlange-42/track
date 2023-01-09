@@ -28,7 +28,7 @@ func TestSerializeDeserialize(t *testing.T) {
 				Start:   time.Date(2001, 2, 3, 8, 0, 0, 0, time.Local),
 				End:     time.Date(2001, 2, 3, 9, 0, 0, 0, time.Local),
 				Pause:   make([]Pause, 0),
-				Tags:    make([]string, 0),
+				Tags:    make(map[string]string, 0),
 			},
 			text: `08:00 - 09:00
     test
@@ -43,7 +43,7 @@ func TestSerializeDeserialize(t *testing.T) {
 				Start:   time.Date(2001, 2, 3, 8, 0, 0, 0, time.Local),
 				End:     util.NoTime,
 				Pause:   make([]Pause, 0),
-				Tags:    make([]string, 0),
+				Tags:    make(map[string]string, 0),
 			},
 			text: `08:00 - ?
     test
@@ -70,7 +70,7 @@ func TestSerializeDeserialize(t *testing.T) {
 					},
 				},
 				Note: "Note with a +tag",
-				Tags: []string{"tag"},
+				Tags: map[string]string{"tag": ""},
 			},
 			text: `08:00 - ?
     - 08:30 - 10m0s / Breakfast
@@ -225,7 +225,7 @@ func fullRecord() Record {
 			},
 		},
 		Note: "Note with a +tag",
-		Tags: []string{"tag"},
+		Tags: map[string]string{"tag": ""},
 	}
 }
 
@@ -289,6 +289,6 @@ func timedRecord(start time.Time, duration time.Duration, pauses int, lines int)
 		End:     start.Add(duration),
 		Pause:   pause,
 		Note:    strings.Join(note, "\n"),
-		Tags:    []string{},
+		Tags:    map[string]string{},
 	}
 }

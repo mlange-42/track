@@ -76,46 +76,143 @@ func TestFilters(t *testing.T) {
 		{
 			title: "filter by any tags",
 			filters: []func(r *Record) bool{
-				FilterByTagsAny([]string{"A", "B"}),
+				FilterByTagsAny([]util.Pair[string, string]{
+					{Key: "A", Value: ""}, {Key: "B", Value: ""},
+				}),
 			},
 			records: map[*Record]bool{
 				{
-					Tags: []string{},
+					Tags: map[string]string{},
 				}: false,
 				{
-					Tags: []string{"C", "D"},
+					Tags: map[string]string{"C": "", "D": ""},
 				}: false,
 				{
-					Tags: []string{"A", "C"},
+					Tags: map[string]string{"A": "", "C": ""},
 				}: true,
 				{
-					Tags: []string{"A", "B"},
+					Tags: map[string]string{"A": "", "B": ""},
 				}: true,
 				{
-					Tags: []string{"A", "B", "C"},
+					Tags: map[string]string{"A": "a", "B": "b"},
 				}: true,
+				{
+					Tags: map[string]string{"A": "", "B": "", "C": ""},
+				}: true,
+			},
+		},
+		{
+			title: "filter by any tags with value",
+			filters: []func(r *Record) bool{
+				FilterByTagsAny([]util.Pair[string, string]{
+					{Key: "A", Value: "a"}, {Key: "B", Value: "b"},
+				}),
+			},
+			records: map[*Record]bool{
+				{
+					Tags: map[string]string{},
+				}: false,
+				{
+					Tags: map[string]string{"C": "c", "D": "d"},
+				}: false,
+				{
+					Tags: map[string]string{"A": "", "C": "c"},
+				}: false,
+				{
+					Tags: map[string]string{"A": "a", "C": ""},
+				}: true,
+				{
+					Tags: map[string]string{"A": "b", "C": ""},
+				}: false,
+				{
+					Tags: map[string]string{"A": "", "B": ""},
+				}: false,
+				{
+					Tags: map[string]string{"A": "", "B": "b"},
+				}: true,
+				{
+					Tags: map[string]string{"A": "a", "B": "b", "C": ""},
+				}: true,
+			},
+		},
+		{
+			title: "filter by any tag valuea",
+			filters: []func(r *Record) bool{
+				FilterByTagsAny([]util.Pair[string, string]{
+					{Key: "A", Value: "a"}, {Key: "A", Value: "b"},
+				}),
+			},
+			records: map[*Record]bool{
+				{
+					Tags: map[string]string{},
+				}: false,
+				{
+					Tags: map[string]string{"C": "c", "D": "d"},
+				}: false,
+				{
+					Tags: map[string]string{"A": "a", "C": "c"},
+				}: true,
+				{
+					Tags: map[string]string{"A": "b", "C": "c"},
+				}: true,
+				{
+					Tags: map[string]string{"A": "a", "C": "c"},
+				}: true,
+				{
+					Tags: map[string]string{"A": "c", "C": "c"},
+				}: false,
 			},
 		},
 		{
 			title: "filter by all tags",
 			filters: []func(r *Record) bool{
-				FilterByTagsAll([]string{"A", "B"}),
+				FilterByTagsAll([]util.Pair[string, string]{
+					{Key: "A", Value: ""}, {Key: "B", Value: ""},
+				}),
 			},
 			records: map[*Record]bool{
 				{
-					Tags: []string{},
+					Tags: map[string]string{},
 				}: false,
 				{
-					Tags: []string{"C", "D"},
+					Tags: map[string]string{"C": "", "D": ""},
 				}: false,
 				{
-					Tags: []string{"A", "C"},
+					Tags: map[string]string{"A": "", "C": ""},
 				}: false,
 				{
-					Tags: []string{"A", "B"},
+					Tags: map[string]string{"A": "", "B": ""},
 				}: true,
 				{
-					Tags: []string{"A", "B", "C"},
+					Tags: map[string]string{"A": "", "B": "", "C": ""},
+				}: true,
+			},
+		},
+		{
+			title: "filter by all tags with value",
+			filters: []func(r *Record) bool{
+				FilterByTagsAll([]util.Pair[string, string]{
+					{Key: "A", Value: "a"}, {Key: "B", Value: ""},
+				}),
+			},
+			records: map[*Record]bool{
+				{
+					Tags: map[string]string{},
+				}: false,
+				{
+					Tags: map[string]string{"C": "c", "D": "c"},
+				}: false,
+				{
+					Tags: map[string]string{"A": "a", "C": "c"},
+				}: false,
+				{
+					Tags: map[string]string{"A": "b", "B": "a"},
+				}: false,
+				{
+					Tags: map[string]string{"A": "a", "B": "a"},
+				}: true,
+				{
+					Tags: map[string]string{"A": "a", "B": "a", "C": ""},
 				}: true,
 			},
 		},

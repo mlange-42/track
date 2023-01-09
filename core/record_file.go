@@ -31,7 +31,7 @@ type listFilterResult struct {
 }
 
 // StartRecord starts and saves a record
-func (t *Track) StartRecord(project, note string, tags []string, start time.Time) (Record, error) {
+func (t *Track) StartRecord(project, note string, tags map[string]string, start time.Time) (Record, error) {
 	record := Record{
 		Project: project,
 		Note:    note,

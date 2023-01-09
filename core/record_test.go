@@ -225,32 +225,38 @@ func TestExtractTags(t *testing.T) {
 	tt := []struct {
 		title   string
 		note    string
-		expTags []string
+		expTags map[string]string
 	}{
 		{
 			title:   "no tags",
 			note:    "Note without tags",
-			expTags: []string{},
+			expTags: map[string]string{},
 		},
 		{
 			title:   "one tags",
 			note:    "Note with a +tag in it",
-			expTags: []string{"tag"},
+			expTags: map[string]string{"tag": ""},
 		},
 		{
 			title:   "two tags",
 			note:    "Note with +two +tags in it",
-			expTags: []string{"two", "tags"},
+			expTags: map[string]string{"two": "", "tags": ""},
 		},
 		{
 			title:   "repeated tags",
 			note:    "Note with +two +tags in it +tags +two",
-			expTags: []string{"two", "tags"},
+			expTags: map[string]string{"two": "", "tags": ""},
+		},
+		{
+			title:   "tags with values",
+			note:    "Note with +two=foo +tags= in it",
+			expTags: map[string]string{"two": "foo", "tags": ""},
 		},
 	}
 
 	for _, test := range tt {
-		tags := ExtractTags(test.note)
+		tags, err := ExtractTags(test.note)
+		assert.Nil(t, err, "Error extracting tags")
 		assert.Equal(t, test.expTags, tags, "Failed extracting tags %s", test.title)
 	}
 }
@@ -259,37 +265,43 @@ func TestExtractTagsSlice(t *testing.T) {
 	tt := []struct {
 		title   string
 		note    []string
-		expTags []string
+		expTags map[string]string
 	}{
 		{
 			title:   "no tags",
 			note:    []string{"Note without tags"},
-			expTags: []string{},
+			expTags: map[string]string{},
 		},
 		{
 			title:   "one tag",
 			note:    []string{"Note with a +tag in it"},
-			expTags: []string{"tag"},
+			expTags: map[string]string{"tag": ""},
 		},
 		{
 			title:   "tag on 2ng line",
 			note:    []string{"No tag", "Note with a +tag in it"},
-			expTags: []string{"tag"},
+			expTags: map[string]string{"tag": ""},
 		},
 		{
 			title:   "two tags",
 			note:    []string{"Note with +two +tags in it"},
-			expTags: []string{"two", "tags"},
+			expTags: map[string]string{"two": "", "tags": ""},
 		},
 		{
 			title:   "repeated tags",
 			note:    []string{"Note with +two +tags in it +tags +two"},
-			expTags: []string{"two", "tags"},
+			expTags: map[string]string{"two": "", "tags": ""},
+		},
+		{
+			title:   "tags with value",
+			note:    []string{"Note with +two=foo +tags= in it"},
+			expTags: map[string]string{"two": "foo", "tags": ""},
 		},
 	}
 
 	for _, test := range tt {
-		tags := ExtractTagsSlice(test.note)
+		tags, err := ExtractTagsSlice(test.note)
+		assert.Nil(t, err, "Error extracting tags")
 		assert.Equal(t, test.expTags, tags, "Failed extracting tags %s", test.title)
 	}
 }
