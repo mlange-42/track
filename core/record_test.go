@@ -346,3 +346,19 @@ func TestExtractTagsSlice(t *testing.T) {
 		assert.Equal(t, test.expTags, tags, "Failed extracting tags %s", test.title)
 	}
 }
+
+func BenchmarkExtractTags(b *testing.B) {
+	text := "a test text with a +tag and a +key=value pair"
+
+	for i := 0; i < b.N; i++ {
+		_, _ = ExtractTags(text)
+	}
+}
+
+func BenchmarkExtractTagsSlice(b *testing.B) {
+	text := []string{"a test text with a +tag and a +key=value pair"}
+
+	for i := 0; i < b.N; i++ {
+		_, _ = ExtractTagsSlice(text)
+	}
+}
