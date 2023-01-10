@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"os"
 	"strings"
 
 	"github.com/mlange-42/track/core"
+	"github.com/mlange-42/track/out"
 	"github.com/mlange-42/track/util"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -59,7 +59,7 @@ The default export format is CSV.`,
 				return fmt.Errorf("failed to export records: %s", err)
 			}
 
-			io := os.Stdout
+			io := out.StdOut
 			var writer recordWriter
 			if json {
 				writer = jsonWriter{}

@@ -12,14 +12,18 @@ import (
 
 func TestCreateWorkspace(t *testing.T) {
 	track, err := setupTestCommand()
-	assert.Nil(t, err, "error setting up test")
+	if err != nil {
+		t.Fatal("error setting up test")
+	}
 	defer os.Remove(track.RootDir)
 
 	cmd := RootCommand(track, "")
 	cmd.SetArgs([]string{"create", "workspace", "test-ws"})
 
 	err = cmd.Execute()
-	assert.Nil(t, err, "error executing command")
+	if err != nil {
+		t.Fatal("error executing command")
+	}
 	assert.True(t, track.WorkspaceExists("test-ws"), "Workspace should exist")
 
 	cmd = RootCommand(track, "")
@@ -31,14 +35,18 @@ func TestCreateWorkspace(t *testing.T) {
 
 func TestCreateProjectSimple(t *testing.T) {
 	track, err := setupTestCommand()
-	assert.Nil(t, err, "error setting up test")
+	if err != nil {
+		t.Fatal("error setting up test")
+	}
 	defer os.Remove(track.RootDir)
 
 	cmd := RootCommand(track, "")
 	cmd.SetArgs([]string{"create", "project", "test"})
 
 	err = cmd.Execute()
-	assert.Nil(t, err, "error executing command")
+	if err != nil {
+		t.Fatal("error executing command")
+	}
 	assert.True(t, track.ProjectExists("test"), "Project should exist")
 
 	cmd = RootCommand(track, "")
@@ -50,14 +58,18 @@ func TestCreateProjectSimple(t *testing.T) {
 
 func TestCreateProjectFlags(t *testing.T) {
 	track, err := setupTestCommand()
-	assert.Nil(t, err, "error setting up test")
+	if err != nil {
+		t.Fatal("error setting up test")
+	}
 	defer os.Remove(track.RootDir)
 
 	cmd := RootCommand(track, "")
 	cmd.SetArgs([]string{"create", "project", "test"})
 
 	err = cmd.Execute()
-	assert.Nil(t, err, "error executing command")
+	if err != nil {
+		t.Fatal("error executing command")
+	}
 	assert.True(t, track.ProjectExists("test"), "Project should exist")
 
 	ref := core.NewProject("child", "test", "C", []string{"tag1", "tag2"}, 15, 0)
@@ -73,7 +85,9 @@ func TestCreateProjectFlags(t *testing.T) {
 	})
 
 	err = cmd.Execute()
-	assert.Nil(t, err, "error executing command")
+	if err != nil {
+		t.Fatal("error executing command")
+	}
 	assert.True(t, track.ProjectExists("child"), "Project should exist")
 
 	project, err := track.LoadProjectByName("child")
