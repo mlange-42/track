@@ -19,4 +19,4 @@
 # Appendix
 
 - [Command tree](./command-tree.md)
-- [File formats](./file-formats.md)
+- [File format](./file-format.md)
