@@ -29,15 +29,14 @@ Reports for the current week if no date is given, or for the past 7 days with fl
 If called with a date, reports for the week containing the date, or for the 7 days starting with the date with flag --7days.`,
 		Aliases: []string{"w"},
 		Args:    util.WrappedArgs(cobra.MaximumNArgs(1)),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			start := util.ToDate(time.Now())
 
 			var err error
 			if len(args) > 0 {
 				start, err = util.ParseDate(args[0])
 				if err != nil {
-					out.Err("failed to generate report: %s", err)
-					return
+					return fmt.Errorf("failed to generate report: %s", err)
 				}
 				if !exact {
 					start = util.Monday(start)
@@ -51,8 +50,7 @@ If called with a date, reports for the week containing the date, or for the 7 da
 			}
 
 			if blocksPerHour <= 0 {
-				out.Err("failed to generate report: argument --width must be > 0")
-				return
+				return fmt.Errorf("failed to generate report: argument --width must be > 0")
 			}
 			if !cmd.Flags().Changed("width") {
 				if w, _, err := util.TerminalSize(); err == nil && w > 0 {
@@ -62,9 +60,9 @@ If called with a date, reports for the week containing the date, or for the 7 da
 
 			err = schedule(t, start, options, true, blocksPerHour)
 			if err != nil {
-				out.Err("failed to generate report: %s", err)
-				return
+				return fmt.Errorf("failed to generate report: %s", err)
 			}
+			return nil
 		},
 	}
 
@@ -156,7 +154,7 @@ func schedule(t *core.Track, start time.Time, options *filterOptions, week bool,
 	if err != nil {
 		return err
 	}
-	fmt.Print(str)
+	out.Print(str)
 	return nil
 }
 

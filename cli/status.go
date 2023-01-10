@@ -43,11 +43,10 @@ Columns of the status are:
 `,
 		Aliases: []string{"s", "?"},
 		Args:    util.WrappedArgs(cobra.MaximumNArgs(1)),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			maxBreak, err := time.ParseDuration(maxBreakStr)
 			if err != nil {
-				out.Err("failed to show status: %s", err)
-				return
+				return fmt.Errorf("failed to show status: %s", err)
 			}
 
 			project := ""
@@ -56,8 +55,7 @@ Columns of the status are:
 			}
 			info, err := getStatus(t, project, maxBreak)
 			if err != nil {
-				out.Err("failed to show status: %s", err)
-				return
+				return fmt.Errorf("failed to show status: %s", err)
 			}
 
 			if project == "" && !info.IsActive {
@@ -70,8 +68,7 @@ Columns of the status are:
 
 			proj, err := t.LoadProjectByName(info.Project)
 			if err != nil {
-				out.Err("failed to show status: %s", err)
-				return
+				return fmt.Errorf("failed to show status: %s", err)
 			}
 
 			name := info.Project
@@ -105,6 +102,7 @@ Columns of the status are:
 				out.Print(" (paused for %s)", util.FormatDuration(info.CurrPause))
 			}
 			out.Print("\n+------------------+-------+-------+-------+-------+")
+			return nil
 		},
 	}
 	status.Flags().StringVar(

@@ -70,34 +70,30 @@ Edits the last or open record if no date and time are given.
 Uses the current date if only a time is given.`,
 		Aliases: []string{"r"},
 		Args:    util.WrappedArgs(cobra.MaximumNArgs(2)),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			tm := util.NoTime
 			switch len(args) {
 			case 0:
 				last, err := t.LatestRecord()
 				if err != nil {
-					out.Err("failed to edit record: %s", err)
-					return
+					return fmt.Errorf("failed to edit record: %s", err)
 				}
 				tm = last.Start
 			case 1:
 				tm, err = time.ParseInLocation(util.TimeFormat, args[0], time.Local)
 				if err != nil {
-					out.Err("failed to edit record: %s", err)
-					return
+					return fmt.Errorf("failed to edit record: %s", err)
 				}
 				tm = util.DateAndTime(time.Now(), tm)
 			case 2:
 				date, err := util.ParseDate(args[0])
 				if err != nil {
-					out.Err("failed to edit record: %s", err)
-					return
+					return fmt.Errorf("failed to edit record: %s", err)
 				}
 				tm, err = time.Parse(util.TimeFormat, args[1])
 				if err != nil {
-					out.Err("failed to edit record: %s", err)
-					return
+					return fmt.Errorf("failed to edit record: %s", err)
 				}
 				tm = util.DateAndTime(date, tm)
 			}
@@ -105,17 +101,16 @@ Uses the current date if only a time is given.`,
 			err = editRecord(t, tm, *dryRun)
 			if err != nil {
 				if err == ErrUserAbort {
-					out.Warn("failed to edit record %s: %s", tm.Format(util.DateTimeFormat), err)
-					return
+					return fmt.Errorf("failed to edit record %s: %s", tm.Format(util.DateTimeFormat), err)
 				}
-				out.Err("failed to edit record %s: %s", tm.Format(util.DateTimeFormat), err)
-				return
+				return fmt.Errorf("failed to edit record %s: %s", tm.Format(util.DateTimeFormat), err)
 			}
 			if *dryRun {
 				out.Success("Saved record %s - dry-run", tm.Format(util.DateTimeFormat))
 			} else {
 				out.Success("Saved record %s", tm.Format(util.DateTimeFormat))
 			}
+			return nil
 		},
 	}
 
@@ -135,12 +130,11 @@ Opens the project as a temporary YAML file for editing if no flags are given.
 See file .track/config.yml to configure the editor to be used.`,
 		Aliases: []string{"p"},
 		Args:    util.WrappedArgs(cobra.ExactArgs(1)),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			name := args[0]
 			project, err := t.LoadProjectByName(name)
 			if err != nil {
-				out.Err("failed to edit project: %s", err)
-				return
+				return fmt.Errorf("failed to edit project: %s", err)
 			}
 
 			changed := false
@@ -163,8 +157,7 @@ See file .track/config.yml to configure the editor to be used.`,
 				} else {
 					recCount, prjCount, err := renameProject(t, &project, rename, *dryRun)
 					if err != nil {
-						out.Err("failed to edit project: %s", err)
-						return
+						return fmt.Errorf("failed to edit project: %s", err)
 					}
 					out.Success("Renamed project '%s' to '%s' (%d records, %d projects)\n", project.Name, rename, recCount, prjCount)
 				}
@@ -174,19 +167,16 @@ See file .track/config.yml to configure the editor to be used.`,
 			if changed {
 				if !*dryRun {
 					if err := t.SaveProject(project, true); err != nil {
-						out.Err("failed to edit project: %s", err)
-						return
+						return fmt.Errorf("failed to edit project: %s", err)
 					}
 				}
 			} else {
 				err = editProject(t, project, *dryRun)
 				if err != nil {
 					if err == ErrUserAbort {
-						out.Warn("failed to edit project: %s", err)
-						return
+						return fmt.Errorf("failed to edit project: %s", err)
 					}
-					out.Err("failed to edit project: %s", err)
-					return
+					return fmt.Errorf("failed to edit project: %s", err)
 				}
 			}
 			if *dryRun {
@@ -194,6 +184,7 @@ See file .track/config.yml to configure the editor to be used.`,
 			} else {
 				out.Success("Saved project %s", name)
 			}
+			return nil
 		},
 	}
 	editProject.Flags().BoolVarP(&archive, "archive", "a", false, "Archive or un-archive a project. Use like '-a=false'")
@@ -213,15 +204,13 @@ Opens the config as a temporary YAML file for editing.
 See file .track/config.yml to configure the editor to be used.`,
 		Aliases: []string{"c"},
 		Args:    util.WrappedArgs(cobra.NoArgs),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			err := editConfig(t, *dryRun)
 			if err != nil {
 				if err == ErrUserAbort {
-					out.Warn("failed to edit config: %s", err)
-					return
+					return fmt.Errorf("failed to edit config: %s", err)
 				}
-				out.Err("failed to edit config: %s", err)
-				return
+				return fmt.Errorf("failed to edit config: %s", err)
 			}
 
 			if *dryRun {
@@ -229,6 +218,7 @@ See file .track/config.yml to configure the editor to be used.`,
 			} else {
 				out.Success("Saved config to %s", t.ConfigPath())
 			}
+			return nil
 		},
 	}
 
@@ -246,30 +236,28 @@ Opens the records in a single temporary file for editing.
 See file .track/config.yml to configure the editor to be used.`,
 		Aliases: []string{"d"},
 		Args:    util.WrappedArgs(cobra.MaximumNArgs(2)),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			date := util.ToDate(time.Now())
 			if len(args) > 0 {
 				date, err = util.ParseDate(args[0])
 				if err != nil {
-					out.Err("failed to edit day: %s", err)
-					return
+					return fmt.Errorf("failed to edit day: %s", err)
 				}
 			}
 			err = editDay(t, date, *dryRun)
 			if err != nil {
 				if err == ErrUserAbort {
-					out.Warn("failed to edit day: %s", err)
-					return
+					return fmt.Errorf("failed to edit day: %s", err)
 				}
-				out.Err("failed to edit day: %s", err)
-				return
+				return fmt.Errorf("failed to edit day: %s", err)
 			}
 			if *dryRun {
 				out.Success("Saved day records - dry-run")
 			} else {
 				out.Success("Saved day records")
 			}
+			return nil
 		},
 	}
 

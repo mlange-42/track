@@ -40,17 +40,15 @@ func deleteRecordCommand(t *core.Track, dryRun *bool) *cobra.Command {
 		Long:    "Delete a record",
 		Aliases: []string{"r"},
 		Args:    util.WrappedArgs(cobra.ExactArgs(2)),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			timeString := strings.Join(args, " ")
 			tm, err := util.ParseDateTime(timeString)
 			if err != nil {
-				out.Err("failed to delete record: %s", err)
-				return
+				return fmt.Errorf("failed to delete record: %s", err)
 			}
 			record, err := t.LoadRecord(tm)
 			if err != nil {
-				out.Err("failed to delete record: %s", err)
-				return
+				return fmt.Errorf("failed to delete record: %s", err)
 			}
 
 			if !force && !confirm(
@@ -62,8 +60,7 @@ func deleteRecordCommand(t *core.Track, dryRun *bool) *cobra.Command {
 				),
 				"y",
 			) {
-				out.Warn("failed to delete record: aborted by user")
-				return
+				return fmt.Errorf("failed to delete record: aborted by user")
 			}
 
 			if *dryRun {
@@ -71,11 +68,11 @@ func deleteRecordCommand(t *core.Track, dryRun *bool) *cobra.Command {
 			} else {
 				err = t.DeleteRecord(&record)
 				if err != nil {
-					out.Err("failed to delete record: %s", err)
-					return
+					return fmt.Errorf("failed to delete record: %s", err)
 				}
 				out.Success("Deleted record %s from '%s'", record.Start.Format(util.DateTimeFormat), record.Project)
 			}
+			return nil
 		},
 	}
 
@@ -93,28 +90,24 @@ func deleteProjectCommand(t *core.Track, dryRun *bool) *cobra.Command {
 		Long:    "Delete a project and all associated records",
 		Aliases: []string{"p"},
 		Args:    util.WrappedArgs(cobra.ExactArgs(1)),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			name := args[0]
 
 			projects, err := t.LoadAllProjects()
 			if err != nil {
-				out.Err("failed to delete project: %s", err)
-				return
+				return fmt.Errorf("failed to delete project: %s", err)
 			}
 			pTree, err := t.ToProjectTree(projects)
 			if err != nil {
-				out.Err("failed to delete project: %s", err)
-				return
+				return fmt.Errorf("failed to delete project: %s", err)
 			}
 
 			pNode, ok := pTree.Nodes[name]
 			if !ok {
-				out.Err("failed to delete project: no project named '%s'", name)
-				return
+				return fmt.Errorf("failed to delete project: no project named '%s'", name)
 			}
 			if len(pNode.Children) > 0 {
-				out.Err("failed to delete project: '%s' has %d child project(s)", name, len(pNode.Children))
-				return
+				return fmt.Errorf("failed to delete project: '%s' has %d child project(s)", name, len(pNode.Children))
 			}
 
 			if !force && !confirm(
@@ -124,21 +117,19 @@ func deleteProjectCommand(t *core.Track, dryRun *bool) *cobra.Command {
 				),
 				"yes!",
 			) {
-				out.Warn("failed to delete project: aborted by user")
-				return
+				return fmt.Errorf("failed to delete project: aborted by user")
 			}
 
 			cnt, err := t.DeleteProject(&pNode.Value, true, *dryRun)
 			if err != nil {
-				out.Err("failed to delete project: %s", err)
-				out.Err("deleted %d records", cnt)
-				return
+				return fmt.Errorf("failed to delete project: %s (deleted %d records)", err, cnt)
 			}
 			if *dryRun {
 				out.Success("Deleted project '%s' (%d records) - dry-run", pNode.Value.Name, cnt)
 			} else {
 				out.Success("Deleted project '%s' (%d records)", pNode.Value.Name, cnt)
 			}
+			return nil
 		},
 	}
 

@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"fmt"
+
 	"github.com/mlange-42/track/core"
 	"github.com/mlange-42/track/out"
 	"github.com/mlange-42/track/util"
@@ -15,15 +17,15 @@ func workspaceCommand(t *core.Track) *cobra.Command {
 		Long:    `Switch to another workspace`,
 		Aliases: []string{"w"},
 		Args:    util.WrappedArgs(cobra.ExactArgs(1)),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			ws := args[0]
 			err := t.SwitchWorkspace(ws)
 			if err != nil {
-				out.Err("failed to switch workspace: %s", err.Error())
-				return
+				return fmt.Errorf("failed to switch workspace: %s", err.Error())
 			}
 
 			out.Success("Switched to workspace '%s'", ws)
+			return nil
 		},
 	}
 

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"os"
 	"strings"
 
 	"github.com/mlange-42/track/core"
@@ -49,20 +48,18 @@ Records can be exported in CSV, JSON and YAML format.
 The default export format is CSV.`,
 		Aliases: []string{"r"},
 		Args:    util.WrappedArgs(cobra.NoArgs),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			projects, err := t.LoadAllProjects()
 			if err != nil {
-				out.Err("failed to export records: %s", err)
-				return
+				return fmt.Errorf("failed to export records: %s", err)
 			}
 
 			filters, err := createFilters(&options, projects, true)
 			if err != nil {
-				out.Err("failed to export records: %s", err)
-				return
+				return fmt.Errorf("failed to export records: %s", err)
 			}
 
-			io := os.Stdout
+			io := out.StdOut
 			var writer recordWriter
 			if json {
 				writer = jsonWriter{}
@@ -77,6 +74,8 @@ The default export format is CSV.`,
 			fn, results, _ := t.AllRecordsFiltered(filters, false)
 			go fn()
 			writer.Write(io, results)
+
+			return nil
 		},
 	}
 

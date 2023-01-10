@@ -25,59 +25,52 @@ func resumeCommand(t *core.Track) *cobra.Command {
 The note argument provides a note for the pause when resuming a stopped record`,
 		Aliases: []string{"re"},
 		Args:    util.WrappedArgs(cobra.ArbitraryArgs),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			open, err := t.OpenRecord()
 			if err != nil {
-				out.Err("failed to resume: %s", err.Error())
-				return
+				return fmt.Errorf("failed to resume: %s", err.Error())
 			}
 			if open != nil {
 				if useLast {
-					out.Err("failed to resume: Flag --last not permitted when resuming a running record")
-					return
+					return fmt.Errorf("failed to resume: Flag --last not permitted when resuming a running record")
 				}
 				if len(args) > 0 {
-					out.Err("failed to resume: no positional arguments accepted when resuming a running record")
-					return
+					return fmt.Errorf("failed to resume: no positional arguments accepted when resuming a running record")
 				}
 
 				pause, err := resumeOpenRecord(t, open, atTime, ago, skip)
 				if err != nil {
-					out.Err("failed to resume: %s", err.Error())
-					return
+					return fmt.Errorf("failed to resume: %s", err.Error())
 				}
 				skipped := ""
 				if skip {
 					skipped = fmt.Sprintf(" (skipped %s pause)", util.FormatDuration(pause))
 				}
 				out.Success("Resume record in '%s'%s", open.Project, skipped)
-				return
+				return nil
 			}
 
 			last, err := t.LatestRecord()
 			if err != nil {
-				out.Err("failed to resume: %s", err.Error())
-				return
+				return fmt.Errorf("failed to resume: %s", err.Error())
 			}
 			if last == nil {
-				out.Err("failed to resume: no record found")
-				return
+				return fmt.Errorf("failed to resume: no record found")
 			}
 			if !useLast {
-				out.Err("failed to resume: no running record. To resume a previous record, use --last")
-				return
+				return fmt.Errorf("failed to resume: no running record. To resume a previous record, use --last")
 			}
 
 			pause, err := resumeLastRecord(t, last, args, atTime, ago, skip)
 			if err != nil {
-				out.Err("failed to resume: %s", err.Error())
-				return
+				return fmt.Errorf("failed to resume: %s", err.Error())
 			}
 			skipped := ""
 			if skip {
 				skipped = fmt.Sprintf(" (skipped %s pause)", util.FormatDuration(pause))
 			}
 			out.Success("Resume record in '%s'%s", last.Project, skipped)
+			return nil
 		},
 	}
 
