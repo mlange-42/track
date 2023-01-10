@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/mlange-42/track/fs"
+	"github.com/mlange-42/track/util"
 )
 
 // CreateWorkspace creates a new workspace
 func (t *Track) CreateWorkspace(name string) error {
-	if fs.DirExists(t.WorkspaceDir(name)) {
+	if util.DirExists(t.WorkspaceDir(name)) {
 		return fmt.Errorf("workspace '%s' already exists", name)
 	}
 	t.createWorkspaceDirs(name)
@@ -18,12 +18,12 @@ func (t *Track) CreateWorkspace(name string) error {
 
 // WorkspaceExists returns whether a workspace exists
 func (t *Track) WorkspaceExists(name string) bool {
-	return fs.DirExists(t.WorkspaceDir(name))
+	return util.DirExists(t.WorkspaceDir(name))
 }
 
 // SwitchWorkspace switches to another workspace
 func (t *Track) SwitchWorkspace(name string) error {
-	if !fs.DirExists(t.WorkspaceDir(name)) {
+	if !util.DirExists(t.WorkspaceDir(name)) {
 		return fmt.Errorf("workspace '%s' does not exist", name)
 	}
 	open, err := t.OpenRecord()

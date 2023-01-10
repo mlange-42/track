@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/mlange-42/track/fs"
 	"github.com/mlange-42/track/util"
 )
 
@@ -31,7 +30,7 @@ func (t *Track) ProjectsDir() string {
 
 // ProjectPath returns the full path for a project
 func (t *Track) ProjectPath(name string) string {
-	return filepath.Join(t.ProjectsDir(), fs.Sanitize(name)+".yml")
+	return filepath.Join(t.ProjectsDir(), util.Sanitize(name)+".yml")
 }
 
 // RecordsDirName returns the directory name for records

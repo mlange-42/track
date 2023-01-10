@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mlange-42/track/fs"
 	"github.com/mlange-42/track/util"
 )
 
@@ -99,7 +98,7 @@ func (t *Track) LoadRecord(tm time.Time) (Record, error) {
 func (t *Track) OpenRecord() (*Record, error) {
 	latest, err := t.LatestRecord()
 	if err != nil {
-		if err == fs.ErrNoFiles {
+		if err == util.ErrNoFiles {
 			return nil, nil
 		}
 		return nil, err
@@ -116,30 +115,30 @@ func (t *Track) OpenRecord() (*Record, error) {
 // LatestRecord loads the latest record. Returns a nil reference if no record is found.
 func (t *Track) LatestRecord() (*Record, error) {
 	records := t.RecordsDir()
-	yearPath, year, err := fs.FindLatests(records, true)
+	yearPath, year, err := util.FindLatests(records, true)
 	if err != nil {
-		if errors.Is(err, fs.ErrNoFiles) {
+		if errors.Is(err, util.ErrNoFiles) {
 			return nil, nil
 		}
 		return nil, err
 	}
-	monthPath, month, err := fs.FindLatests(yearPath, true)
+	monthPath, month, err := util.FindLatests(yearPath, true)
 	if err != nil {
-		if errors.Is(err, fs.ErrNoFiles) {
+		if errors.Is(err, util.ErrNoFiles) {
 			return nil, nil
 		}
 		return nil, err
 	}
-	dayPath, day, err := fs.FindLatests(monthPath, true)
+	dayPath, day, err := util.FindLatests(monthPath, true)
 	if err != nil {
-		if errors.Is(err, fs.ErrNoFiles) {
+		if errors.Is(err, util.ErrNoFiles) {
 			return nil, nil
 		}
 		return nil, err
 	}
-	_, record, err := fs.FindLatests(dayPath, false)
+	_, record, err := util.FindLatests(dayPath, false)
 	if err != nil {
-		if errors.Is(err, fs.ErrNoFiles) {
+		if errors.Is(err, util.ErrNoFiles) {
 			return nil, nil
 		}
 		return nil, err
@@ -476,11 +475,11 @@ func (t *Track) listDateRecords(date time.Time) ([]time.Time, error) {
 // SaveRecord saves a record to disk
 func (t *Track) SaveRecord(record *Record, force bool) error {
 	path := t.RecordPath(record.Start)
-	if !force && fs.FileExists(path) {
+	if !force && util.FileExists(path) {
 		return fmt.Errorf("record already exists")
 	}
 	dir := t.RecordDir(record.Start)
-	err := fs.CreateDir(dir)
+	err := util.CreateDir(dir)
 	if err != nil {
 		return err
 	}
@@ -507,7 +506,7 @@ func (t *Track) SaveRecord(record *Record, force bool) error {
 // DeleteRecord deletes a record
 func (t *Track) DeleteRecord(record *Record) error {
 	path := t.RecordPath(record.Start)
-	if !fs.FileExists(path) {
+	if !util.FileExists(path) {
 		return fmt.Errorf("record does not exist")
 	}
 	err := os.Remove(path)
@@ -515,21 +514,21 @@ func (t *Track) DeleteRecord(record *Record) error {
 		return err
 	}
 	dayDir := filepath.Dir(path)
-	empty, err := fs.DirIsEmpty(dayDir)
+	empty, err := util.DirIsEmpty(dayDir)
 	if err != nil {
 		return err
 	}
 	if empty {
 		os.Remove(dayDir)
 		monthDir := filepath.Dir(dayDir)
-		empty, err := fs.DirIsEmpty(monthDir)
+		empty, err := util.DirIsEmpty(monthDir)
 		if err != nil {
 			return err
 		}
 		if empty {
 			os.Remove(monthDir)
 			yearDir := filepath.Dir(monthDir)
-			empty, err := fs.DirIsEmpty(yearDir)
+			empty, err := util.DirIsEmpty(yearDir)
 			if err != nil {
 				return err
 			}

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/mlange-42/track/tree"
+	"github.com/mlange-42/track/util"
 	"golang.org/x/exp/maps"
 )
 
@@ -122,7 +122,7 @@ func NewReporter(
 		projectTotals[k] = v
 	}
 
-	tree.Aggregate(
+	util.Aggregate(
 		projectsTree, totals, 0,
 		func(a, b time.Duration) time.Duration { return a + b },
 	)

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/mlange-42/track/tree"
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -42,10 +41,10 @@ func FormatCmdTree(command *cobra.Command) (string, error) {
 }
 
 // CmdTree is a tree of cobra commands
-type CmdTree = tree.MapTree[CmdWrapper]
+type CmdTree = MapTree[CmdWrapper]
 
 // CmdNode is a tree of cobra commands
-type CmdNode = tree.MapNode[CmdWrapper]
+type CmdNode = MapNode[CmdWrapper]
 
 // CmdWrapper wraps *cobra.Command to implement the Named interface
 type CmdWrapper struct {
@@ -60,7 +59,7 @@ func (cmd CmdWrapper) GetName() string {
 // NewCmdTree creates a new project tree
 func newCmdTree(command *cobra.Command) (*CmdTree, error) {
 
-	t := tree.NewTree(
+	t := NewTree(
 		CmdWrapper{command},
 	)
 
@@ -78,7 +77,7 @@ func nodePath(command *cobra.Command) string {
 	return command.Name()
 }
 
-func buildTree(t *CmdTree, node *tree.MapNode[CmdWrapper]) error {
+func buildTree(t *CmdTree, node *MapNode[CmdWrapper]) error {
 	for _, cmd := range node.Value.Commands() {
 		child, err := t.Add(node, CmdWrapper{cmd})
 		if err != nil {

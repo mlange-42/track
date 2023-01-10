@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/mlange-42/track/fs"
+	"github.com/mlange-42/track/util"
 )
 
 const (
@@ -54,18 +54,18 @@ func getRootDir(root *string) string {
 }
 
 func (t *Track) createRootDir() {
-	err := fs.CreateDir(t.RootDir)
+	err := util.CreateDir(t.RootDir)
 	if err != nil {
 		panic(err)
 	}
 }
 
 func (t *Track) createWorkspaceDirs(workspace string) {
-	err := fs.CreateDir(t.workspaceProjectsDir(workspace))
+	err := util.CreateDir(t.workspaceProjectsDir(workspace))
 	if err != nil {
 		panic(err)
 	}
-	err = fs.CreateDir(t.workspaceRecordsDir(workspace))
+	err = util.CreateDir(t.workspaceRecordsDir(workspace))
 	if err != nil {
 		panic(err)
 	}
