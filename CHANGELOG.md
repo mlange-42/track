@@ -1,13 +1,17 @@
 # Changelog
 
-## [[unpublished]](https://github.com/mlange-42/track/compare/v0.3.5...main)
+## [[unpublished]](https://github.com/mlange-42/track/compare/v0.3.6...main)
+
+Nothing
+
+## [[v0.3.6]](https://github.com/mlange-42/track/compare/v0.3.5...v0.3.6)
 
 ### Other
 
 * Durations are printed with space padding (` 1:23`) instead of zero-padding (`01:23`) in reports (#132)
 * Documented the record format (#134)
 * More unit tests for packages `core` and `util`, coverage 65.4% (#135)
-* Start adding unit tests for the CLI commands (#136)
+* Started adding unit tests for the CLI commands (#136)
 
 ## [[v0.3.5]](https://github.com/mlange-42/track/compare/v0.3.4...v0.3.5)
 
