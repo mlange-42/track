@@ -8,7 +8,6 @@ import (
 
 	"github.com/gookit/color"
 	"github.com/mlange-42/track/fs"
-	"github.com/mlange-42/track/tree"
 	"github.com/mlange-42/track/util"
 	"gopkg.in/yaml.v3"
 )
@@ -17,15 +16,15 @@ import (
 const RootPattern = "<%s>"
 
 // ProjectTree is a tree of projects
-type ProjectTree = tree.MapTree[Project]
+type ProjectTree = util.MapTree[Project]
 
 // NewTree creates a new project tree
 func NewTree(project Project) *ProjectTree {
-	return tree.NewTree(project)
+	return util.NewTree(project)
 }
 
 // ProjectNode is a tree of projects
-type ProjectNode = tree.MapNode[Project]
+type ProjectNode = util.MapNode[Project]
 
 // Project holds and manipulates data for a project
 type Project struct {
@@ -222,7 +221,7 @@ func (t *Track) ToProjectTree(projects map[string]Project) (*ProjectTree, error)
 	nodes := map[string]*ProjectNode{pTree.Root.Value.Name: pTree.Root}
 
 	for name, project := range projects {
-		nodes[name] = tree.NewNode(project)
+		nodes[name] = util.NewNode(project)
 	}
 
 	for _, tree := range nodes {
