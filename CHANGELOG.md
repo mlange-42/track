@@ -6,6 +6,7 @@
 
 * Durations are printed with space padding (` 1:23`) instead of zero-padding (`01:23`) in reports (#132)
 * Documented the record format (#134)
+* More unit tests for packages `core` and `util`, total coverage now 65.4% (#135)
 
 ## [[v0.3.5]](https://github.com/mlange-42/track/compare/v0.3.4...v0.3.5)
 

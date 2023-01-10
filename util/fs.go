@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
+	"regexp"
 )
 
 const (
@@ -24,11 +24,11 @@ var (
 	ErrNoFiles = errors.New("no files")
 )
 
-var pathSanitizer = strings.NewReplacer("/", "-", "\\", "-")
+var illegalFileCharacters = regexp.MustCompile(`[\~\#\%\&\*\{\}\\\:\<\>\?\/\+\|]`)
 
 // Sanitize makes stings filename compatible
 func Sanitize(file string) string {
-	return pathSanitizer.Replace(file)
+	return illegalFileCharacters.ReplaceAllString(file, "-")
 }
 
 // FileExists checks if a file exists
