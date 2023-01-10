@@ -14,10 +14,10 @@ with file names representing the starting time.
 In the following example, the location of a record starting at `2023-01-10 8:15` is shown:
 
 ```text
-records
-└─2023
-  └─01
-    └─10
+records/
+└─2023/
+  └─01/
+    └─10/
       └─08-15.trk
 ```
 
@@ -73,6 +73,24 @@ All times are in 24h format. 12h `am`/`pm` format is not supported.
 
 Durations are in the usual Go format: `10h15m23s`. Zero-valued entries can be left out. So e.g. `15m` is also valid.
 
+### Day shifts
+
+In some cases, particularly when tracking time over midnight, the starting time of a record may be on another day than the end time. This is denoted by the shift markers `<` and `>`.
+
+The most common case is a record that goes over midnight and ends the day after its start.
+The time range of such a record would look like this:
+
+```
+22:00 - 00:30>
+```
+
+Another case is full-day editing using `edit day` (see [Temporary multi-record files](#temporary-multi-record-files)).
+Here, a record that starts the day before but ends on the day to edit would start like this:
+
+```
+<22:00 - 00:30
+```
+
 ## Pauses
 
 A record can contain an arbitrary number of pauses.
@@ -97,6 +115,8 @@ The following are valid pause entries:
 - 10:00 - 20m
 ```
 
+For parsing the pause's time range, the rules of [Time ranges](#time-ranges) apply.
+
 Pauses are optional.
 
 Pauses must be listed in chronological order, and must not overlap.
@@ -105,7 +125,9 @@ Pauses must not exceed the record's time span.
 ## Project
 
 The first line after any (optional) pause entries that is not ignored (i.e. not comment or "empty")
-Is considered the project name. Any whitespace characters at the start and the end of the line are removed. I.e. indentation can be used.
+is considered the project name. Any whitespace characters at the start and the end of the line are removed. I.e. indentation can be used.
+
+The project name is obligatory.
 
 ## Note
 
@@ -113,7 +135,7 @@ The note is optional.
 
 All lines after the project name are considered the note.
 Any "empty" lines at the start and the end of the note are removed.
-Empty lined between non-empty lines of a note are preserved.
+Empty lines between non-empty lines of a note are preserved.
 
 A note can contain tags.
 
