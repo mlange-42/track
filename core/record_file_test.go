@@ -113,6 +113,11 @@ func TestStartStopRecord(t *testing.T) {
 	assert.Nil(t, err, "Error loading record")
 	assert.Equal(t, record, *openRecord, "Loaded record not equal to saved record")
 
+	_, err = openRecord.InsertPause(start.Add(50*time.Minute), util.NoTime, "Test")
+	assert.Nil(t, err, "Error inserting pause")
+	err = track.SaveRecord(openRecord, true)
+	assert.Nil(t, err, "Error saving record")
+
 	stopped, err := track.StopRecord(start.Add(time.Hour))
 	assert.Nil(t, err, "Error loading record")
 

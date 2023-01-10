@@ -18,6 +18,7 @@ func TestPaths(t *testing.T) {
 	assert.Nil(t, err, "Error initializing Track")
 	assert.Equal(t, filepath.Join(home, rootDirName), track.RootDir, "Wrong root directory")
 	assert.Equal(t, filepath.Join(home, rootDirName, configFile), track.ConfigPath(), "Wrong config path")
+	assert.Equal(t, filepath.Join(home, rootDirName, defaultWorkspace), track.WorkspaceDir(defaultWorkspace), "Wrong workspace directory")
 	assert.Equal(t, filepath.Join(home, rootDirName, defaultWorkspace, projectsDirName), track.ProjectsDir(), "Wrong projects directory")
 	assert.Equal(t, filepath.Join(home, rootDirName, defaultWorkspace, recordsDirName), track.RecordsDir(), "Wrong records directory")
 
