@@ -95,7 +95,7 @@ func listProjectsCommand(t *core.Track) *cobra.Command {
 				},
 				2,
 			)
-			fmt.Print(formatter.FormatTree(tree))
+			out.Print(formatter.FormatTree(tree))
 			return nil
 		},
 	}
@@ -113,17 +113,17 @@ func listWorkspacesCommand(t *core.Track) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ws, err := t.AllWorkspaces()
 			if err != nil {
-				fmt.Errorf("failed to load workspaces: %s", err)
+				return fmt.Errorf("failed to load workspaces: %s", err)
 			}
 
 			for i, w := range ws {
 				if w == t.Workspace() {
 					color.BgBlue.Printf("%s", w)
 				} else {
-					fmt.Printf("%s", w)
+					out.Print("%s", w)
 				}
 				if i < len(ws)-1 {
-					fmt.Print("\n")
+					out.Print("\n")
 				}
 			}
 			return nil
@@ -263,12 +263,12 @@ func printColorChart() {
 	var row, block, i uint8
 
 	color.C256(0, true).Printf("%3d", 0)
-	fmt.Print(" ")
+	out.Print(" ")
 	for i = 1; i < 16; i++ {
 		color.S256(0, i).Printf("%3d", i)
-		fmt.Print(" ")
+		out.Print(" ")
 	}
-	fmt.Print("\n\n")
+	out.Print("\n\n")
 
 	const rowOffset uint8 = 6
 	const blockOffset uint8 = 36
@@ -283,23 +283,23 @@ func printColorChart() {
 					} else {
 						color.S256(0, idx+i).Printf("%3d", idx+i)
 					}
-					fmt.Print(" ")
+					out.Print(" ")
 				}
-				fmt.Print("  ")
+				out.Print("  ")
 			}
-			fmt.Println()
+			out.Print("\n")
 		}
-		fmt.Println()
+		out.Print("\n")
 	}
 
 	for i = 232; i < 244; i++ {
 		color.C256(i, true).Printf("%3d", i)
-		fmt.Print(" ")
+		out.Print(" ")
 	}
-	fmt.Println()
+	out.Print("\n")
 	for i := 244; i <= 255; i++ {
 		color.S256(0, uint8(i)).Printf("%3d", i)
-		fmt.Print(" ")
+		out.Print(" ")
 	}
 }
 

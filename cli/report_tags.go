@@ -8,6 +8,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/mlange-42/track/core"
+	"github.com/mlange-42/track/out"
 	"github.com/mlange-42/track/util"
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/maps"
@@ -118,7 +119,7 @@ func tagsReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 				if fillLen > 0 {
 					str += strings.Repeat(" ", fillLen)
 				}
-				fmt.Printf(
+				out.Print(
 					"%s %3d  %6s (%5s)", str,
 					stats.Count,
 					util.FormatDuration(stats.Work, false),
@@ -130,12 +131,12 @@ func tagsReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 						vKeys := maps.Keys(values)
 						sort.Strings(vKeys)
 						if _, ok := values[""]; !ok || len(vKeys) > 1 {
-							fmt.Printf(" [%s]", strings.Join(vKeys, " "))
+							out.Print(" [%s]", strings.Join(vKeys, " "))
 						}
 					}
-					fmt.Printf("\n")
+					out.Print("\n")
 				} else {
-					fmt.Printf("\n")
+					out.Print("\n")
 					values := stats.Values
 					if values == nil {
 						continue
@@ -155,7 +156,7 @@ func tagsReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 						if fillLen > 0 {
 							str += strings.Repeat(" ", fillLen)
 						}
-						fmt.Printf(
+						out.Print(
 							"  %s %3d  %6s (%5s)\n", str,
 							vStats.Count,
 							util.FormatDuration(vStats.Work, false),

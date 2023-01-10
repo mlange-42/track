@@ -67,7 +67,7 @@ func treemapReportCommand(t *core.Track, options *filterOptions) *cobra.Command 
 			formatter := TreemapPrinter{*reporter}
 			str := formatter.Print(tree)
 			if csv {
-				fmt.Print(str)
+				out.Print(str)
 				return nil
 			}
 

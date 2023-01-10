@@ -8,6 +8,7 @@ import (
 
 	"github.com/gookit/color"
 	"github.com/mlange-42/track/core"
+	"github.com/mlange-42/track/out"
 	"github.com/mlange-42/track/util"
 	"github.com/spf13/cobra"
 )
@@ -69,7 +70,7 @@ func chartReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("failed to generate report: %s", err)
 			}
-			fmt.Print(str)
+			out.Print(str)
 			return nil
 		},
 	}
@@ -136,7 +137,7 @@ func renderDayChart(t *core.Track, reporter *core.Reporter, active string, start
 		interval = 3
 	}
 
-	fmt.Printf("                    |%s : %s/cell\n",
+	out.Print("                    |%s : %s/cell\n",
 		startDate.Format(util.DateFormat),
 		time.Duration(1e9*(int(time.Hour)/(bph*1e9))).String(),
 	)

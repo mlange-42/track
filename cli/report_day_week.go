@@ -154,7 +154,7 @@ func schedule(t *core.Track, start time.Time, options *filterOptions, week bool,
 	if err != nil {
 		return err
 	}
-	fmt.Print(str)
+	out.Print(str)
 	return nil
 }
 

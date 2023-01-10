@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"os"
@@ -10,6 +9,7 @@ import (
 	"time"
 
 	"github.com/mlange-42/track/core"
+	"github.com/mlange-42/track/out"
 	"github.com/mlange-42/track/util"
 )
 
@@ -25,7 +25,7 @@ func main() {
 		panic(err.Error())
 	}
 
-	fmt.Println("Generating dataset")
+	out.Print("Generating dataset\n")
 	generateDataset(
 		&track,
 		util.Date(1990, 1, 1),
@@ -38,7 +38,7 @@ func main() {
 		panic(err.Error())
 	}
 
-	fmt.Println("Profiling")
+	out.Print("Profiling\n")
 	pprof.StartCPUProfile(f)
 	defer pprof.StopCPUProfile()
 

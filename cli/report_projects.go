@@ -7,6 +7,7 @@ import (
 
 	"github.com/gookit/color"
 	"github.com/mlange-42/track/core"
+	"github.com/mlange-42/track/out"
 	"github.com/mlange-42/track/util"
 	"github.com/spf13/cobra"
 )
@@ -80,7 +81,7 @@ func projectsReportCommand(t *core.Track, options *filterOptions) *cobra.Command
 				},
 				2,
 			)
-			fmt.Print(formatter.FormatTree(tree))
+			out.Print(formatter.FormatTree(tree))
 			return nil
 		},
 	}
