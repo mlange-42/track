@@ -32,47 +32,42 @@ func timelineReportCommand(t *core.Track, options *filterOptions) *cobra.Command
 		Short:   "Timeline reports of time tracking",
 		Aliases: []string{"l"},
 		Args:    util.WrappedArgs(cobra.ExactArgs(1)),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			mode := args[0]
 
 			if table && !csv {
-				out.Err("failed to generate report: flag --table can only be used together with --csv")
-				return
+				return fmt.Errorf("failed to generate report: flag --table can only be used together with --csv")
 			}
 
 			projects, err := t.LoadAllProjects()
 			if err != nil {
-				out.Err("failed to generate report: %s", err)
-				return
+				return fmt.Errorf("failed to generate report: %s", err)
 			}
 
 			filters, err := createFilters(options, projects, false)
 			if err != nil {
-				out.Err("failed to generate report: %s", err)
-				return
+				return fmt.Errorf("failed to generate report: %s", err)
 			}
 
 			timelineFunc, ok := timelineModes[mode]
 			if !ok {
-				out.Err("failed to generate report: invalid timeline argument '%s'", mode)
-				return
+				return fmt.Errorf("failed to generate report: invalid timeline argument '%s'", mode)
 			}
 
 			startTime, endTime, err := parseStartEnd(options)
 			if err != nil {
-				out.Err("failed to generate report: %s", err)
-				return
+				return fmt.Errorf("failed to generate report: %s", err)
 			}
 			reporter, err := core.NewReporter(
 				t, options.projects, filters,
 				options.includeArchived, startTime, endTime,
 			)
 			if err != nil {
-				out.Err("failed to generate report: %s", err)
-				return
+				return fmt.Errorf("failed to generate report: %s", err)
 			}
 
 			out.Print(timelineFunc(reporter, csv, table))
+			return nil
 		},
 	}
 	timeline.Flags().StringVarP(&options.start, "start", "s", "", "Start date (start at 00:00)")

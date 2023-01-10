@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -21,19 +22,17 @@ func pauseCommand(t *core.Track) *cobra.Command {
 		Long:    `Pauses or inserts a pause into the running recording`,
 		Aliases: []string{"p"},
 		Args:    util.WrappedArgs(cobra.ArbitraryArgs),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			open, err := t.OpenRecord()
 			if err != nil {
-				out.Err("failed to insert pause: %s", err)
-				return
+				return fmt.Errorf("failed to insert pause: %s", err)
 			}
 			if open == nil {
 				out.Warn("failed to insert pause: no running record")
-				return
+				return nil
 			}
 			if open.IsPaused() {
-				out.Err("failed to insert pause: record is already paused")
-				return
+				return fmt.Errorf("failed to insert pause: record is already paused")
 			}
 
 			minTime := open.Start
@@ -47,8 +46,7 @@ func pauseCommand(t *core.Track) *cobra.Command {
 			if timeChanged {
 				nowCorr, err = getStartTime(minTime, ago, atTime)
 				if err != nil {
-					out.Err("failed to insert pause: %s", err)
-					return
+					return fmt.Errorf("failed to insert pause: %s", err)
 				}
 			}
 			if cmd.Flags().Changed("duration") {
@@ -60,12 +58,10 @@ func pauseCommand(t *core.Track) *cobra.Command {
 					startTime = endTime.Add(-duration)
 				}
 				if endTime.After(time.Now()) {
-					out.Err("failed to insert pause: end of pause would be in the future")
-					return
+					return fmt.Errorf("failed to insert pause: end of pause would be in the future")
 				}
 				if startTime.Before(minTime) {
-					out.Err("can't start at a time before the last stop/pause")
-					return
+					return fmt.Errorf("can't start at a time before the last stop/pause")
 				}
 			} else {
 				startTime = nowCorr
@@ -75,20 +71,19 @@ func pauseCommand(t *core.Track) *cobra.Command {
 			note := strings.Join(args, " ")
 			_, err = open.InsertPause(startTime, endTime, note)
 			if err != nil {
-				out.Err("failed to insert pause: %s", err)
-				return
+				return fmt.Errorf("failed to insert pause: %s", err)
 			}
 
 			err = t.SaveRecord(open, true)
 			if err != nil {
-				out.Err("failed to pause record: %s", err)
-				return
+				return fmt.Errorf("failed to pause record: %s", err)
 			}
 			if endTime.IsZero() {
 				out.Success("Paused record in '%s'\n", open.Project)
 			} else {
 				out.Success("Inserted pause of %s in '%s'\n", duration, open.Project)
 			}
+			return nil
 		},
 	}
 	pauseCom.Flags().DurationVarP(&duration, "duration", "d", 0*time.Hour, "Duration of the pause. Inserts a finished pause if given.\nOtherwise, a pause with an open end is inserted")

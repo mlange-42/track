@@ -20,15 +20,13 @@ func stopCommand(t *core.Track) *cobra.Command {
 		Short:   "Stop the current record",
 		Aliases: []string{"x"},
 		Args:    util.WrappedArgs(cobra.NoArgs),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			open, err := t.OpenRecord()
 			if err != nil {
-				out.Err("failed to stop record: %s", err)
-				return
+				return fmt.Errorf("failed to stop record: %s", err)
 			}
 			if open == nil {
-				out.Err("failed to stop record: no record running")
-				return
+				return fmt.Errorf("failed to stop record: no record running")
 			}
 
 			if deleteRecord && !confirm(
@@ -40,34 +38,31 @@ func stopCommand(t *core.Track) *cobra.Command {
 				),
 				"y",
 			) {
-				out.Err("failed to stop record: aborted by user")
-				return
+				return fmt.Errorf("failed to stop record: aborted by user")
 			}
 
 			stopTime, err := getStopTime(open, ago, atTime)
 			if err != nil {
-				out.Err("failed to stop record: %s", err)
-				return
+				return fmt.Errorf("failed to stop record: %s", err)
 			}
 
 			record, err := t.StopRecord(stopTime)
 			if err != nil {
-				out.Err("failed to stop record: %s", err)
-				return
+				return fmt.Errorf("failed to stop record: %s", err)
 			}
 			out.Success("Stopped record in '%s' at %s", record.Project, record.End.Format(util.TimeFormat))
 
 			if !deleteRecord {
-				return
+				return nil
 			}
 
 			out.Print("\n")
 			err = t.DeleteRecord(record)
 			if err != nil {
-				out.Err("failed to delete record: %s", err)
-				return
+				return fmt.Errorf("failed to delete record: %s", err)
 			}
 			out.Success("Deleted record %s from '%s'", record.Start.Format(util.DateTimeFormat), record.Project)
+			return nil
 		},
 	}
 

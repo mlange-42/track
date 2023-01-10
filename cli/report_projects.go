@@ -7,7 +7,6 @@ import (
 
 	"github.com/gookit/color"
 	"github.com/mlange-42/track/core"
-	"github.com/mlange-42/track/out"
 	"github.com/mlange-42/track/util"
 	"github.com/spf13/cobra"
 )
@@ -18,43 +17,37 @@ func projectsReportCommand(t *core.Track, options *filterOptions) *cobra.Command
 		Short:   "Shows the project tree with time statistics",
 		Aliases: []string{"p"},
 		Args:    util.WrappedArgs(cobra.NoArgs),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			projects, err := t.LoadAllProjects()
 			if err != nil {
-				out.Err("failed to generate report: %s", err.Error())
-				return
+				return fmt.Errorf("failed to generate report: %s", err.Error())
 			}
 
 			filters, err := createFilters(options, projects, false)
 			if err != nil {
-				out.Err("failed to generate report: %s", err.Error())
-				return
+				return fmt.Errorf("failed to generate report: %s", err.Error())
 			}
 
 			startTime, endTime, err := parseStartEnd(options)
 			if err != nil {
-				out.Err("failed to generate report: %s", err.Error())
-				return
+				return fmt.Errorf("failed to generate report: %s", err.Error())
 			}
 			reporter, err := core.NewReporter(
 				t, options.projects, filters,
 				options.includeArchived, startTime, endTime,
 			)
 			if err != nil {
-				out.Err("failed to generate report: %s", err.Error())
-				return
+				return fmt.Errorf("failed to generate report: %s", err.Error())
 			}
 
 			tree, err := t.ToProjectTree(reporter.Projects)
 			if err != nil {
-				out.Err("failed to generate report: %s", err.Error())
-				return
+				return fmt.Errorf("failed to generate report: %s", err.Error())
 			}
 			var active string
 			rec, err := t.OpenRecord()
 			if err != nil {
-				out.Err("failed to generate report: %s", err.Error())
-				return
+				return fmt.Errorf("failed to generate report: %s", err.Error())
 			}
 			if rec != nil {
 				active = rec.Project
@@ -88,6 +81,7 @@ func projectsReportCommand(t *core.Track, options *filterOptions) *cobra.Command
 				2,
 			)
 			fmt.Print(formatter.FormatTree(tree))
+			return nil
 		},
 	}
 	projects.Flags().StringVarP(&options.start, "start", "s", "", "Start date (start at 00:00)")

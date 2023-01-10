@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"unicode/utf8"
 
 	"github.com/mlange-42/track/core"
@@ -38,31 +39,29 @@ func createProjectCommand(t *core.Track) *cobra.Command {
 		Short:   "Create a new project",
 		Aliases: []string{"p"},
 		Args:    util.WrappedArgs(cobra.ExactArgs(1)),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			name := args[0]
 
 			if !cmd.Flags().Changed("symbol") {
 				symbol = string([]rune(name)[0])
 			}
 			if utf8.RuneCountInString(symbol) != 1 {
-				out.Err("failed to create project: --symbol must be a single character")
-				return
+				return fmt.Errorf("failed to create project: --symbol must be a single character")
 			}
 
 			requiredTags = util.Unique(requiredTags)
 			project := core.NewProject(name, parent, symbol, requiredTags, fgColor, color)
 
 			if err := t.CheckParents(project); err != nil {
-				out.Err("failed to create project: %s", err)
-				return
+				return fmt.Errorf("failed to create project: %s", err)
 			}
 
 			if err := t.SaveProject(project, false); err != nil {
-				out.Err("failed to create project: %s", err.Error())
-				return
+				return fmt.Errorf("failed to create project: %s", err.Error())
 			}
 
 			out.Success("Created project '%s'", name)
+			return nil
 		},
 	}
 
@@ -81,16 +80,16 @@ func createWorkspaceCommand(t *core.Track) *cobra.Command {
 		Short:   "Create a new workspace",
 		Aliases: []string{"w"},
 		Args:    util.WrappedArgs(cobra.ExactArgs(1)),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			name := args[0]
 
 			err := t.CreateWorkspace(name)
 			if err != nil {
-				out.Err("failed to create workspace: %s", err.Error())
-				return
+				return fmt.Errorf("failed to create workspace: %s", err.Error())
 			}
 
 			out.Success("Created workspace '%s'", name)
+			return nil
 		},
 	}
 

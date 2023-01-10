@@ -8,7 +8,6 @@ import (
 
 	"github.com/gookit/color"
 	"github.com/mlange-42/track/core"
-	"github.com/mlange-42/track/out"
 	"github.com/mlange-42/track/util"
 	"github.com/spf13/cobra"
 )
@@ -21,19 +20,17 @@ func chartReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 		Short:   "Report of activities over the day as a bar chart per project",
 		Aliases: []string{"c"},
 		Args:    util.WrappedArgs(cobra.MaximumNArgs(1)),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			start := util.ToDate(time.Now())
 			var err error
 			if len(args) > 0 {
 				start, err = util.ParseDate(args[0])
 				if err != nil {
-					out.Err("failed to generate report: %s", err)
-					return
+					return fmt.Errorf("failed to generate report: %s", err)
 				}
 			}
 			if blocksPerHour <= 0 {
-				out.Err("failed to generate report: argument --width must be > 0")
-				return
+				return fmt.Errorf("failed to generate report: argument --width must be > 0")
 			}
 			if !cmd.Flags().Changed("width") {
 				if w, _, err := util.TerminalSize(); err == nil && w > 0 {
@@ -43,8 +40,7 @@ func chartReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 
 			projects, err := t.LoadAllProjects()
 			if err != nil {
-				out.Err("failed to generate report: %s", err)
-				return
+				return fmt.Errorf("failed to generate report: %s", err)
 			}
 
 			filterStart := start.Add(-time.Hour * 24)
@@ -52,21 +48,18 @@ func chartReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 
 			filters, err := createFilters(options, projects, false)
 			if err != nil {
-				out.Err("failed to generate report: %s", err)
-				return
+				return fmt.Errorf("failed to generate report: %s", err)
 			}
 			filters = core.NewFilter(filters.Functions, filterStart, filterEnd)
 
 			reporter, err := core.NewReporter(t, options.projects, filters, options.includeArchived, start, filterEnd)
 			if err != nil {
-				out.Err("failed to generate report: %s", err)
-				return
+				return fmt.Errorf("failed to generate report: %s", err)
 			}
 			var active string
 			rec, err := t.OpenRecord()
 			if err != nil {
-				out.Err("failed to generate report: %s", err)
-				return
+				return fmt.Errorf("failed to generate report: %s", err)
 			}
 			if rec != nil {
 				active = rec.Project
@@ -74,10 +67,10 @@ func chartReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 
 			str, err := renderDayChart(t, reporter, active, start, blocksPerHour, &[]rune(t.Config.EmptyCell)[0])
 			if err != nil {
-				out.Err("failed to generate report: %s", err)
-				return
+				return fmt.Errorf("failed to generate report: %s", err)
 			}
 			fmt.Print(str)
+			return nil
 		},
 	}
 

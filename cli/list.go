@@ -44,11 +44,10 @@ func listProjectsCommand(t *core.Track) *cobra.Command {
 		Short:   "List all projects",
 		Aliases: []string{"p"},
 		Args:    util.WrappedArgs(cobra.NoArgs),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			projects, err := t.LoadAllProjects()
 			if err != nil {
-				out.Err("failed to load projects: %s", err)
-				return
+				return fmt.Errorf("failed to list projects: %s", err)
 			}
 			if !includeArchived {
 				pr := make(map[string]core.Project)
@@ -63,8 +62,7 @@ func listProjectsCommand(t *core.Track) *cobra.Command {
 			var active string
 			rec, err := t.OpenRecord()
 			if err != nil {
-				out.Err("failed to load projects: %s", err)
-				return
+				return fmt.Errorf("failed to list projects: %s", err)
 			}
 			if rec != nil {
 				active = rec.Project
@@ -72,8 +70,7 @@ func listProjectsCommand(t *core.Track) *cobra.Command {
 
 			tree, err := t.ToProjectTree(projects)
 			if err != nil {
-				out.Err("failed to load projects: %s", err)
-				return
+				return fmt.Errorf("failed to list projects: %s", err)
 			}
 			formatter := util.NewTreeFormatter(
 				func(t *core.ProjectNode, indent int) string {
@@ -99,6 +96,7 @@ func listProjectsCommand(t *core.Track) *cobra.Command {
 				2,
 			)
 			fmt.Print(formatter.FormatTree(tree))
+			return nil
 		},
 	}
 	listProjects.Flags().BoolVarP(&includeArchived, "archived", "a", false, "Include records from archived projects")
@@ -112,11 +110,10 @@ func listWorkspacesCommand(t *core.Track) *cobra.Command {
 		Short:   "List all workspaces",
 		Aliases: []string{"w"},
 		Args:    util.WrappedArgs(cobra.NoArgs),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			ws, err := t.AllWorkspaces()
 			if err != nil {
-				out.Err("failed to load workspaces: %s", err)
-				return
+				fmt.Errorf("failed to load workspaces: %s", err)
 			}
 
 			for i, w := range ws {
@@ -129,6 +126,7 @@ func listWorkspacesCommand(t *core.Track) *cobra.Command {
 					fmt.Print("\n")
 				}
 			}
+			return nil
 		},
 	}
 
@@ -148,14 +146,13 @@ or a word like "yesterday" or  "today" (the default).`,
 		Aliases:    []string{"r"},
 		Args:       util.WrappedArgs(cobra.MaximumNArgs(1)),
 		ArgAliases: []string{"date"},
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			date := util.ToDate(time.Now())
 			var err error
 			if len(args) > 0 {
 				date, err = util.ParseDate(args[0])
 				if err != nil {
-					out.Err("failed to load records: %s", err)
-					return
+					return fmt.Errorf("failed to load records: %s", err)
 				}
 			}
 
@@ -163,16 +160,14 @@ or a word like "yesterday" or  "today" (the default).`,
 			if err != nil {
 				if err == core.ErrNoRecords {
 					out.Warn("no records for %s", date.Format(util.DateFormat))
-					return
+					return nil
 				}
-				out.Err("failed to load records: %s", err)
-				return
+				return fmt.Errorf("failed to load records: %s", err)
 			}
 
 			projects, err := t.LoadAllProjects()
 			if err != nil {
-				out.Err("failed to export records: %s", err)
-				return
+				return fmt.Errorf("failed to export records: %s", err)
 			}
 			for _, record := range records {
 				project := projects[record.Project]
@@ -180,6 +175,7 @@ or a word like "yesterday" or  "today" (the default).`,
 					printRecord(record, project)
 				}
 			}
+			return nil
 		},
 	}
 	listProjects.Flags().BoolVarP(&includeArchived, "archived", "a", false, "Include records from archived projects")
@@ -193,8 +189,9 @@ func listColorsCommand(t *core.Track) *cobra.Command {
 		Short:   "Lists the 256 available colors",
 		Aliases: []string{"c"},
 		Args:    util.WrappedArgs(cobra.NoArgs),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			printColorChart()
+			return nil
 		},
 	}
 
@@ -209,11 +206,12 @@ func listTagsCommand(t *core.Track) *cobra.Command {
 		Short:   "Lists all tags",
 		Aliases: []string{"t"},
 		Args:    util.WrappedArgs(cobra.NoArgs),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			err := printTags(t, includeArchived)
 			if err != nil {
-				out.Err("failed to list tags: %s", err.Error())
+				return fmt.Errorf("failed to list tags: %s", err.Error())
 			}
+			return nil
 		},
 	}
 	listTags.Flags().BoolVarP(&includeArchived, "archived", "a", false, "Include records from archived projects")
