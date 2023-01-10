@@ -254,9 +254,9 @@ func printRecord(r core.Record, project core.Project) {
 		}
 	}
 	out.Print(
-		"%s%s %s %s %s - %s (%s + %s)  %s\n", name, fill,
+		"%s%s %s %s %s - %s (%5s + %5s)  %s\n", name, fill,
 		project.Render.Sprintf(" %s ", project.Symbol),
-		date, start, end, util.FormatDuration(dur), util.FormatDuration(pause),
+		date, start, end, util.FormatDuration(dur, false), util.FormatDuration(pause, false),
 		note,
 	)
 }

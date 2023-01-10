@@ -124,10 +124,10 @@ func tagsReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 					str += strings.Repeat(" ", fillLen)
 				}
 				fmt.Printf(
-					"%s %3d  %s (%s)", str,
+					"%s %3d  %6s (%5s)", str,
 					stats.Count,
-					util.FormatDuration(stats.Work),
-					util.FormatDuration(stats.Pause),
+					util.FormatDuration(stats.Work, false),
+					util.FormatDuration(stats.Pause, false),
 				)
 				if !valueStats {
 					values := stats.Values
@@ -161,10 +161,10 @@ func tagsReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 							str += strings.Repeat(" ", fillLen)
 						}
 						fmt.Printf(
-							"  %s %3d  %s (%s)\n", str,
+							"  %s %3d  %6s (%5s)\n", str,
 							vStats.Count,
-							util.FormatDuration(vStats.Work),
-							util.FormatDuration(vStats.Pause),
+							util.FormatDuration(vStats.Work, false),
+							util.FormatDuration(vStats.Pause, false),
 						)
 					}
 				}
