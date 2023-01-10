@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 
 	"github.com/gookit/color"
-	"github.com/mlange-42/track/fs"
 	"github.com/mlange-42/track/util"
 	"gopkg.in/yaml.v3"
 )
@@ -95,14 +94,14 @@ func (p *Project) SetColors(fgCol, col uint8) {
 
 // ProjectExists checks if a project exists
 func (t *Track) ProjectExists(name string) bool {
-	return fs.FileExists(t.ProjectPath(name))
+	return util.FileExists(t.ProjectPath(name))
 }
 
 // SaveProject saves a project to disk
 func (t *Track) SaveProject(project Project, force bool) error {
 	path := t.ProjectPath(project.Name)
 
-	if !force && fs.FileExists(path) {
+	if !force && util.FileExists(path) {
 		return fmt.Errorf("Project '%s' already exists", project.Name)
 	}
 

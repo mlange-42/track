@@ -10,7 +10,6 @@ import (
 	"unicode/utf8"
 
 	"github.com/mlange-42/track/core"
-	"github.com/mlange-42/track/fs"
 	"github.com/mlange-42/track/out"
 	"github.com/mlange-42/track/util"
 	"github.com/spf13/cobra"
@@ -585,7 +584,7 @@ func edit[T any](t *core.Track, obj T, comment string, commentPrefix string, mar
 
 		file.Close()
 
-		err = fs.EditFile(file.Name(), t.Config.TextEditor)
+		err = util.EditFile(file.Name(), t.Config.TextEditor)
 		if err != nil {
 			return err
 		}

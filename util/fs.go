@@ -1,9 +1,9 @@
-package fs
+package util
 
 import (
 	"errors"
 	"fmt"
-	gofs "io/fs"
+	"io/fs"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -82,7 +82,7 @@ func FindLatests(path string, isDir bool) (string, string, error) {
 		return "", "", err
 	}
 
-	var dir gofs.FileInfo = nil
+	var dir fs.FileInfo = nil
 	for i := len(files) - 1; i >= 0; i-- {
 		dir = files[i]
 		if dir.IsDir() == isDir {

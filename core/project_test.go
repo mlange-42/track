@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/mlange-42/track/fs"
+	"github.com/mlange-42/track/util"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -122,7 +122,7 @@ func TestSaveLoadProject(t *testing.T) {
 
 	assert.Equal(t, dir, track.RootDir, "Wrong root directory")
 
-	assert.False(t, fs.FileExists(track.ProjectPath("test")), "File must not exist")
+	assert.False(t, util.FileExists(track.ProjectPath("test")), "File must not exist")
 	assert.False(t, track.ProjectExists("test"), "Project must not exist")
 
 	project := NewProject("test", "", "T", []string{"a", "b"}, 0, 15)
@@ -135,7 +135,7 @@ func TestSaveLoadProject(t *testing.T) {
 	err = track.SaveProject(project, true)
 	assert.Nil(t, err, "Error saving project with force")
 
-	assert.True(t, fs.FileExists(track.ProjectPath("test")), "File must exist")
+	assert.True(t, util.FileExists(track.ProjectPath("test")), "File must exist")
 	assert.True(t, track.ProjectExists("test"), "Project must exist")
 
 	allProjects, err := track.LoadAllProjects()
@@ -150,7 +150,7 @@ func TestSaveLoadProject(t *testing.T) {
 	_, err = track.DeleteProject(&project, true, false)
 	assert.Nil(t, err, "Error deleting project")
 
-	assert.False(t, fs.FileExists(track.ProjectPath("test")), "File must not exist")
+	assert.False(t, util.FileExists(track.ProjectPath("test")), "File must not exist")
 	assert.False(t, track.ProjectExists("test"), "Project must not exist")
 }
 

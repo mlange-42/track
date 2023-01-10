@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mlange-42/track/fs"
 	"github.com/mlange-42/track/util"
 	"github.com/stretchr/testify/assert"
 )
@@ -69,9 +68,9 @@ func TestSaveLoadRecord(t *testing.T) {
 	err = track.SaveRecord(&record3, false)
 	assert.Nil(t, err, "Error saving record")
 
-	assert.True(t, fs.FileExists(track.RecordPath(record1.Start)), "File must exist")
-	assert.True(t, fs.FileExists(track.RecordPath(record2.Start)), "File must exist")
-	assert.True(t, fs.FileExists(track.RecordPath(record3.Start)), "File must exist")
+	assert.True(t, util.FileExists(track.RecordPath(record1.Start)), "File must exist")
+	assert.True(t, util.FileExists(track.RecordPath(record2.Start)), "File must exist")
+	assert.True(t, util.FileExists(track.RecordPath(record3.Start)), "File must exist")
 
 	newRecord, err := track.LoadRecord(record1.Start)
 	assert.Nil(t, err, "Error loading record")
@@ -93,7 +92,7 @@ func TestSaveLoadRecord(t *testing.T) {
 
 	err = track.DeleteRecord(&record1)
 	assert.Nil(t, err, "Error deleting record")
-	assert.False(t, fs.FileExists(track.RecordPath(record1.Start)), "File must exist")
+	assert.False(t, util.FileExists(track.RecordPath(record1.Start)), "File must exist")
 }
 
 func TestStartStopRecord(t *testing.T) {
