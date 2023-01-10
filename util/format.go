@@ -21,6 +21,9 @@ const (
 	DateTimeFormat = "2006-01-02 15:04"
 	// NoTimeString string representation for zero end time
 	NoTimeString = " now "
+
+	durationFormatTemplate    = "%d:%02d"
+	durationFormatTemplatePad = "%02d:%02d"
 )
 
 const (
@@ -49,8 +52,11 @@ func FloatToBlock(value float64, space *rune) rune {
 }
 
 // FormatDuration formats a duration
-func FormatDuration(d time.Duration) string {
-	return fmt.Sprintf("%02d:%02d", int(d.Hours()), int(d.Minutes())%60)
+func FormatDuration(d time.Duration, zeroPadHours ...bool) string {
+	if len(zeroPadHours) > 0 && !zeroPadHours[0] {
+		return fmt.Sprintf(durationFormatTemplate, int(d.Hours()), int(d.Minutes())%60)
+	}
+	return fmt.Sprintf(durationFormatTemplatePad, int(d.Hours()), int(d.Minutes())%60)
 }
 
 // FormatTimeWithOffset formats a time with day offset indicators

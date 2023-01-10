@@ -323,7 +323,7 @@ func renderWeekSchedule(t *core.Track, reporter *core.Reporter, active string, s
 		}
 
 		line1 += col.Sprintf(" %c:%3s ", symbols[indices[p]], p)
-		line2 += col.Sprintf(" %*s ", width+2, util.FormatDuration(reporter.TotalTime[p]))
+		line2 += col.Sprintf(" %*s ", width+2, util.FormatDuration(reporter.TotalTime[p], false))
 		lineWidth += width + 4
 	}
 	if len(line1) > 0 {

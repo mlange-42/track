@@ -80,9 +80,9 @@ func projectsReportCommand(t *core.Track, options *filterOptions) *cobra.Command
 					str += t.Value.Render.Sprintf(" %s ", t.Value.Symbol)
 
 					return fmt.Sprintf(
-						"%s %s (%s)", str,
-						util.FormatDuration(reporter.TotalTime[t.Value.Name]),
-						util.FormatDuration(reporter.ProjectTime[t.Value.Name]),
+						"%s %6s (%5s)", str,
+						util.FormatDuration(reporter.TotalTime[t.Value.Name], false),
+						util.FormatDuration(reporter.ProjectTime[t.Value.Name], false),
 					)
 				},
 				2,
