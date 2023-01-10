@@ -21,6 +21,11 @@ records/
       └─08-15.trk
 ```
 
+These files should not be edited directly.
+*Track* provides an `edit` command that opens the entries to be edited in a temporary file,
+and performs checks before replacing the original data.
+See chapter [Manipulating data](./manipulating.md) for details.
+
 The content of the file could look like this:
 
 ```text
@@ -112,8 +117,10 @@ The following are valid pause entries:
 - 10:00 - 20m / Breakfast
 - 10:00 - 20m
 - 10:00 - 10:20 / Breakfast
-- 10:00 - 20m
+- 10:00 - 10:20
 ```
+
+*Track* uses the duration version for saving records. When editing records, both forms are valid.
 
 For parsing the pause's time range, the rules of [Time ranges](#time-ranges) apply.
 
