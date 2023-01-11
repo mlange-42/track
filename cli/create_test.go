@@ -91,5 +91,8 @@ func TestCreateProjectFlags(t *testing.T) {
 	assert.True(t, track.ProjectExists("child"), "Project should exist")
 
 	project, err := track.LoadProjectByName("child")
+	if err != nil {
+		t.Fatal("error loading project")
+	}
 	assert.Equal(t, ref, project, "project properties differ from expected due to flags")
 }

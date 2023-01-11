@@ -90,7 +90,7 @@ func renderDayChart(t *core.Track, reporter *core.Reporter, active string, start
 
 	timelines := map[string][]float64{}
 	for pr := range reporter.Projects {
-		timelines[pr] = make([]float64, bph*24, bph*24)
+		timelines[pr] = make([]float64, bph*24)
 	}
 
 	now := time.Now()
@@ -144,7 +144,7 @@ func renderDayChart(t *core.Track, reporter *core.Reporter, active string, start
 
 	timelineStr := map[string]string{}
 	for pr, values := range timelines {
-		runes := make([]rune, bph*24, bph*24)
+		runes := make([]rune, bph*24)
 		for i, v := range values {
 			runes[i] = util.FloatToBlock(v, space)
 		}
@@ -164,14 +164,14 @@ func renderDayChart(t *core.Track, reporter *core.Reporter, active string, start
 			if t.Value.Name == active {
 				str = color.BgBlue.Sprintf("%s", name)
 			} else {
-				str = fmt.Sprintf("%s", name)
+				str = name
 			}
 			if fillLen > 0 {
 				str += strings.Repeat(" ", fillLen)
 			}
 			str += " "
 			str += t.Value.Render.Sprintf(" %s ", t.Value.Symbol)
-			text, _ := timelineStr[t.Value.Name]
+			text := timelineStr[t.Value.Name]
 			return fmt.Sprintf("%s%s", str, text)
 		},
 		2,

@@ -38,7 +38,7 @@ func createFilters(options *filterOptions, projects map[string]core.Project, fil
 	}
 
 	if len(options.tags) > 0 {
-		tags := make([]util.Pair[string, string], len(options.tags), len(options.tags))
+		tags := make([]util.Pair[string, string], len(options.tags))
 		i := 0
 		for _, tag := range options.tags {
 			k, v := core.ParseTag(tag)

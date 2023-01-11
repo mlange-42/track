@@ -4,19 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
-)
-
-const (
-	rootDirName     = ".track"
-	projectsDirName = "projects"
-	recordsDirName  = "records"
-	configFile      = "config.yml"
-
-	trackPathEnvVar = "TRACK_PATH"
 )
 
 var (
@@ -54,7 +44,7 @@ func DirIsEmpty(path string) (bool, error) {
 	if !DirExists(path) {
 		return false, fmt.Errorf("is not a directory: %s", path)
 	}
-	content, err := ioutil.ReadDir(path)
+	content, err := os.ReadDir(path)
 	if err != nil {
 		return false, err
 	}
@@ -77,12 +67,12 @@ func CreateDir(path string) error {
 
 // FindLatests finds the "latest" file or directory in a file, by name
 func FindLatests(path string, isDir bool) (string, string, error) {
-	files, err := ioutil.ReadDir(path)
+	files, err := os.ReadDir(path)
 	if err != nil {
 		return "", "", err
 	}
 
-	var dir fs.FileInfo = nil
+	var dir fs.DirEntry = nil
 	for i := len(files) - 1; i >= 0; i-- {
 		dir = files[i]
 		if dir.IsDir() == isDir {

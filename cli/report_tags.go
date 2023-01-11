@@ -80,7 +80,7 @@ func tagsReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 								Pause: 0,
 							}
 						}
-						entry, _ := allTags[tag]
+						entry := allTags[tag]
 						entry.Work += dur
 						entry.Pause += pause
 						entry.Count++
@@ -95,7 +95,7 @@ func tagsReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 								Pause: 0,
 							}
 						}
-						values, _ := entry.Values[value]
+						values := entry.Values[value]
 						values.Work += dur
 						values.Pause += pause
 						values.Count++
@@ -127,7 +127,7 @@ func tagsReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
 				)
 				if !valueStats {
 					values := stats.Values
-					if values != nil && len(values) > 0 {
+					if len(values) > 0 {
 						vKeys := maps.Keys(values)
 						sort.Strings(vKeys)
 						if _, ok := values[""]; !ok || len(vKeys) > 1 {

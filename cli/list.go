@@ -84,7 +84,7 @@ func listProjectsCommand(t *core.Track) *cobra.Command {
 					if t.Value.Name == active {
 						str = color.BgBlue.Sprintf("%s", name)
 					} else {
-						str = fmt.Sprintf("%s", name)
+						str = name
 					}
 					if fillLen > 0 {
 						str += strings.Repeat(" ", fillLen)

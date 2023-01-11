@@ -3,7 +3,6 @@ package core
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"runtime"
 	"strings"
@@ -14,12 +13,6 @@ import (
 )
 
 const defaultWorkspace = "default"
-
-const (
-	defaultEmptyCell  = "."
-	defaultRecordCell = ":"
-	defaultPauseCell  = "-"
-)
 
 var (
 	// ErrNoConfig is an error for no config file available
@@ -75,7 +68,7 @@ func LoadConfig(path string) (Config, error) {
 }
 
 func tryLoadConfig(path string) (Config, error) {
-	file, err := ioutil.ReadFile(path)
+	file, err := os.ReadFile(path)
 	if err != nil {
 		return Config{}, ErrNoConfig
 	}

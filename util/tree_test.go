@@ -133,8 +133,8 @@ func TestAncestorDescendants(t *testing.T) {
 		if !ok {
 			t.Fatalf("Should be able to determine descendants")
 		}
-		ancStr := make([]string, len(anc), len(anc))
-		desStr := make([]string, len(des), len(des))
+		ancStr := make([]string, len(anc))
+		desStr := make([]string, len(des))
 		for i, a := range anc {
 			ancStr[i] = a.Value.Name
 		}

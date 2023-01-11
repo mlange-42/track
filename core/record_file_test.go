@@ -1,7 +1,6 @@
 package core
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 	"time"
@@ -11,7 +10,7 @@ import (
 )
 
 func TestSaveLoadRecord(t *testing.T) {
-	dir, err := ioutil.TempDir("", "track-test")
+	dir, err := os.MkdirTemp("", "track-test")
 	assert.Nil(t, err, "Error creating temporary directory")
 	defer os.Remove(dir)
 
@@ -96,7 +95,7 @@ func TestSaveLoadRecord(t *testing.T) {
 }
 
 func TestStartStopRecord(t *testing.T) {
-	dir, err := ioutil.TempDir("", "track-test")
+	dir, err := os.MkdirTemp("", "track-test")
 	assert.Nil(t, err, "Error creating temporary directory")
 	defer os.Remove(dir)
 

@@ -2,7 +2,6 @@ package core
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -134,7 +133,7 @@ func (t *Track) LoadProjectByName(name string) (Project, error) {
 
 // LoadProject loads a project
 func (t *Track) LoadProject(path string) (Project, error) {
-	file, err := ioutil.ReadFile(path)
+	file, err := os.ReadFile(path)
 	if err != nil {
 		return Project{}, err
 	}
@@ -152,7 +151,7 @@ func (t *Track) LoadProject(path string) (Project, error) {
 func (t *Track) LoadAllProjects() (map[string]Project, error) {
 	path := t.ProjectsDir()
 
-	files, err := ioutil.ReadDir(path)
+	files, err := os.ReadDir(path)
 	if err != nil {
 		return nil, err
 	}

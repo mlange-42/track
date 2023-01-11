@@ -1,7 +1,6 @@
 package main
 
 import (
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"runtime/pprof"
@@ -14,7 +13,7 @@ import (
 )
 
 func main() {
-	dir, err := ioutil.TempDir("", "track-test")
+	dir, err := os.MkdirTemp("", "track-test")
 	if err != nil {
 		panic(err.Error())
 	}
@@ -83,8 +82,8 @@ Venenatis +lectus +magna +fringilla +urna porttitor rhoncus dolor.
 Aliquam id +diam maecenas ultricies.`, "\n")
 
 func timedRecord(start time.Time, duration time.Duration, pauses int, lines int) core.Record {
-	pause := make([]core.Pause, pauses, pauses)
-	note := make([]string, lines, lines)
+	pause := make([]core.Pause, pauses)
+	note := make([]string, lines)
 
 	if pauses > 0 {
 		step := time.Duration(int(duration) / (pauses + 2))

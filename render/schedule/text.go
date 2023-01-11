@@ -34,8 +34,8 @@ func (r *TextRenderer) Render(w io.Writer) error {
 	projects := maps.Keys(r.Reporter.Projects)
 	sort.Strings(projects)
 	indices := make(map[string]int, len(projects))
-	symbols := make([]rune, len(projects)+1, len(projects)+1)
-	colors := make([]color.Style256, len(projects)+1, len(projects)+1)
+	symbols := make([]rune, len(projects)+1)
+	colors := make([]color.Style256, len(projects)+1)
 	symbols[0] = spaceSym
 	colors[0] = *color.S256(15, 0)
 	for i, p := range projects {
@@ -49,9 +49,9 @@ func (r *TextRenderer) Render(w io.Writer) error {
 		numDays = 7
 	}
 
-	timeline := make([]int, 24*numDays*bph, 24*numDays*bph)
-	paused := make([]bool, 24*numDays*bph, 24*numDays*bph)
-	record := make([]int, 24*numDays*bph, 24*numDays*bph)
+	timeline := make([]int, 24*numDays*bph)
+	paused := make([]bool, 24*numDays*bph)
+	record := make([]int, 24*numDays*bph)
 
 	now := time.Now()
 

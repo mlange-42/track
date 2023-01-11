@@ -5,12 +5,12 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 )
 
 // TerminalSize returns the size of the terminal
 func TerminalSize() (width int, height int, err error) {
-	return terminal.GetSize(int(os.Stdout.Fd()))
+	return term.GetSize(int(os.Stdout.Fd()))
 }
 
 // WrappedArgs are PositionalArgs that print usage on error

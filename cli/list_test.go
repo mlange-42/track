@@ -3,7 +3,7 @@ package cli
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"strings"
 	"testing"
@@ -31,7 +31,7 @@ func TestListWorkspaces(t *testing.T) {
 		t.Fatal("error executing command")
 	}
 
-	outStr, err := ioutil.ReadAll(buffer)
+	outStr, err := io.ReadAll(buffer)
 	if err != nil {
 		t.Fatal("error reading output")
 	}
@@ -69,7 +69,7 @@ func TestListProjects(t *testing.T) {
 		t.Fatal("error executing command")
 	}
 
-	outStr, err := ioutil.ReadAll(buffer)
+	outStr, err := io.ReadAll(buffer)
 	if err != nil {
 		t.Fatal("error reading output")
 	}
@@ -125,7 +125,7 @@ func TestListTags(t *testing.T) {
 		t.Fatal("error executing command")
 	}
 
-	outStr, err := ioutil.ReadAll(buffer)
+	outStr, err := io.ReadAll(buffer)
 	if err != nil {
 		t.Fatal("error reading output")
 	}
@@ -161,7 +161,7 @@ func TestListColors(t *testing.T) {
 		t.Fatal("error executing command")
 	}
 
-	outStr, err := ioutil.ReadAll(buffer)
+	outStr, err := io.ReadAll(buffer)
 	if err != nil {
 		t.Fatal("error reading output")
 	}
@@ -215,7 +215,7 @@ func TestListRecords(t *testing.T) {
 		t.Fatal("error executing command")
 	}
 
-	outStr, err := ioutil.ReadAll(buffer)
+	outStr, err := io.ReadAll(buffer)
 	if err != nil {
 		t.Fatal("error reading output")
 	}

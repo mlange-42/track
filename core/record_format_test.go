@@ -1,7 +1,6 @@
 package core
 
 import (
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"strings"
@@ -118,7 +117,7 @@ func BenchmarkDeserialize(b *testing.B) {
 }
 
 func BenchmarkRead1k(b *testing.B) {
-	dir, err := ioutil.TempDir("", "track-test")
+	dir, err := os.MkdirTemp("", "track-test")
 	assert.Nil(b, err, "Error creating temporary directory")
 	defer os.Remove(dir)
 
@@ -139,7 +138,7 @@ func BenchmarkRead1k(b *testing.B) {
 }
 
 func BenchmarkRead1kAsync(b *testing.B) {
-	dir, err := ioutil.TempDir("", "track-test")
+	dir, err := os.MkdirTemp("", "track-test")
 	assert.Nil(b, err, "Error creating temporary directory")
 	defer os.Remove(dir)
 
@@ -163,7 +162,7 @@ func BenchmarkRead1kAsync(b *testing.B) {
 }
 
 func BenchmarkRead10k(b *testing.B) {
-	dir, err := ioutil.TempDir("", "track-test")
+	dir, err := os.MkdirTemp("", "track-test")
 	assert.Nil(b, err, "Error creating temporary directory")
 	defer os.Remove(dir)
 
@@ -184,7 +183,7 @@ func BenchmarkRead10k(b *testing.B) {
 }
 
 func BenchmarkRead10kAsync(b *testing.B) {
-	dir, err := ioutil.TempDir("", "track-test")
+	dir, err := os.MkdirTemp("", "track-test")
 	assert.Nil(b, err, "Error creating temporary directory")
 	defer os.Remove(dir)
 
@@ -263,8 +262,8 @@ Venenatis +lectus +magna +fringilla +urna porttitor rhoncus dolor.
 Aliquam id +diam maecenas ultricies.`, "\n")
 
 func timedRecord(start time.Time, duration time.Duration, pauses int, lines int) Record {
-	pause := make([]Pause, pauses, pauses)
-	note := make([]string, lines, lines)
+	pause := make([]Pause, pauses)
+	note := make([]string, lines)
 
 	if pauses > 0 {
 		step := time.Duration(int(duration) / (pauses + 2))
