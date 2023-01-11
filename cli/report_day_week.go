@@ -150,7 +150,7 @@ func schedule(t *core.Track, start time.Time, options *filterOptions, week bool,
 		active = rec.Project
 	}
 
-	str, err := renderWeekSchedule(t, reporter, active, start, week, bph)
+	str, err := renderSchedule(t, reporter, active, start, week, bph)
 	if err != nil {
 		return err
 	}
@@ -158,7 +158,7 @@ func schedule(t *core.Track, start time.Time, options *filterOptions, week bool,
 	return nil
 }
 
-func renderWeekSchedule(t *core.Track, reporter *core.Reporter, active string, startDate time.Time, week bool, blocksPerHour int) (string, error) {
+func renderSchedule(t *core.Track, reporter *core.Reporter, active string, startDate time.Time, week bool, blocksPerHour int) (string, error) {
 	bph := blocksPerHour
 
 	spaceSym := []rune(t.Config.EmptyCell)[0]
