@@ -1,21 +1,14 @@
 package cli
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
-	"strings"
 
 	"github.com/mlange-42/track/core"
 	"github.com/mlange-42/track/out"
+	"github.com/mlange-42/track/render/records"
 	"github.com/mlange-42/track/util"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
 )
-
-type recordWriter interface {
-	Write(io.Writer, chan core.FilterResult) error
-}
 
 func exportCommand(t *core.Track) *cobra.Command {
 	export := &cobra.Command{
@@ -60,20 +53,20 @@ The default export format is CSV.`,
 			}
 
 			io := out.StdOut
-			var writer recordWriter
+			var writer records.Renderer
 			if json {
-				writer = jsonWriter{}
+				writer = records.JSONRenderer{}
 			} else if yaml {
-				writer = yamlWriter{}
+				writer = records.YAMLRenderer{}
 			} else {
-				writer = csvWriter{
+				writer = records.CsvRenderer{
 					Separator: ",",
 				}
 			}
 
 			fn, results, _ := t.AllRecordsFiltered(filters, false)
 			go fn()
-			writer.Write(io, results)
+			writer.Render(io, results)
 
 			return nil
 		},
@@ -90,110 +83,4 @@ The default export format is CSV.`,
 	records.MarkFlagsMutuallyExclusive("json", "yaml")
 
 	return records
-}
-
-type csvWriter struct {
-	Separator string
-}
-
-func (wr csvWriter) writeHeader(w io.Writer) error {
-	_, err := fmt.Fprintf(
-		w, "%s\n",
-		strings.Join([]string{"start", "end", "project", "total", "work", "pause", "note", "tags"}, wr.Separator),
-	)
-	return err
-}
-
-func (wr csvWriter) Write(w io.Writer, results chan core.FilterResult) error {
-	err := wr.writeHeader(w)
-	if err != nil {
-		return err
-	}
-
-	for res := range results {
-		if res.Err != nil {
-			return res.Err
-		}
-		r := res.Record
-
-		var endTime string
-		if r.End.IsZero() {
-			endTime = ""
-		} else {
-			endTime = r.End.Format(util.DateTimeFormat)
-		}
-
-		tags := make([]string, len(r.Tags), len(r.Tags))
-		i := 0
-		for k, v := range r.Tags {
-			tags[i] = fmt.Sprintf("%s=%s", k, v)
-			i++
-		}
-
-		_, err = fmt.Fprintf(
-			w, "%s\n",
-			strings.Join([]string{
-				r.Start.Format(util.DateTimeFormat),
-				endTime,
-				r.Project,
-				util.FormatDuration(r.TotalDuration(util.NoTime, util.NoTime)),
-				util.FormatDuration(r.Duration(util.NoTime, util.NoTime)),
-				util.FormatDuration(r.PauseDuration(util.NoTime, util.NoTime)),
-				fmt.Sprintf("\"%s\"", strings.ReplaceAll(r.Note, "\n", "\\n")),
-				strings.Join(tags, " "),
-			}, wr.Separator),
-		)
-	}
-
-	return err
-}
-
-type jsonWriter struct{}
-
-func (wr jsonWriter) Write(w io.Writer, results chan core.FilterResult) error {
-	records := []core.Record{}
-
-	for res := range results {
-		if res.Err != nil {
-			return res.Err
-		}
-		records = append(records, res.Record)
-	}
-
-	bytes, err := json.MarshalIndent(records, "", "    ")
-	if err != nil {
-		return err
-	}
-
-	_, err = w.Write(bytes)
-	if err != nil {
-		return err
-	}
-
-	return err
-}
-
-type yamlWriter struct{}
-
-func (wr yamlWriter) Write(w io.Writer, results chan core.FilterResult) error {
-	records := []core.Record{}
-
-	for res := range results {
-		if res.Err != nil {
-			return res.Err
-		}
-		records = append(records, res.Record)
-	}
-
-	bytes, err := yaml.Marshal(records)
-	if err != nil {
-		return err
-	}
-
-	_, err = w.Write(bytes)
-	if err != nil {
-		return err
-	}
-
-	return err
 }
