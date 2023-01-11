@@ -3,7 +3,6 @@ package core
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -164,14 +163,12 @@ func (t *Track) FindLatestRecord(cond FilterFunction) (*Record, error) {
 	)
 	go fn()
 
-	for res := range results {
-		if res.Err != nil {
-			return nil, res.Err
-		}
-		close(stop)
-		return &res.Record, nil
+	res := <-results
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return nil, nil
+	close(stop)
+	return &res.Record, nil
 }
 
 // LoadAllRecords loads all records
@@ -243,7 +240,7 @@ func (t *Track) AllRecordsFiltered(filters FilterFunctions, reversed bool) (func
 			}
 		}
 
-		tempTimes := make([]time.Time, numWorkers, numWorkers)
+		tempTimes := make([]time.Time, numWorkers)
 
 		taskChannels := make([]chan time.Time, numWorkers)
 		resChannels := make([]chan workerResult, numWorkers)
@@ -290,7 +287,7 @@ func (t *Track) listAllRecordsFiltered(filters FilterFunctions, reversed bool) (
 
 		path := t.RecordsDir()
 
-		yearDirs, err := ioutil.ReadDir(path)
+		yearDirs, err := os.ReadDir(path)
 		if err != nil {
 			results <- listFilterResult{util.NoTime, err}
 			return
@@ -315,7 +312,7 @@ func (t *Track) listAllRecordsFiltered(filters FilterFunctions, reversed bool) (
 				continue
 			}
 
-			monthDirs, err := ioutil.ReadDir(filepath.Join(path, yearDir.Name()))
+			monthDirs, err := os.ReadDir(filepath.Join(path, yearDir.Name()))
 
 			if reversed {
 				util.Reverse(monthDirs)
@@ -335,7 +332,7 @@ func (t *Track) listAllRecordsFiltered(filters FilterFunctions, reversed bool) (
 					return
 				}
 
-				dayDirs, err := ioutil.ReadDir(filepath.Join(path, yearDir.Name(), monthDir.Name()))
+				dayDirs, err := os.ReadDir(filepath.Join(path, yearDir.Name(), monthDir.Name()))
 				if err != nil {
 					results <- listFilterResult{util.NoTime, err}
 					return
@@ -452,7 +449,7 @@ func (t *Track) listDateRecords(date time.Time) ([]time.Time, error) {
 
 	var records []time.Time
 
-	files, err := ioutil.ReadDir(subPath)
+	files, err := os.ReadDir(subPath)
 	if err != nil {
 		return nil, err
 	}
@@ -485,11 +482,10 @@ func (t *Track) SaveRecord(record *Record, force bool) error {
 	}
 
 	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
-	defer file.Close()
-
 	if err != nil {
 		return err
 	}
+	defer file.Close()
 
 	bytes := SerializeRecord(record, util.NoTime)
 

@@ -1,7 +1,6 @@
 package core
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -9,7 +8,7 @@ import (
 )
 
 func TestWorkspace(t *testing.T) {
-	dir, err := ioutil.TempDir("", "track-test")
+	dir, err := os.MkdirTemp("", "track-test")
 	assert.Nil(t, err, "Error creating temporary directory")
 	defer os.Remove(dir)
 

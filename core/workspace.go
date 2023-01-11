@@ -2,7 +2,7 @@ package core
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"github.com/mlange-42/track/util"
 )
@@ -52,7 +52,7 @@ func (t *Track) Workspace() string {
 // AllWorkspaces returns a slice of all workspaces
 func (t *Track) AllWorkspaces() ([]string, error) {
 	path := t.RootDir
-	dirs, err := ioutil.ReadDir(path)
+	dirs, err := os.ReadDir(path)
 	if err != nil {
 		return nil, err
 	}

@@ -1,7 +1,7 @@
 package cli
 
 import (
-	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 
@@ -22,7 +22,7 @@ func TestConfirm(t *testing.T) {
 }
 
 func setupTestCommand() (*core.Track, error) {
-	dir, err := ioutil.TempDir("", "track-test")
+	dir, err := os.MkdirTemp("", "track-test")
 	if err != nil {
 		return nil, err
 	}

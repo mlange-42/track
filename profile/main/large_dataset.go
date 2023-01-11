@@ -1,7 +1,6 @@
 package main
 
 import (
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"runtime/pprof"
@@ -14,7 +13,7 @@ import (
 )
 
 func main() {
-	dir, err := ioutil.TempDir("", "track-test")
+	dir, err := os.MkdirTemp("", "track-test")
 	if err != nil {
 		panic(err.Error())
 	}

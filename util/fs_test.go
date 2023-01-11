@@ -1,7 +1,6 @@
 package util
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -49,7 +48,7 @@ func TestSanitize(t *testing.T) {
 }
 
 func TestExistsEtc(t *testing.T) {
-	dir, err := ioutil.TempDir("", "track-test")
+	dir, err := os.MkdirTemp("", "track-test")
 	assert.Nil(t, err, "Error creating temporary directory")
 	defer os.Remove(dir)
 
