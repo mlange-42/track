@@ -145,3 +145,61 @@ func TestAncestorDescendants(t *testing.T) {
 		assert.ElementsMatch(t, test.expDescendants, desStr, "Descendants don't match in %s", test.title)
 	}
 }
+
+func TestAggregate(t *testing.T) {
+	tr := NewTree(
+		testStruct{Name: "root"},
+	)
+	root := tr.Root
+	a := NewNode(testStruct{Name: "a"})
+	a1 := NewNode(testStruct{Name: "a1"})
+	a2 := NewNode(testStruct{Name: "a2"})
+	b := NewNode(testStruct{Name: "b"})
+	b1 := NewNode(testStruct{Name: "b1"})
+	b11 := NewNode(testStruct{Name: "b11"})
+
+	tr.AddNode(root, a)
+	tr.AddNode(a, a1)
+	tr.AddNode(a, a2)
+
+	tr.AddNode(root, b)
+	tr.AddNode(b, b1)
+	tr.AddNode(b1, b11)
+
+	tree := MapTree[testStruct]{
+		Root: root,
+		Nodes: map[string]*testNode{
+			"root": root,
+			"a":    a,
+			"a1":   a1,
+			"a2":   a2,
+			"b":    b,
+			"b1":   b1,
+			"b11":  b11,
+		},
+	}
+
+	values := map[string]int{
+		"root": 0,
+		"a":    1,
+		"a1":   1,
+		"a2":   1,
+		"b":    1,
+		"b1":   1,
+		"b11":  1,
+	}
+
+	Aggregate(&tree, values, 0, func(a, b int) int { return a + b })
+
+	expected := map[string]int{
+		"root": 6,
+		"a":    3,
+		"a1":   1,
+		"a2":   1,
+		"b":    3,
+		"b1":   2,
+		"b11":  1,
+	}
+
+	assert.Equal(t, expected, values, "Wrong aggregation result")
+}

@@ -14,11 +14,6 @@ type TimeRange struct {
 	End   time.Time
 }
 
-// Duration calculates the duration of a time range
-func (r TimeRange) Duration() time.Duration {
-	return r.End.Sub(r.Start)
-}
-
 // Reporter for generating reports
 type Reporter struct {
 	Track        *Track
