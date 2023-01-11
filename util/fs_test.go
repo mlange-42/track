@@ -75,15 +75,18 @@ func TestExistsEtc(t *testing.T) {
 	assert.True(t, DirExists(filepath.Join(dir, "foo")), "Directory should exist")
 
 	err = CreateDir(filepath.Join(dir, "goo"))
+	assert.Nil(t, err, "Error creating directory")
 	err = CreateDir(filepath.Join(dir, "hoo"))
+	assert.Nil(t, err, "Error creating directory")
 	err = CreateDir(filepath.Join(dir, "ioo"))
+	assert.Nil(t, err, "Error creating directory")
 
 	path, name, err := FindLatests(dir, true)
 	assert.Nil(t, err, "Error finding latest directory")
 	assert.Equal(t, filepath.Join(dir, "ioo"), path, "Wrong latest directory path")
 	assert.Equal(t, "ioo", name, "Wrong latest directory name")
 
-	file, err = os.Create(filepath.Join(dir, "test2.file"))
+	_, err = os.Create(filepath.Join(dir, "test2.file"))
 	assert.Nil(t, err, "Error creating file")
 
 	path, name, err = FindLatests(dir, false)
