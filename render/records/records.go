@@ -11,14 +11,10 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Renderer is an interface for rendering record exports
-type Renderer interface {
-	Render(io.Writer, chan core.FilterResult) error
-}
-
 // CsvRenderer renders records for CSV export
 type CsvRenderer struct {
 	Separator string
+	Results   chan core.FilterResult
 }
 
 func (wr CsvRenderer) writeHeader(w io.Writer) error {
@@ -30,13 +26,13 @@ func (wr CsvRenderer) writeHeader(w io.Writer) error {
 }
 
 // Render renders a stream of records
-func (wr CsvRenderer) Render(w io.Writer, results chan core.FilterResult) error {
+func (wr CsvRenderer) Render(w io.Writer) error {
 	err := wr.writeHeader(w)
 	if err != nil {
 		return err
 	}
 
-	for res := range results {
+	for res := range wr.Results {
 		if res.Err != nil {
 			return res.Err
 		}
@@ -75,13 +71,15 @@ func (wr CsvRenderer) Render(w io.Writer, results chan core.FilterResult) error 
 }
 
 // JSONRenderer renders records for JSON export
-type JSONRenderer struct{}
+type JSONRenderer struct {
+	Results chan core.FilterResult
+}
 
 // Render renders a stream of records
-func (wr JSONRenderer) Render(w io.Writer, results chan core.FilterResult) error {
+func (wr JSONRenderer) Render(w io.Writer) error {
 	records := []core.Record{}
 
-	for res := range results {
+	for res := range wr.Results {
 		if res.Err != nil {
 			return res.Err
 		}
@@ -102,13 +100,15 @@ func (wr JSONRenderer) Render(w io.Writer, results chan core.FilterResult) error
 }
 
 // YAMLRenderer renders records for YAML export
-type YAMLRenderer struct{}
+type YAMLRenderer struct {
+	Results chan core.FilterResult
+}
 
 // Render renders a stream of records
-func (wr YAMLRenderer) Render(w io.Writer, results chan core.FilterResult) error {
+func (wr YAMLRenderer) Render(w io.Writer) error {
 	records := []core.Record{}
 
-	for res := range results {
+	for res := range wr.Results {
 		if res.Err != nil {
 			return res.Err
 		}

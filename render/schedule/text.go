@@ -2,6 +2,7 @@ package schedule
 
 import (
 	"fmt"
+	"io"
 	"sort"
 	"strings"
 	"time"
@@ -15,19 +16,22 @@ import (
 
 // TextRenderer renders a week or day schedule as colored text
 type TextRenderer struct {
+	Track         *core.Track
+	Reporter      *core.Reporter
+	StartDate     time.Time
 	Weekly        bool
 	BlocksPerHour int
 }
 
 // Render renders the schedule
-func (r *TextRenderer) Render(t *core.Track, reporter *core.Reporter, startDate time.Time) (string, error) {
+func (r *TextRenderer) Render(w io.Writer) error {
 	bph := r.BlocksPerHour
 
-	spaceSym := []rune(t.Config.EmptyCell)[0]
-	pauseSym := []rune(t.Config.PauseCell)[0]
-	recordSym := []rune(t.Config.RecordCell)[0]
+	spaceSym := []rune(r.Track.Config.EmptyCell)[0]
+	pauseSym := []rune(r.Track.Config.PauseCell)[0]
+	recordSym := []rune(r.Track.Config.RecordCell)[0]
 
-	projects := maps.Keys(reporter.Projects)
+	projects := maps.Keys(r.Reporter.Projects)
 	sort.Strings(projects)
 	indices := make(map[string]int, len(projects))
 	symbols := make([]rune, len(projects)+1, len(projects)+1)
@@ -36,8 +40,8 @@ func (r *TextRenderer) Render(t *core.Track, reporter *core.Reporter, startDate 
 	colors[0] = *color.S256(15, 0)
 	for i, p := range projects {
 		indices[p] = i + 1
-		symbols[i+1] = []rune(reporter.Projects[p].Symbol)[0]
-		colors[i+1] = reporter.Projects[p].Render
+		symbols[i+1] = []rune(r.Reporter.Projects[p].Symbol)[0]
+		colors[i+1] = r.Reporter.Projects[p].Render
 	}
 
 	numDays := 1
@@ -51,8 +55,8 @@ func (r *TextRenderer) Render(t *core.Track, reporter *core.Reporter, startDate 
 
 	now := time.Now()
 
-	for recIdx, rec := range reporter.Records {
-		startIdx, endIdx, ok := toIndexRange(rec.Start, rec.End, startDate, bph, numDays)
+	for recIdx, rec := range r.Reporter.Records {
+		startIdx, endIdx, ok := toIndexRange(rec.Start, rec.End, r.StartDate, bph, numDays)
 		if !ok {
 			continue
 		}
@@ -62,7 +66,7 @@ func (r *TextRenderer) Render(t *core.Track, reporter *core.Reporter, startDate 
 			record[i] = recIdx + 1
 		}
 		for _, p := range rec.Pause {
-			startIdx, endIdx, ok := toIndexRange(p.Start, p.End, startDate, bph, numDays)
+			startIdx, endIdx, ok := toIndexRange(p.Start, p.End, r.StartDate, bph, numDays)
 			if !ok {
 				continue
 			}
@@ -72,17 +76,16 @@ func (r *TextRenderer) Render(t *core.Track, reporter *core.Reporter, startDate 
 		}
 	}
 
-	nowIdx := int(now.Sub(startDate).Hours() * float64(bph))
+	nowIdx := int(now.Sub(r.StartDate).Hours() * float64(bph))
 
-	sb := strings.Builder{}
-	fmt.Fprintf(&sb, "      |Day %s : %s/cell\n",
-		startDate.Format(util.DateFormat),
+	fmt.Fprintf(w, "      |Day %s : %s/cell\n",
+		r.StartDate.Format(util.DateFormat),
 		time.Duration(1e9*(int(time.Hour)/(bph*1e9))).String(),
 	)
 
-	fmt.Fprint(&sb, "      ")
+	fmt.Fprint(w, "      ")
 	for weekday := 0; weekday < numDays; weekday++ {
-		date := startDate.Add(time.Duration(weekday * 24 * int(time.Hour)))
+		date := r.StartDate.Add(time.Duration(weekday * 24 * int(time.Hour)))
 		str := fmt.Sprintf(
 			"%s %02d %s",
 			date.Weekday().String()[:2],
@@ -90,22 +93,22 @@ func (r *TextRenderer) Render(t *core.Track, reporter *core.Reporter, startDate 
 			date.Month().String()[:3],
 		)
 		if len(str) > bph {
-			fmt.Fprintf(&sb, "|%s", str[:bph])
+			fmt.Fprintf(w, "|%s", str[:bph])
 		} else {
-			fmt.Fprintf(&sb, "|%s%s", str, strings.Repeat(" ", bph-len(str)))
+			fmt.Fprintf(w, "|%s%s", str, strings.Repeat(" ", bph-len(str)))
 		}
 	}
-	fmt.Fprintln(&sb, "|")
+	fmt.Fprintln(w, "|")
 
 	lastRecord := -1
 	idxRecord := 0
 	currNote := []rune{}
 	currName := []rune{}
 	for hour := 0; hour < 24; hour++ {
-		fmt.Fprintf(&sb, "%02d:00 ", hour)
+		fmt.Fprintf(w, "%02d:00 ", hour)
 		for weekday := 0; weekday < numDays; weekday++ {
 			s := (weekday*24 + hour) * bph
-			fmt.Fprint(&sb, "|")
+			fmt.Fprint(w, "|")
 			for i := s; i < s+bph; i++ {
 				rec := record[i]
 				pr := timeline[i]
@@ -118,8 +121,8 @@ func (r *TextRenderer) Render(t *core.Track, reporter *core.Reporter, startDate 
 						currNote = []rune{}
 						currName = []rune{}
 					} else {
-						currNote = []rune(reporter.Records[rec-1].Note)
-						currName = []rune(reporter.Records[rec-1].Project)
+						currNote = []rune(r.Reporter.Records[rec-1].Note)
+						currName = []rune(r.Reporter.Records[rec-1].Project)
 					}
 				} else {
 					if !pause {
@@ -157,10 +160,10 @@ func (r *TextRenderer) Render(t *core.Track, reporter *core.Reporter, startDate 
 				if i == nowIdx {
 					sym = '@'
 				}
-				fmt.Fprint(&sb, col.Sprintf("%c", sym))
+				fmt.Fprint(w, col.Sprintf("%c", sym))
 			}
 		}
-		fmt.Fprintln(&sb, "|")
+		fmt.Fprintln(w, "|")
 	}
 
 	totalWidth := 7 + numDays*(bph+1)
@@ -176,22 +179,22 @@ func (r *TextRenderer) Render(t *core.Track, reporter *core.Reporter, startDate 
 		}
 		if lineWidth > 0 && lineWidth+width+4 > totalWidth {
 			lineWidth = 0
-			fmt.Fprintln(&sb, line1)
-			fmt.Fprintln(&sb, line2)
+			fmt.Fprintln(w, line1)
+			fmt.Fprintln(w, line2)
 			line1 = ""
 			line2 = ""
 		}
 
 		line1 += col.Sprintf(" %c:%3s ", symbols[indices[p]], p)
-		line2 += col.Sprintf(" %*s ", width+2, util.FormatDuration(reporter.TotalTime[p], false))
+		line2 += col.Sprintf(" %*s ", width+2, util.FormatDuration(r.Reporter.TotalTime[p], false))
 		lineWidth += width + 4
 	}
 	if len(line1) > 0 {
-		fmt.Fprintln(&sb, line1)
-		fmt.Fprintln(&sb, line2)
+		fmt.Fprintln(w, line1)
+		fmt.Fprintln(w, line2)
 	}
 
-	return sb.String(), nil
+	return nil
 }
 
 func toIndexRange(start, end, startDate time.Time, bph int, days int) (int, int, bool) {

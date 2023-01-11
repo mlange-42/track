@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bytes"
 	"fmt"
 	"time"
 
@@ -138,11 +139,18 @@ func renderSchedule(t *core.Track, start time.Time, options *filterOptions, week
 		return err
 	}
 
-	renderer := schedule.TextRenderer{Weekly: week, BlocksPerHour: bph}
-	str, err := renderer.Render(t, reporter, start)
+	renderer := schedule.TextRenderer{
+		Track:         t,
+		Reporter:      reporter,
+		StartDate:     start,
+		Weekly:        week,
+		BlocksPerHour: bph,
+	}
+	buffer := bytes.Buffer{}
+	err = renderer.Render(&buffer)
 	if err != nil {
 		return err
 	}
-	out.Print(str)
+	out.Print(buffer.String())
 	return nil
 }

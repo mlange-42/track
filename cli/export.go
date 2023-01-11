@@ -5,6 +5,7 @@ import (
 
 	"github.com/mlange-42/track/core"
 	"github.com/mlange-42/track/out"
+	"github.com/mlange-42/track/render"
 	"github.com/mlange-42/track/render/records"
 	"github.com/mlange-42/track/util"
 	"github.com/spf13/cobra"
@@ -52,21 +53,20 @@ The default export format is CSV.`,
 				return fmt.Errorf("failed to export records: %s", err)
 			}
 
-			io := out.StdOut
-			var writer records.Renderer
-			if json {
-				writer = records.JSONRenderer{}
-			} else if yaml {
-				writer = records.YAMLRenderer{}
-			} else {
-				writer = records.CsvRenderer{
-					Separator: ",",
-				}
-			}
-
 			fn, results, _ := t.AllRecordsFiltered(filters, false)
 			go fn()
-			writer.Render(io, results)
+
+			io := out.StdOut
+			var writer render.Renderer
+			if json {
+				writer = records.JSONRenderer{Results: results}
+			} else if yaml {
+				writer = records.YAMLRenderer{Results: results}
+			} else {
+				writer = records.CsvRenderer{Separator: ",", Results: results}
+			}
+
+			writer.Render(io)
 
 			return nil
 		},
