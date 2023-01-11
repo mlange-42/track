@@ -43,7 +43,7 @@ func (wr CsvRenderer) Render(w io.Writer) error {
 			endTime = r.End.Format(util.DateTimeFormat)
 		}
 
-		tags := make([]string, len(r.Tags), len(r.Tags))
+		tags := make([]string, len(r.Tags))
 		i := 0
 		for k, v := range r.Tags {
 			tags[i] = fmt.Sprintf("%s=%s", k, v)
