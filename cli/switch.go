@@ -63,7 +63,7 @@ Notes can contain tags, denoted by the prefix "%s", like "%stag"`, core.TagPrefi
 				}
 
 				if !force && record.Project == project {
-					return fmt.Errorf("Already working on project '%s'. Use --force to start a new record anyway", project)
+					return fmt.Errorf("already working on project '%s'. Use --force to start a new record anyway", project)
 				}
 
 				out.Success("Stopped record in '%s' at %s\n", record.Project, record.End.Format(util.TimeFormat))
@@ -86,7 +86,7 @@ Notes can contain tags, denoted by the prefix "%s", like "%stag"`, core.TagPrefi
 			}
 
 			note := ""
-			tags := map[string]string{}
+			var tags map[string]string
 
 			if copy {
 				latest, err := t.FindLatestRecord(core.FilterByProjects([]string{project}))

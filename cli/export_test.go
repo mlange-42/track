@@ -2,7 +2,7 @@ package cli
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"os"
 	"testing"
 
@@ -54,7 +54,7 @@ func TestExport(t *testing.T) {
 		t.Fatal("error executing command")
 	}
 
-	outStr, err := ioutil.ReadAll(buffer)
+	outStr, err := io.ReadAll(buffer)
 	if err != nil {
 		t.Fatal("error reading output")
 	}

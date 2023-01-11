@@ -71,7 +71,7 @@ Notes can contain tags, denoted by the prefix "%s", like "%stag"`, core.TagPrefi
 			}
 
 			note := ""
-			tags := map[string]string{}
+			var tags map[string]string
 
 			if copy {
 				latest, err := t.FindLatestRecord(core.FilterByProjects([]string{project}))

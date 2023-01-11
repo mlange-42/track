@@ -3,7 +3,6 @@ package cli
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"time"
@@ -578,7 +577,7 @@ func edit[T any](t *core.Track, obj T, comment string, commentPrefix string, mar
 			return err
 		}
 
-		content, err = ioutil.ReadFile(file.Name())
+		content, err = os.ReadFile(file.Name())
 		if err != nil {
 			return err
 		}

@@ -102,7 +102,7 @@ func timelineMonths(r *core.Reporter, csv bool, table bool) string {
 	y2, m2, _ := r.TimeRange.End.Date()
 	numBins := (y2-y1)*12 + int(m2) - int(m1) + 1
 
-	dates := make([]time.Time, numBins, numBins)
+	dates := make([]time.Time, numBins)
 	year, month := y1, m1
 	for i := range dates {
 		dates[i] = util.Date(year, month, 1)
@@ -113,10 +113,10 @@ func timelineMonths(r *core.Reporter, csv bool, table bool) string {
 		}
 	}
 
-	values := make([]time.Duration, numBins, numBins)
+	values := make([]time.Duration, numBins)
 	projectValues := make(map[string][]time.Duration)
 	for p := range r.Projects {
-		projectValues[p] = make([]time.Duration, numBins, numBins)
+		projectValues[p] = make([]time.Duration, numBins)
 	}
 	for _, rec := range r.Records {
 		y2, m2, _ := rec.Start.Date()
@@ -139,14 +139,14 @@ func timeline(r *core.Reporter, startDate time.Time, delta time.Duration, perBox
 	maxDate := util.ToDate(r.TimeRange.End.Add(delta))
 	numBins := int(maxDate.Sub(minDate).Hours() / delta.Hours())
 
-	dates := make([]time.Time, numBins, numBins)
+	dates := make([]time.Time, numBins)
 	currDate := minDate
 	for i := range dates {
 		dates[i] = currDate
 		currDate = currDate.Add(delta)
 	}
 
-	values := make([]time.Duration, numBins, numBins)
+	values := make([]time.Duration, numBins)
 	for _, rec := range r.Records {
 		// TODO: split if over increment
 		d := int(rec.Start.Sub(minDate).Hours() / delta.Hours())
@@ -163,17 +163,17 @@ func timelineTable(r *core.Reporter, startDate time.Time, delta time.Duration) s
 	maxDate := util.ToDate(r.TimeRange.End.Add(delta))
 	numBins := int(maxDate.Sub(minDate).Hours() / delta.Hours())
 
-	dates := make([]time.Time, numBins, numBins)
+	dates := make([]time.Time, numBins)
 	currDate := minDate
 	for i := range dates {
 		dates[i] = currDate
 		currDate = currDate.Add(delta)
 	}
 
-	values := make([]time.Duration, numBins, numBins)
+	values := make([]time.Duration, numBins)
 	projectValues := make(map[string][]time.Duration)
 	for p := range r.Projects {
-		projectValues[p] = make([]time.Duration, numBins, numBins)
+		projectValues[p] = make([]time.Duration, numBins)
 	}
 
 	for _, rec := range r.Records {

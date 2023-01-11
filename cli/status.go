@@ -138,7 +138,7 @@ func getStatus(t *core.Track, proj string, maxBreak time.Duration) (statusInfo, 
 			return statusInfo{}, err
 		}
 		if open == nil {
-			return statusInfo{}, fmt.Errorf("No records for project '%s'", project)
+			return statusInfo{}, fmt.Errorf("no records for project '%s'", project)
 		}
 	} else {
 		if !hasOpenRecord {
@@ -147,9 +147,9 @@ func getStatus(t *core.Track, proj string, maxBreak time.Duration) (statusInfo, 
 				return statusInfo{}, err
 			}
 			if open == nil {
-				return statusInfo{}, fmt.Errorf(("No running record. Start tracking or specify a project."))
+				return statusInfo{}, fmt.Errorf(("no running record. Start tracking or specify a project"))
 			}
-			stopped = time.Now().Sub(open.End)
+			stopped = time.Since(open.End)
 		}
 		project = open.Project
 		isPaused = open.IsPaused()
