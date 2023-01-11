@@ -2,7 +2,9 @@
 
 ## [[unpublished]](https://github.com/mlange-42/track/compare/v0.3.6...main)
 
-Nothing
+### Other
+
+* More unit tests for the CLI commands (#139)
 
 ## [[v0.3.6]](https://github.com/mlange-42/track/compare/v0.3.5...v0.3.6)
 
