@@ -118,7 +118,7 @@ func listWorkspacesCommand(t *core.Track) *cobra.Command {
 
 			for i, w := range ws {
 				if w == t.Workspace() {
-					color.BgBlue.Printf("%s", w)
+					out.Print("%s", color.BgBlue.Sprintf("%s", w))
 				} else {
 					out.Print("%s", w)
 				}
@@ -262,10 +262,10 @@ func printRecord(r core.Record, project core.Project) {
 func printColorChart() {
 	var row, block, i uint8
 
-	color.C256(0, true).Printf("%3d", 0)
+	out.Print("%s", color.C256(0, true).Sprintf("%3d", 0))
 	out.Print(" ")
 	for i = 1; i < 16; i++ {
-		color.S256(0, i).Printf("%3d", i)
+		out.Print("%s", color.S256(0, i).Sprintf("%3d", i))
 		out.Print(" ")
 	}
 	out.Print("\n\n")
@@ -279,9 +279,9 @@ func printColorChart() {
 				idx := start + row*rowOffset + block*blockOffset
 				for i = 0; i < 6; i++ {
 					if row < 3 {
-						color.C256(idx+i, true).Printf("%3d", idx+i)
+						out.Print("%s", color.C256(idx+i, true).Sprintf("%3d", idx+i))
 					} else {
-						color.S256(0, idx+i).Printf("%3d", idx+i)
+						out.Print("%s", color.S256(0, idx+i).Sprintf("%3d", idx+i))
 					}
 					out.Print(" ")
 				}
@@ -293,12 +293,12 @@ func printColorChart() {
 	}
 
 	for i = 232; i < 244; i++ {
-		color.C256(i, true).Printf("%3d", i)
+		out.Print("%s", color.C256(i, true).Sprintf("%3d", i))
 		out.Print(" ")
 	}
 	out.Print("\n")
 	for i := 244; i <= 255; i++ {
-		color.S256(0, uint8(i)).Printf("%3d", i)
+		out.Print("%s", color.S256(0, uint8(i)).Sprintf("%3d", i))
 		out.Print(" ")
 	}
 }
