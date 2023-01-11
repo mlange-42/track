@@ -1,4 +1,5 @@
 /track
 /*.exe
 /*.json
+/*.out
 /docs/public/
