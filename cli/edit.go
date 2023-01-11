@@ -155,11 +155,12 @@ See file .track/config.yml to configure the editor to be used.`,
 				if project.Name == rename {
 					out.Warn("New project name equals old project name\n")
 				} else {
+					oldName := project.Name
 					recCount, prjCount, err := renameProject(t, &project, rename, *dryRun)
 					if err != nil {
 						return fmt.Errorf("failed to edit project: %s", err)
 					}
-					out.Success("Renamed project '%s' to '%s' (%d records, %d projects)\n", project.Name, rename, recCount, prjCount)
+					out.Success("Renamed project '%s' to '%s' (%d records, %d projects)\n", oldName, rename, recCount, prjCount)
 				}
 				changed = true
 			}
