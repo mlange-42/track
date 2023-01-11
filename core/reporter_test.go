@@ -63,7 +63,7 @@ func TestReporter(t *testing.T) {
 	}
 	assert.Equal(t, 11*time.Hour+30*time.Minute, reporter.TotalTime["test"], "Wrong total time")
 
-	reporter, err = NewReporter(
+	_, err = NewReporter(
 		&track, []string{"foo"}, FilterFunctions{},
 		false, util.NoTime, util.NoTime,
 	)

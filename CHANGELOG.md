@@ -4,7 +4,7 @@
 
 ### Other
 
-* More unit tests for the CLI commands (#139)
+* More unit tests for the CLI commands (#139, #142)
 * Internal refactoring of report renderers (#140)
 * Added `staticcheck` to CI actions (#141)
 * Fix all `staticcheck` warnings (#141)
