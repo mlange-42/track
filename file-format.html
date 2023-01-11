@@ -1,0 +1,333 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js rust">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>File format - Track Documentation</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="src/css/custom.css">
+
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "rust";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('rust')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Track -- Introduction</a></li><li class="chapter-item expanded affix "><li class="part-title">User guide</li><li class="chapter-item expanded "><a href="installation.html"><strong aria-hidden="true">1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="getting-started.html"><strong aria-hidden="true">2.</strong> Getting started</a></li><li class="chapter-item expanded "><a href="concepts.html"><strong aria-hidden="true">3.</strong> Concepts</a></li><li class="chapter-item expanded "><a href="tracking.html"><strong aria-hidden="true">4.</strong> Time tracking</a></li><li class="chapter-item expanded "><a href="projects.html"><strong aria-hidden="true">5.</strong> Projects</a></li><li class="chapter-item expanded "><a href="lists.html"><strong aria-hidden="true">6.</strong> Lists</a></li><li class="chapter-item expanded "><a href="reports.html"><strong aria-hidden="true">7.</strong> Reports</a></li><li class="chapter-item expanded "><a href="manipulating.html"><strong aria-hidden="true">8.</strong> Manipulating data</a></li><li class="chapter-item expanded "><a href="workspaces.html"><strong aria-hidden="true">9.</strong> Workspaces</a></li><li class="chapter-item expanded "><a href="configuration.html"><strong aria-hidden="true">10.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="import-export.html"><strong aria-hidden="true">11.</strong> Importing and exporting</a></li><li class="chapter-item expanded affix "><li class="part-title">Appendix</li><li class="chapter-item expanded "><a href="command-tree.html"><strong aria-hidden="true">12.</strong> Command tree</a></li><li class="chapter-item expanded "><a href="file-format.html" class="active"><strong aria-hidden="true">13.</strong> File format</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Track Documentation</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/mlange-42/track" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="file-format"><a class="header" href="#file-format">File format</a></h1>
+<p>This chapter describes the file format that is used for storing <em>Track</em> records.
+The format is also used for editing records using the <code>edit record</code> and <code>edit day</code> commands.</p>
+<ul>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#comments-and-empty-lines">Comments and empty lines</a></li>
+<li><a href="#structure">Structure</a></li>
+<li><a href="#time-ranges">Time ranges</a></li>
+<li><a href="#pauses">Pauses</a></li>
+<li><a href="#project">Project</a></li>
+<li><a href="#note">Note</a></li>
+<li><a href="#tags">Tags</a></li>
+<li><a href="#temporary-multi-record-files">Temporary multi-record files</a></li>
+</ul>
+<h2 id="overview"><a class="header" href="#overview">Overview</a></h2>
+<p>Records are stored in a simple, human-readable text format.</p>
+<p>Records are stored in a directory structure representing the date,
+with file names representing the starting time.
+In the following example, the location of a record starting at <code>2023-01-10 8:15</code> is shown:</p>
+<pre><code class="language-text">records/
+└─2023/
+  └─01/
+    └─10/
+      └─08-15.trk
+</code></pre>
+<p>These files should not be edited directly.
+<em>Track</em> provides an <code>edit</code> command that opens the entries to be edited in a temporary file,
+and performs checks before replacing the original data.
+See chapter <a href="./manipulating.html">Manipulating data</a> for details.</p>
+<p>The content of the file could look like this:</p>
+<pre><code class="language-text"># Record 2023-01-10 8:15
+8:15 - 17:00
+    - 10:15 - 15m / Breakfast
+    - 13:00 - 30m / Lunch
+    
+    ProjectA
+
+Work on +GUI +design
+</code></pre>
+<ul>
+<li>The first line, starting with <code>#</code>, is a comment; date and time in it are just informative</li>
+<li>The next line represents the time span of the record.</li>
+<li>Subsequent lines that start with <code>-</code> (dash, plus optional indentation) are pauses</li>
+<li>The first non-empty line (rather, non-only-whitespace) after pauses is the project name</li>
+<li>Everything after the next non-empty line is the record's note, including tags</li>
+</ul>
+<h2 id="comments-and-empty-lines"><a class="header" href="#comments-and-empty-lines">Comments and empty lines</a></h2>
+<p>Lines that start with <code>#</code> (exactly, no indent/whitespace allowed) are comments.
+Comments are ignored.</p>
+<p>Lines that are completely empty, or that contain only whitespace characters (SPACE, TAB) are considered empty.
+Lines considered empty are ignored, except within the note. Lines considered empty before and after any non-empty note lines are ignored.</p>
+<h2 id="structure"><a class="header" href="#structure">Structure</a></h2>
+<ul>
+<li>The first line that is not ignored (i.e. not comment or &quot;empty&quot;) represents the time span of the record.</li>
+<li>Subsequent lines that start with <code>-</code> (dash, plus optional indentation) are pauses</li>
+<li>The first line after pauses that is not ignored is the project name (excluding optional indentation)</li>
+<li>Everything after any subsequent ignored lines it the record's note; notes can comprise multiple lines</li>
+</ul>
+<h2 id="time-ranges"><a class="header" href="#time-ranges">Time ranges</a></h2>
+<p>There are three ways to define time ranges:</p>
+<ul>
+<li>A starting time and an end time, separated by <code>-</code> (dash, surrounded by optional spaces):<br />
+<code>08:15 - 17:00</code></li>
+<li>A starting time and a duration, separated by <code>-</code> (as above):<br />
+<code>08:15 - 8h45m</code></li>
+<li>An open, still running time span is defined by <code>?</code> as the second element:<br />
+<code>08:15 - ?</code></li>
+</ul>
+<h3 id="time-and-duration-format"><a class="header" href="#time-and-duration-format">Time and duration format</a></h3>
+<p>Times can be specified in the format <code>hh:mm</code> or <code>h:mm</code>, like <code>08:15</code> or <code>8:15</code>.
+All times are in 24h format. 12h <code>am</code>/<code>pm</code> format is not supported.</p>
+<p>Durations are in the usual Go format: <code>10h15m23s</code>. Zero-valued entries can be left out. So e.g. <code>15m</code> is also valid.</p>
+<h3 id="day-shifts"><a class="header" href="#day-shifts">Day shifts</a></h3>
+<p>In some cases, particularly when tracking time over midnight, the starting time of a record may be on another day than the end time. This is denoted by the shift markers <code>&lt;</code> and <code>&gt;</code>.</p>
+<p>The most common case is a record that goes over midnight and ends the day after its start.
+The time range of such a record would look like this:</p>
+<pre><code>22:00 - 00:30&gt;
+</code></pre>
+<p>Another case is full-day editing using <code>edit day</code> (see <a href="#temporary-multi-record-files">Temporary multi-record files</a>).
+Here, a record that starts the day before but ends on the day to edit would start like this:</p>
+<pre><code>&lt;22:00 - 00:30
+</code></pre>
+<h2 id="pauses"><a class="header" href="#pauses">Pauses</a></h2>
+<p>A record can contain an arbitrary number of pauses.</p>
+<p>All lines immediately after the record's time range that start with <code>-</code> (dash, plus optional indentation) are considered pause entries.</p>
+<p>A pause has the form:</p>
+<pre><code>- start - duration / Note
+- start - duration
+- start - end / Note
+- start - end
+</code></pre>
+<p>The following are valid pause entries:</p>
+<pre><code>- 10:00 - 20m / Breakfast
+- 10:00 - 20m
+- 10:00 - 10:20 / Breakfast
+- 10:00 - 10:20
+</code></pre>
+<p><em>Track</em> uses the duration version for saving records. When editing records, both forms are valid.</p>
+<p>For parsing the pause's time range, the rules of <a href="#time-ranges">Time ranges</a> apply.</p>
+<p>Pauses are optional.</p>
+<p>Pauses must be listed in chronological order, and must not overlap.
+Pauses must not exceed the record's time span.</p>
+<h2 id="project"><a class="header" href="#project">Project</a></h2>
+<p>The first line after any (optional) pause entries that is not ignored (i.e. not comment or &quot;empty&quot;)
+is considered the project name. Any whitespace characters at the start and the end of the line are removed. I.e. indentation can be used.</p>
+<p>The project name is obligatory.</p>
+<h2 id="note"><a class="header" href="#note">Note</a></h2>
+<p>The note is optional.</p>
+<p>All lines after the project name are considered the note.
+Any &quot;empty&quot; lines at the start and the end of the note are removed.
+Empty lines between non-empty lines of a note are preserved.</p>
+<p>A note can contain tags.</p>
+<h2 id="tags"><a class="header" href="#tags">Tags</a></h2>
+<p>Tags are derived from the note, and are optional.</p>
+<p>Tags are identified by the prefix <code>+</code> and must be surrounded/are delimited by spaces.
+Tag can have an optional value, which is separated from the tag's name by <code>=</code> (without any whitespace characters).</p>
+<p>Here is an example of a note that contains a tag <code>tag</code> without a value, and a tag <code>key</code> with a value:</p>
+<pre><code>A note featuring a +tag and a +key=value pair for a tag with a value
+</code></pre>
+<h2 id="temporary-multi-record-files"><a class="header" href="#temporary-multi-record-files">Temporary multi-record files</a></h2>
+<p>When using the <code>edit day</code> command, <em>Track</em> assembles the respective records in a single temporary file for the user to edit.
+In this file, lines that start with <code>----</code> (4 dashes) delimit individual records:</p>
+<pre><code>8:15 - 13:00
+    ProjectA
+
+Work on +GUI +design
+
+-------------
+
+14:00 - 13:30
+    ProjectA
+
+Working group +meeting
+
+-------------
+
+13:30 - 15:00
+    ProjectB
+
+Draft +paper
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="command-tree.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="command-tree.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </body>
+</html>
