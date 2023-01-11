@@ -1,9 +1,14 @@
 # Changelog
 
-## [[unpublished]](https://github.com/mlange-42/track/compare/v0.3.6...main)
+## [[unpublished]](https://github.com/mlange-42/track/compare/v0.3.7...main)
+
+Nothing
+
+## [[v0.3.7]](https://github.com/mlange-42/track/compare/v0.3.6...v0.3.7)
 
 ### Other
 
+* Tweak record file format documentation (#138)
 * More unit tests for the CLI commands (#139, #142)
 * Internal refactoring of report renderers (#140)
 * Added `staticcheck` to CI actions (#141)
