@@ -2,33 +2,17 @@ package cli
 
 import (
 	"fmt"
-	"image/color"
-	"os"
-	"strings"
 
 	"github.com/mlange-42/track/core"
 	"github.com/mlange-42/track/out"
+	"github.com/mlange-42/track/render"
+	"github.com/mlange-42/track/render/treemap"
 	"github.com/mlange-42/track/util"
-	"github.com/nikolaydubina/treemap"
-	"github.com/nikolaydubina/treemap/parser"
-	"github.com/nikolaydubina/treemap/render"
 	"github.com/spf13/cobra"
 )
 
-type svgFlags struct {
-	W             float64
-	H             float64
-	MarginBox     float64
-	PaddingBox    float64
-	Padding       float64
-	ColorScheme   string
-	ColorBorder   string
-	ImputeHeat    bool
-	KeepLongPaths bool
-}
-
 func treemapReportCommand(t *core.Track, options *filterOptions) *cobra.Command {
-	var svg svgFlags
+	var svg treemap.SvgOptions
 	var csv bool
 
 	treemap := &cobra.Command{
@@ -59,24 +43,20 @@ func treemapReportCommand(t *core.Track, options *filterOptions) *cobra.Command 
 				return fmt.Errorf("failed to generate report: %s", err.Error())
 			}
 
-			tree, err := t.ToProjectTree(reporter.Projects)
-			if err != nil {
-				return fmt.Errorf("failed to generate report: %s", err.Error())
-			}
-
-			formatter := TreemapPrinter{*reporter}
-			str := formatter.Print(tree)
+			var renderer render.Renderer
 			if csv {
-				out.Print(str)
-				return nil
+				renderer = treemap.CsvRenderer{
+					Track:    t,
+					Reporter: *reporter,
+				}
+			} else {
+				renderer = treemap.SvgRenderer{
+					Track:    t,
+					Reporter: *reporter,
+					Options:  svg,
+				}
 			}
-
-			svgBytes, err := toSvg(str, &svg)
-			if err != nil {
-				out.Err("failed to generate report: %s", err.Error())
-				return nil
-			}
-			os.Stdout.Write(svgBytes)
+			renderer.Render(out.StdOut)
 			return nil
 		},
 	}
@@ -96,119 +76,4 @@ func treemapReportCommand(t *core.Track, options *filterOptions) *cobra.Command 
 	treemap.Flags().BoolVar(&svg.KeepLongPaths, "long-paths", false, "keep long paths when paren has single child")
 
 	return treemap
-}
-
-// TreemapPrinter prints a tree in treemap CSV format
-type TreemapPrinter struct {
-	Reporter core.Reporter
-}
-
-// Print prints a FileTree
-func (p TreemapPrinter) Print(t *core.ProjectTree) string {
-	sb := strings.Builder{}
-	p.print(t.Root, &sb, "")
-	return sb.String()
-}
-
-func (p TreemapPrinter) print(t *core.ProjectNode, sb *strings.Builder, path string) {
-	total := p.Reporter.TotalTime[t.Value.Name]
-	if len(path) == 0 {
-		path = fmt.Sprintf("%s (%s)", t.Value.Name, util.FormatDuration(total))
-	} else {
-		path = fmt.Sprintf("%s/%s (%s)", path, t.Value.Name, util.FormatDuration(total))
-	}
-
-	totalHours := total.Hours()
-	if totalHours == 0 {
-		totalHours = 0.001
-	}
-
-	fmt.Fprintf(
-		sb,
-		"%s,%f,%f\n",
-		strings.Replace(path, ",", "-", -1),
-		totalHours,
-		0.0,
-	)
-	for _, child := range t.Children {
-		p.print(child, sb, path)
-	}
-}
-
-var grey = color.RGBA{128, 128, 128, 255}
-
-func toSvg(s string, flags *svgFlags) ([]byte, error) {
-	parser := parser.CSVTreeParser{}
-	tree, err := parser.ParseString(s)
-	if err != nil || tree == nil {
-		return []byte{}, err
-	}
-
-	treemap.SetNamesFromPaths(tree)
-	if !flags.KeepLongPaths {
-		treemap.CollapseLongPaths(tree)
-	}
-
-	sizeImputer := treemap.SumSizeImputer{EmptyLeafSize: 1}
-	sizeImputer.ImputeSize(*tree)
-
-	if flags.ImputeHeat {
-		heatImputer := treemap.WeightedHeatImputer{EmptyLeafHeat: 0.5}
-		heatImputer.ImputeHeat(*tree)
-	}
-
-	tree.NormalizeHeat()
-
-	var colorer render.Colorer
-
-	palette, hasPalette := render.GetPalette(flags.ColorScheme)
-	treeHueColorer := render.TreeHueColorer{
-		Offset: 0,
-		Hues:   map[string]float64{},
-		C:      0.5,
-		L:      0.5,
-		DeltaH: 10,
-		DeltaC: 0.3,
-		DeltaL: 0.1,
-	}
-
-	var borderColor color.Color
-	borderColor = color.White
-	colorer = treeHueColorer
-	borderColor = color.White
-
-	colorer = treeHueColorer
-	borderColor = color.White
-
-	switch {
-	case flags.ColorScheme == "none":
-		colorer = render.NoneColorer{}
-		borderColor = grey
-	case flags.ColorScheme == "balanced":
-		colorer = treeHueColorer
-		borderColor = color.White
-	case hasPalette && tree.HasHeat():
-		colorer = render.HeatColorer{Palette: palette}
-	case tree.HasHeat():
-		palette, _ := render.GetPalette("RdBu")
-		colorer = render.HeatColorer{Palette: palette}
-	default:
-		colorer = treeHueColorer
-	}
-
-	switch {
-	case flags.ColorBorder == "light":
-		borderColor = color.White
-	case flags.ColorBorder == "dark":
-		borderColor = grey
-	}
-
-	uiBuilder := render.UITreeMapBuilder{
-		Colorer:     colorer,
-		BorderColor: borderColor,
-	}
-	spec := uiBuilder.NewUITreeMap(*tree, flags.W, flags.H, flags.MarginBox, flags.PaddingBox, flags.Padding)
-	renderer := render.SVGRenderer{}
-
-	return renderer.Render(spec, flags.W, flags.H), nil
 }
