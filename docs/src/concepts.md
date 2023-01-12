@@ -46,7 +46,7 @@ track l r yesterday
 
 For the full subcommand tree, see appendix [Command tree](./command-tree.md).
 
-## File formats
+## File format
 
 *Track* uses a human-readable plain-text format to store records.
 This allows for easy editing, simply using a text editor.
@@ -66,3 +66,5 @@ Work on +GUI +design
 *Track* provides an `edit` command that opens the entries to be edited in a temporary file,
 and performs checks before replacing the original data.
 See chapter [Manipulating data](./manipulating.md) for details.
+
+For more details on the record format, see appendix [File format](./file-format.md).
