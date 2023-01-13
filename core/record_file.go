@@ -28,7 +28,7 @@ type listFilterResult struct {
 	Err  error
 }
 
-// StartRecord starts and saves a record
+// StartRecord starts and saves a new record
 func (t *Track) StartRecord(project *Project, note string, tags map[string]string, start time.Time) (Record, error) {
 	record := Record{
 		Project: project.Name,
@@ -46,7 +46,7 @@ func (t *Track) StartRecord(project *Project, note string, tags map[string]strin
 	return record, t.SaveRecord(&record, false)
 }
 
-// StopRecord stops and saves the current record
+// StopRecord stops the currently running record at the given time, and saves it to disk.
 func (t *Track) StopRecord(end time.Time) (*Record, error) {
 	record, err := t.OpenRecord()
 	if err != nil {
@@ -74,7 +74,7 @@ func (t *Track) StopRecord(end time.Time) (*Record, error) {
 	return record, nil
 }
 
-// LoadRecord loads a record
+// LoadRecord loads a record by the given start time
 func (t *Track) LoadRecord(tm time.Time) (Record, error) {
 	path := t.RecordPath(tm)
 	file, err := os.ReadFile(path)
@@ -93,7 +93,8 @@ func (t *Track) LoadRecord(tm time.Time) (Record, error) {
 	return record, nil
 }
 
-// OpenRecord returns the open record if any. Returns a nil reference if no open record is found.
+// OpenRecord returns the open/running record if any.
+// Returns a nil reference if no open record is found.
 func (t *Track) OpenRecord() (*Record, error) {
 	latest, err := t.LatestRecord()
 	if err != nil {
@@ -111,7 +112,8 @@ func (t *Track) OpenRecord() (*Record, error) {
 	return latest, nil
 }
 
-// LatestRecord loads the latest record. Returns a nil reference if no record is found.
+// LatestRecord loads the latest record, open/running or not.
+// Returns a nil reference if no record is found.
 func (t *Track) LatestRecord() (*Record, error) {
 	records := t.RecordsDir()
 	yearPath, year, err := util.FindLatests(records, true)
@@ -155,7 +157,8 @@ func (t *Track) LatestRecord() (*Record, error) {
 	return &rec, nil
 }
 
-// FindLatestRecord loads the latest record for the given condition. Returns a nil reference if no record is found.
+// FindLatestRecord loads the latest record that matches the given FilterFunction.
+// Returns a nil reference if no record is found.
 func (t *Track) FindLatestRecord(cond FilterFunction) (*Record, error) {
 	fn, results, stop := t.AllRecordsFiltered(
 		FilterFunctions{[]FilterFunction{cond}, util.NoTime, util.NoTime},
@@ -171,12 +174,12 @@ func (t *Track) FindLatestRecord(cond FilterFunction) (*Record, error) {
 	return &res.Record, nil
 }
 
-// LoadAllRecords loads all records
+// LoadAllRecords loads all records.
 func (t *Track) LoadAllRecords() ([]Record, error) {
 	return t.LoadAllRecordsFiltered(NewFilter([]func(*Record) bool{}, util.NoTime, util.NoTime))
 }
 
-// LoadAllRecordsFiltered loads all records
+// LoadAllRecordsFiltered loads all records, filtered by FilterFunctions.
 func (t *Track) LoadAllRecordsFiltered(filters FilterFunctions) ([]Record, error) {
 	fn, results, _ := t.AllRecordsFiltered(filters, false)
 	go fn()
@@ -192,12 +195,20 @@ func (t *Track) LoadAllRecordsFiltered(filters FilterFunctions) ([]Record, error
 	return records, nil
 }
 
-// AllRecords is an async version of LoadAllRecords
+// AllRecords is an async version of LoadAllRecords.
+//
+// Returns a function to be run as goroutine,
+// a channel for results, and a channel that can be closed
+// to signal end of the search.
 func (t *Track) AllRecords() (func(), chan FilterResult, chan struct{}) {
 	return t.AllRecordsFiltered(NewFilter([]func(*Record) bool{}, util.NoTime, util.NoTime), false)
 }
 
-// AllRecordsFiltered is an async version of LoadAllRecordsFiltered
+// AllRecordsFiltered is an async version of LoadAllRecordsFiltered.
+//
+// Returns a function to be run as goroutine,
+// a channel for results, and a channel that can be closed
+// to signal end of the search.
 func (t *Track) AllRecordsFiltered(filters FilterFunctions, reversed bool) (func(), chan FilterResult, chan struct{}) {
 	numWorkers := 32
 	results := make(chan FilterResult, 64)
@@ -386,7 +397,8 @@ func (t *Track) LoadDateRecords(date time.Time) ([]Record, error) {
 	return t.LoadDateRecordsFiltered(date, FilterFunctions{})
 }
 
-// LoadDateRecordsExact loads all records for the given date, including those starting the das before
+// LoadDateRecordsExact loads all records for the given date,
+// including those starting the day before but ending at the given date.
 func (t *Track) LoadDateRecordsExact(date time.Time) ([]Record, error) {
 	date = util.ToDate(date)
 	dateBefore := date.Add(-24 * time.Hour)
@@ -414,7 +426,8 @@ func (t *Track) LoadDateRecordsExact(date time.Time) ([]Record, error) {
 	return records, nil
 }
 
-// LoadDateRecordsFiltered loads all records for the given date string/directory
+// LoadDateRecordsFiltered loads all records for the given date,
+// filtered by FilterFunctions.
 func (t *Track) LoadDateRecordsFiltered(date time.Time, filters FilterFunctions) ([]Record, error) {
 	recs, err := t.listDateRecords(date)
 	if err != nil {
@@ -469,7 +482,8 @@ func (t *Track) listDateRecords(date time.Time) ([]time.Time, error) {
 	return records, nil
 }
 
-// SaveRecord saves a record to disk
+// SaveRecord saves the given record to disk.
+// Argument `force` allows to overwrite an existing file.
 func (t *Track) SaveRecord(record *Record, force bool) error {
 	path := t.RecordPath(record.Start)
 	if !force && util.FileExists(path) {

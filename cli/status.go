@@ -66,7 +66,7 @@ Columns of the status are:
 				)
 			}
 
-			proj, err := t.LoadProjectByName(info.Project)
+			proj, err := t.LoadProject(info.Project)
 			if err != nil {
 				return fmt.Errorf("failed to show status: %s", err)
 			}

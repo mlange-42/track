@@ -97,7 +97,7 @@ func TestEditProjectRenameArchive(t *testing.T) {
 	}
 	assert.Equal(t, "other", newRec.Project, "record should be in renamed project")
 
-	newProj, err := track.LoadProjectByName("child")
+	newProj, err := track.LoadProject("child")
 	if err != nil {
 		t.Fatal("error loading project")
 	}
@@ -110,7 +110,7 @@ func TestEditProjectRenameArchive(t *testing.T) {
 	if err != nil {
 		t.Fatalf("error executing command: %s", err.Error())
 	}
-	newProj, err = track.LoadProjectByName("other")
+	newProj, err = track.LoadProject("other")
 	if err != nil {
 		t.Fatal("error loading project")
 	}

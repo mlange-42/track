@@ -37,7 +37,7 @@ Notes can contain tags, denoted by the prefix "%s", like "%stag"`, core.TagPrefi
 				return fmt.Errorf("failed to start record: can't use note arguments with flag --copy")
 			}
 
-			proj, err := t.LoadProjectByName(project)
+			proj, err := t.LoadProject(project)
 			if err != nil {
 				return fmt.Errorf("failed to start record: %s", err)
 			}

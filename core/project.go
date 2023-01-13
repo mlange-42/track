@@ -91,12 +91,13 @@ func (p *Project) SetColors(fgCol, col uint8) {
 	p.Render = *color.S256(fgCol, col)
 }
 
-// ProjectExists checks if a project exists
+// ProjectExists checks if a project exists on disk
 func (t *Track) ProjectExists(name string) bool {
 	return util.FileExists(t.ProjectPath(name))
 }
 
-// SaveProject saves a project to disk
+// SaveProject saves a project to disk.
+// Argument `force` allows to overwrite an existing file.
 func (t *Track) SaveProject(project Project, force bool) error {
 	path := t.ProjectPath(project.Name)
 
@@ -125,14 +126,14 @@ func (t *Track) SaveProject(project Project, force bool) error {
 	return err
 }
 
-// LoadProjectByName loads a project by name
-func (t *Track) LoadProjectByName(name string) (Project, error) {
+// LoadProject loads a project by it's name
+func (t *Track) LoadProject(name string) (Project, error) {
 	path := t.ProjectPath(name)
-	return t.LoadProject(path)
+	return t.loadProjectFromFile(path)
 }
 
-// LoadProject loads a project
-func (t *Track) LoadProject(path string) (Project, error) {
+// loadProjectFromFile loads a project from the given path
+func (t *Track) loadProjectFromFile(path string) (Project, error) {
 	file, err := os.ReadFile(path)
 	if err != nil {
 		return Project{}, err
@@ -147,7 +148,7 @@ func (t *Track) LoadProject(path string) (Project, error) {
 	return project, nil
 }
 
-// LoadAllProjects loads all projects
+// LoadAllProjects loads all projects in the current workspace
 func (t *Track) LoadAllProjects() (map[string]Project, error) {
 	path := t.ProjectsDir()
 
@@ -161,7 +162,7 @@ func (t *Track) LoadAllProjects() (map[string]Project, error) {
 		if file.IsDir() {
 			continue
 		}
-		project, err := t.LoadProject(filepath.Join(path, file.Name()))
+		project, err := t.loadProjectFromFile(filepath.Join(path, file.Name()))
 		if err != nil {
 			return nil, err
 		}
@@ -171,7 +172,10 @@ func (t *Track) LoadAllProjects() (map[string]Project, error) {
 	return projects, nil
 }
 
-// DeleteProject deletes a project and all associated records
+// DeleteProject deletes a project and potentially all associated records
+//
+// Argument `deleteRecords` determines whether records should be deleted
+// Argument `dryRun` can be used to dry-run deleting
 func (t *Track) DeleteProject(project *Project, deleteRecords bool, dryRun bool) (int, error) {
 	counter := 0
 
@@ -207,7 +211,7 @@ func (t *Track) DeleteProject(project *Project, deleteRecords bool, dryRun bool)
 	return counter, nil
 }
 
-// ToProjectTree creates a tree of the given projects
+// ToProjectTree creates a MapTree of the given projects
 func (t *Track) ToProjectTree(projects map[string]Project) (*ProjectTree, error) {
 	pTree := NewTree(
 		Project{

@@ -131,7 +131,7 @@ See file .track/config.yml to configure the editor to be used.`,
 		Args:    util.WrappedArgs(cobra.ExactArgs(1)),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name := args[0]
-			project, err := t.LoadProjectByName(name)
+			project, err := t.LoadProject(name)
 			if err != nil {
 				return fmt.Errorf("failed to edit project: %s", err)
 			}
@@ -282,7 +282,7 @@ func editRecord(t *core.Track, tm time.Time, dryRun bool) error {
 				return err
 			}
 
-			project, err := t.LoadProjectByName(newRecord.Project)
+			project, err := t.LoadProject(newRecord.Project)
 			if err != nil {
 				return err
 			}

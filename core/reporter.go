@@ -26,7 +26,8 @@ type Reporter struct {
 	TimeRange    TimeRange
 }
 
-// NewReporter creates a new Reporter from filters
+// NewReporter creates a new Reporter from filters.
+// Arguments `start` and `end` are the exact time boundaries for duration calculations.
 func NewReporter(
 	t *Track, proj []string,
 	filters FilterFunctions, includeArchived bool,

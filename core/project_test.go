@@ -142,7 +142,7 @@ func TestSaveLoadProject(t *testing.T) {
 
 	assert.Equal(t, map[string]Project{"test": project}, allProjects, "Loaded project not equal to saved project")
 
-	newProject, err := track.LoadProjectByName("test")
+	newProject, err := track.LoadProject("test")
 	assert.Nil(t, err, "Error loading project")
 	assert.Equal(t, project, newProject, "Loaded project not equal to saved project")
 

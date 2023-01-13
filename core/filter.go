@@ -9,14 +9,15 @@ import (
 // FilterFunction is an alias for func(r *Record) bool
 type FilterFunction = func(r *Record) bool
 
-// FilterFunctions contains []func(r *Record) bool and a time range
+// FilterFunctions are used to filter records.
+// FilterFunctions contains []func(r *Record) bool and a time range.
 type FilterFunctions struct {
 	Functions []FilterFunction
 	Start     time.Time
 	End       time.Time
 }
 
-// NewFilter creates FilterFunctions
+// NewFilter creates a FilterFunctions struct
 func NewFilter(fn []FilterFunction, start, end time.Time) FilterFunctions {
 	if !(start.IsZero() && end.IsZero()) {
 		fn = append(fn, FilterByTime(start, end))
@@ -28,7 +29,7 @@ func NewFilter(fn []FilterFunction, start, end time.Time) FilterFunctions {
 	}
 }
 
-// Filter checks a record using multiple filters
+// Filter checks a record using multiple filters from FilterFunctions
 func Filter(record *Record, filters FilterFunctions) bool {
 	for _, f := range filters.Functions {
 		if !f(record) {

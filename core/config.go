@@ -19,16 +19,23 @@ var (
 	ErrNoConfig = errors.New("no config file")
 )
 
-// Config for track
+// Config for Track
 type Config struct {
-	Workspace        string        `yaml:"workspace"`
-	TextEditor       string        `yaml:"textEditor"`
+	// The current workspace
+	Workspace string `yaml:"workspace"`
+	// The text editor for editing resources
+	TextEditor string `yaml:"textEditor"`
+	// Maximum duration of breaks between records of the same project to consider it as a pause
 	MaxBreakDuration time.Duration `yaml:"maxBreakDuration"`
-	EmptyCell        string        `yaml:"emptyCell"`
-	RecordCell       string        `yaml:"recordCell"`
-	PauseCell        string        `yaml:"pauseCell"`
+	// Character for empty cells in day and week reports
+	EmptyCell string `yaml:"emptyCell"`
+	// Character for record cells in day and week reports
+	RecordCell string `yaml:"recordCell"`
+	// Character for pause cells in day and week reports
+	PauseCell string `yaml:"pauseCell"`
 }
 
+// defaultConfig creates a Config with default values
 func defaultConfig() Config {
 	var editor string
 	if strings.ToLower(runtime.GOOS) == "windows" {
@@ -48,6 +55,7 @@ func defaultConfig() Config {
 }
 
 // LoadConfig loads the track config, or creates and saves default settings
+// if it does not exist.
 func LoadConfig(path string) (Config, error) {
 	conf, err := tryLoadConfig(path)
 	if err == nil {
@@ -86,7 +94,7 @@ func tryLoadConfig(path string) (Config, error) {
 	return conf, nil
 }
 
-// Save saves the given to it's default location
+// Save saves the given Config to it's default location
 func (conf *Config) Save(path string) error {
 	if err := conf.Check(); err != nil {
 		return err

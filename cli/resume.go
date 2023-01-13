@@ -113,7 +113,7 @@ func resumeLastRecord(t *core.Track, last *core.Record, args []string, atTime st
 	if !t.ProjectExists(project) {
 		return 0, fmt.Errorf("project '%s' does not exist", project)
 	}
-	proj, err := t.LoadProjectByName(project)
+	proj, err := t.LoadProject(project)
 	if err != nil {
 		return 0, err
 	}

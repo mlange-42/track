@@ -45,7 +45,7 @@ If there is no project with the same name as the parent of the project, the pare
 			name := args[0]
 			workspace := args[1]
 
-			project, err := t.LoadProjectByName(name)
+			project, err := t.LoadProject(name)
 			if err != nil {
 				return fmt.Errorf("failed to move project: %s", err)
 			}

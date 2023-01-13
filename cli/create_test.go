@@ -90,7 +90,7 @@ func TestCreateProjectFlags(t *testing.T) {
 	}
 	assert.True(t, track.ProjectExists("child"), "Project should exist")
 
-	project, err := track.LoadProjectByName("child")
+	project, err := track.LoadProject("child")
 	if err != nil {
 		t.Fatal("error loading project")
 	}

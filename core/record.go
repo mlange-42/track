@@ -25,7 +25,7 @@ var (
 	ErrRecordNotFound = errors.New("record not found")
 )
 
-// Record holds and manipulates data for a record
+// Record represents a time tracking record
 type Record struct {
 	Project string            `json:"project"`
 	Start   time.Time         `json:"start"`
@@ -42,22 +42,23 @@ type Pause struct {
 	Note  string
 }
 
-// Duration reports the duration of a pause
+// Duration reports the duration of a pause.
 func (p *Pause) Duration(min, max time.Time) time.Duration {
 	return util.DurationClip(p.Start, p.End, min, max)
 }
 
-// HasEnded reports whether the record has an end time
+// HasEnded reports whether the record has an end time, or is still running.
 func (r *Record) HasEnded() bool {
 	return !r.End.IsZero()
 }
 
-// IsPaused reports whether the record is paused
+// IsPaused reports whether the record is paused.
 func (r *Record) IsPaused() bool {
 	return len(r.Pause) > 0 && r.Pause[len(r.Pause)-1].End.IsZero()
 }
 
-// CurrentPause returns the current pause
+// CurrentPause returns the current pause.
+// The second return value indicates if there is an open pause.
 func (r *Record) CurrentPause() (Pause, bool) {
 	if len(r.Pause) > 0 && r.Pause[len(r.Pause)-1].End.IsZero() {
 		return r.Pause[len(r.Pause)-1], true
@@ -65,7 +66,8 @@ func (r *Record) CurrentPause() (Pause, bool) {
 	return Pause{}, false
 }
 
-// LastPause returns the last pause. Returns false if there is an open pause
+// LastPause returns the last pause.
+// Returns false as second value if there is no or only an open pause.
 func (r *Record) LastPause() (Pause, bool) {
 	if len(r.Pause) > 0 && !r.Pause[len(r.Pause)-1].End.IsZero() {
 		return r.Pause[len(r.Pause)-1], true
@@ -73,19 +75,19 @@ func (r *Record) LastPause() (Pause, bool) {
 	return Pause{}, false
 }
 
-// Duration reports the duration of a record, excluding pause time
+// Duration reports the duration of a record, excluding pause times.
 func (r *Record) Duration(min, max time.Time) time.Duration {
 	dur := util.DurationClip(r.Start, r.End, min, max)
 	dur -= r.PauseDuration(min, max)
 	return dur
 }
 
-// TotalDuration reports the duration of a record, including pause time
+// TotalDuration reports the duration of a record, including pause times.
 func (r *Record) TotalDuration(min, max time.Time) time.Duration {
 	return util.DurationClip(r.Start, r.End, min, max)
 }
 
-// PauseDuration reports the duration of all pauses of the record
+// PauseDuration reports the duration of all pauses of the record.
 func (r *Record) PauseDuration(min, max time.Time) time.Duration {
 	dur := time.Second * 0
 	for _, p := range r.Pause {
@@ -94,7 +96,8 @@ func (r *Record) PauseDuration(min, max time.Time) time.Duration {
 	return dur
 }
 
-// CurrentPauseDuration reports the duration of an open pause
+// CurrentPauseDuration reports the duration of an open pause.
+// Returns a zero duration if there is no open pause.
 func (r *Record) CurrentPauseDuration(min, max time.Time) time.Duration {
 	dur := time.Second * 0
 	if len(r.Pause) == 0 {
@@ -189,7 +192,8 @@ func (r *Record) EndPause(t time.Time) (Pause, error) {
 	return r.Pause[len(r.Pause)-1], nil
 }
 
-// ParseTag parses a key=value pair
+// ParseTag parses a key=value pair from a tag entry.
+// Value is "" if it is a tag without a value.
 func ParseTag(tag string) (string, string) {
 	parts := strings.SplitN(tag, "=", 2)
 	value := ""
@@ -199,7 +203,7 @@ func ParseTag(tag string) (string, string) {
 	return parts[0], value
 }
 
-// ExtractTagsSlice extracts elements with the tag prefix
+// ExtractTagsSlice extracts elements with the tag prefix from a slice of strings.
 func ExtractTagsSlice(tokens []string) (map[string]string, error) {
 	result := make(map[string]string)
 	for _, token := range tokens {
@@ -217,7 +221,7 @@ func ExtractTagsSlice(tokens []string) (map[string]string, error) {
 	return result, nil
 }
 
-// ExtractTags extracts elements with the tag prefix
+// ExtractTags extracts elements with the tag prefix from a string.
 func ExtractTags(text string) (map[string]string, error) {
 	result := make(map[string]string)
 	subTokens := strings.Split(text, " ")
