@@ -28,14 +28,14 @@ type listFilterResult struct {
 	Err  error
 }
 
-// StartRecord starts and saves a new record
-func (t *Track) StartRecord(project *Project, note string, tags map[string]string, start time.Time) (Record, error) {
+// NewRecord creates a new record
+func (t *Track) NewRecord(project *Project, note string, tags map[string]string, start time.Time, end time.Time) (Record, error) {
 	record := Record{
 		Project: project.Name,
 		Note:    note,
 		Tags:    tags,
 		Start:   start,
-		End:     util.NoTime,
+		End:     end,
 		Pause:   []Pause{},
 	}
 
@@ -44,6 +44,11 @@ func (t *Track) StartRecord(project *Project, note string, tags map[string]strin
 	}
 
 	return record, t.SaveRecord(&record, false)
+}
+
+// StartRecord starts a new record for the given project at the given time.
+func (t *Track) StartRecord(project *Project, note string, tags map[string]string, start time.Time) (Record, error) {
+	return t.NewRecord(project, note, tags, start, util.NoTime)
 }
 
 // StopRecord stops the currently running record at the given time, and saves it to disk.
