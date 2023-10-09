@@ -14,7 +14,6 @@ func (t testStruct) GetName() string {
 	return t.Name
 }
 
-type testTree = MapTree[testStruct]
 type testNode = MapNode[testStruct]
 
 func TestAdd(t *testing.T) {
