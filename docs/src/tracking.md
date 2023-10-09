@@ -25,7 +25,7 @@ track start MyProject
 
 ## Note and tags
 
-Records can have a not and tags.
+Records can have a note and tags.
 All positional arguments after the project's name are concatenated to the note text.
 Words prefixed with '+' are extracted as tags.
 Here is an example:

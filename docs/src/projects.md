@@ -22,7 +22,7 @@ archived: false
 
 ## Creating projects
 
-Most simple, a project with default properties can be created like this:
+To simply create a project with default properties, us the the following command:
 
 ```shell
 track create project MyProject
